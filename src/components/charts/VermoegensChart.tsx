@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Meilensteine, VermoegensverlaufJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
 
@@ -9,7 +9,7 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
 
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="wert" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
@@ -32,6 +32,15 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
         <Area type="monotone" dataKey="immobilienwert" name="Immobilienwert" stroke="#3b82f6" fill="url(#wert)" />
         <Area type="monotone" dataKey="restschuld" name="Restschuld" stroke="#f97316" fillOpacity={0} />
         <Area type="monotone" dataKey="eigenkapitalanteil" name="Eigenkapitalanteil" stroke="#10b981" fill="url(#ek)" />
+        <Line
+          type="monotone"
+          dataKey="eigenkapitalanteilReal"
+          name="Eigenkapitalanteil (real, inflationsbereinigt)"
+          stroke="#10b981"
+          strokeDasharray="4 4"
+          strokeWidth={1.5}
+          dot={false}
+        />
         {meilensteine && meilensteine.zinsbindungEndeJahr <= maxJahr && (
           <ReferenceLine
             x={meilensteine.zinsbindungEndeJahr}
@@ -48,7 +57,7 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
             label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#22c55e", fontSize: 11 }}
           />
         )}
-      </AreaChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

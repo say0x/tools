@@ -108,12 +108,12 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.affordability.ampel).toBe("GRUEN");
   });
 
-  it("liefert einen 50-jährigen Vermögensverlauf, dessen Restschuld die des Tilgungsplans widerspiegelt", () => {
+  it("liefert einen 50-jährigen Vermögensverlauf mit Wertsteigerung unabhängig vom Exit-Plan (Default 2%/Jahr)", () => {
     expect(result.vermoegensverlauf).toHaveLength(50);
     expect(result.vermoegensverlauf[0].restschuld).toBe(result.tilgungsplan[0].restschuldEnde);
-    // Kein Exit geplant -> Wertsteigerung 0%, Immobilienwert bleibt konstant.
-    expect(result.vermoegensverlauf[0].immobilienwert).toBe(200000);
-    expect(result.vermoegensverlauf[49].immobilienwert).toBe(200000);
+    // Kein Exit geplant, aber Wertsteigerung wirkt trotzdem (200.000 × 1,02^n).
+    expect(result.vermoegensverlauf[0].immobilienwert).toBe(204000);
+    expect(result.vermoegensverlauf[49].immobilienwert).toBeCloseTo(538317.61, 2);
   });
 
   it("verfolgt kumulierten Cashflow vor UND nach Steuer getrennt über die Jahre", () => {
@@ -122,6 +122,20 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.vermoegensverlauf[0].kumulierterCashflowNachSteuer).toBeGreaterThan(
       result.vermoegensverlauf[0].kumulierterCashflowVorSteuer
     );
+  });
+
+  it("schreibt Miete und Kosten in Jahr 2 mit getrennten Raten fort, während die Annuität (Zins+Tilgung) konstant bleibt", () => {
+    // Miete: 12.000 × 1,015 = 12.180 — Kosten: 2.280 × 1,02 = 2.325,60 — Annuität bleibt 12.000 (konstant bei gleichbleibendem Zins).
+    const jahr2 = result.vermoegensverlauf[1];
+    const annuitaetJahr2 = result.tilgungsplan[1].zinszahlung + result.tilgungsplan[1].tilgungszahlung;
+    expect(annuitaetJahr2).toBeCloseTo(12000, 2);
+    expect(jahr2.cashflowVorSteuerJahr).toBeCloseTo(12180 - 2325.6 - 12000, 2);
+  });
+
+  it("liefert eine inflationsbereinigte (reale) Eigenkapitalanteil-Reihe, die unter der nominalen liegt", () => {
+    const letztesJahr = result.vermoegensverlauf[49];
+    expect(letztesJahr.eigenkapitalanteilReal).toBeLessThan(letztesJahr.eigenkapitalanteil);
+    expect(letztesJahr.immobilienwertReal).toBeLessThan(letztesJahr.immobilienwert);
   });
 
   it("liefert Meilensteine für Zinsbindungsende und Volltilgung, konsistent zum Tilgungsplan", () => {

@@ -300,11 +300,26 @@ export function PropertyForm({
         </Card>
 
         <Card>
-          <CardTitle>Miete</CardTitle>
+          <CardTitle>Miete &amp; Wertentwicklung</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DualUnitInput control={control} name="kaltmieteMonatlich" label="Kaltmiete" wohnflaeche={wohnflaeche} />
-            <Field label="Erwartete Mietsteigerung (%/Jahr)">
+            <Field
+              label={
+                <>
+                  Erwartete Mietsteigerung (%/Jahr) <InfoTooltip text={FIELD_HILFE.mietsteigerung} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("mietsteigerungProzentJaehrlich", { valueAsNumber: true })} />
+            </Field>
+            <Field
+              label={
+                <>
+                  Erwartete Wertsteigerung (%/Jahr) <InfoTooltip text={FIELD_HILFE.wertsteigerung} />
+                </>
+              }
+            >
+              <Input type="number" step="any" {...register("wertsteigerungProzentJaehrlich", { valueAsNumber: true })} />
             </Field>
           </div>
           {referenceData.mietpreisByBundeslandLagetyp[`${watched.bundesland}:${watched.lagetyp}`] != null && wohnflaeche > 0 && (
@@ -321,6 +336,15 @@ export function PropertyForm({
         <Card>
           <CardTitle>Laufende Kosten</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              label={
+                <>
+                  Kostensteigerung (%/Jahr) <InfoTooltip text={FIELD_HILFE.kostensteigerung} />
+                </>
+              }
+            >
+              <Input type="number" step="any" {...register("kostensteigerungProzentJaehrlich", { valueAsNumber: true })} />
+            </Field>
             <Field
               label={
                 <>
@@ -443,19 +467,11 @@ export function PropertyForm({
         <Card>
           <div className="flex items-center justify-between">
             <CardTitle className="mb-0 flex items-center gap-1">
-              Exit-Szenario <InfoTooltip text={FIELD_HILFE.exitWertsteigerung} />
+              Exit-Szenario <InfoTooltip text={FIELD_HILFE.exitSzenario} />
             </CardTitle>
             <Switch {...register("exit.geplant")} />
           </div>
           <div className={`mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 ${watched.exit?.geplant ? "" : "opacity-40"}`}>
-            <Field label="Erwartete Wertsteigerung (%/Jahr)">
-              <Input
-                type="number"
-                step="any"
-                disabled={!watched.exit?.geplant}
-                {...register("exit.wertsteigerungProzentJaehrlich", { valueAsNumber: true })}
-              />
-            </Field>
             <Field label="Geplante Haltedauer (Jahre)">
               <Input
                 type="number"

@@ -68,7 +68,6 @@ export interface PropertyFinancingInput {
 
 export interface PropertyExitInput {
   geplant: boolean;
-  wertsteigerungProzentJaehrlich: number;
   haltedauerJahre: number;
 }
 
@@ -95,6 +94,9 @@ export interface PropertyInput {
 
   kaltmieteMonatlich: number;
   mietsteigerungProzentJaehrlich: number;
+
+  wertsteigerungProzentJaehrlich: number;
+  kostensteigerungProzentJaehrlich: number;
 
   hausgeldUmlagefaehigMonatlich: number;
   hausgeldNichtUmlagefaehigMonatlich: number;
@@ -188,6 +190,9 @@ export interface RenditeKennzahlen {
   bruttomietrenditeProzent: number;
   nettomietrenditeProzent: number;
   kaufpreisfaktor: number;
+  effektiveJahresmiete: number;
+  laufendeKostenJaehrlich: number;
+  afaJaehrlich: number;
   monatlicherCashflowVorSteuer: number;
   monatlicherCashflowNachSteuer: number;
   eigenkapitalrenditeProzent: number;
@@ -199,6 +204,9 @@ export interface VermoegensverlaufJahr {
   restschuld: number;
   immobilienwert: number;
   eigenkapitalanteil: number;
+  /** Inflationsbereinigt (heutige Kaufkraft), auf Basis der Kostensteigerungsrate abgezinst. */
+  immobilienwertReal: number;
+  eigenkapitalanteilReal: number;
   cashflowVorSteuerJahr: number;
   cashflowNachSteuerJahr: number;
   kumulierterCashflowVorSteuer: number;

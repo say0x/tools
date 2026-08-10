@@ -68,6 +68,9 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
     kaltmieteMonatlich: 850,
     mietsteigerungProzentJaehrlich: 1.5,
 
+    wertsteigerungProzentJaehrlich: 2,
+    kostensteigerungProzentJaehrlich: 2,
+
     hausgeldUmlagefaehigMonatlich: 150,
     hausgeldNichtUmlagefaehigMonatlich: 80,
     grundsteuerJaehrlich: 0,
@@ -92,7 +95,6 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
     gewerke: [],
     exit: {
       geplant: false,
-      wertsteigerungProzentJaehrlich: 1.5,
       haltedauerJahre: 10,
     },
     ...overrides,

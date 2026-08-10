@@ -78,7 +78,8 @@ export function berechneObjekt(
 
   const vermoegensverlauf = berechneVermoegensverlauf({
     kaufpreis: property.kaufpreis,
-    exit: property.exit,
+    wertsteigerungProzentJaehrlich: property.wertsteigerungProzentJaehrlich,
+    kostensteigerungProzentJaehrlich: property.kostensteigerungProzentJaehrlich,
     tilgungsplan,
     rendite,
     mietsteigerungProzentJaehrlich: property.mietsteigerungProzentJaehrlich,

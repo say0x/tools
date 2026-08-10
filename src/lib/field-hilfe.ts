@@ -13,6 +13,12 @@ export const FIELD_HILFE = {
     "Falls ein Makler beteiligt war. Seit 2020 meist hälftig zwischen Käufer und Verkäufer geteilt. Auf 0 setzen (mit Override), falls kein Makler beteiligt war.",
 
   // Miete / laufende Kosten
+  mietsteigerung:
+    "Angenommene jährliche Mietsteigerung, z. B. durch Marktanpassung oder Indexmiete. Reine Annahme, keine Prognose — fließt nur in die Mehrjahres-Prognose (Vermögensverlauf-Chart) ein, nicht in die Kennzahlen für Jahr 1.",
+  wertsteigerung:
+    "Angenommene jährliche Wertsteigerung der Immobilie — reine Annahme deinerseits, keine Prognose. Bestimmt, wie der Immobilienwert im Vermögensverlauf über die Jahre wächst, unabhängig davon, ob ein Verkauf geplant ist. Default 2% orientiert sich am Inflationsziel der EZB — real (inflationsbereinigt) entspräche das grob einer Werterhaltung, nicht einem echten Wertzuwachs.",
+  kostensteigerung:
+    "Angenommene jährliche Steigerung deiner laufenden Kosten (Hausgeld nicht umlagefähig, Versicherung, Verwaltung, Instandhaltungsrücklage), z. B. durch allgemeine Inflation. Default 2% orientiert sich am Inflationsziel der EZB. Fließt in die Mehrjahres-Prognose ein und dient zusätzlich als Abzinsungssatz für die inflationsbereinigte (reale) Linie im Vermögensverlauf-Chart.",
   kaltmiete:
     "Die Miete ohne Nebenkosten (das, was du als Vermieter tatsächlich behältst). Nebenkosten werden separat über die Hausgeld-/Betriebskosten-Felder erfasst.",
   hausgeldUmlagefaehig:
@@ -47,8 +53,8 @@ export const FIELD_HILFE = {
     "Zeitraum, für den der Zinssatz fest vereinbart ist. Danach ist eine Anschlussfinanzierung zu neuen (unbekannten) Konditionen nötig — im Chart als Marke sichtbar.",
 
   // Exit
-  exitWertsteigerung:
-    "Angenommene jährliche Wertsteigerung der Immobilie — reine Annahme deinerseits, keine Prognose.",
+  exitSzenario:
+    "Falls ein Verkauf zu einem bestimmten Zeitpunkt geplant ist: Haltedauer eintragen. Bei Verkauf innerhalb von 10 Jahren nach Kauf kann auf den Wertzuwachs Spekulationssteuer anfallen (§23 EStG). Die Wertsteigerungsannahme für den Immobilienwert findest du oben bei der Miete — sie gilt unabhängig vom Exit-Plan.",
 
   // Profil
   bruttoEinkommen:

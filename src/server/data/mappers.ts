@@ -43,6 +43,9 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
     kaltmieteMonatlich: row.kaltmieteMonatlich,
     mietsteigerungProzentJaehrlich: row.mietsteigerungProzentJaehrlich,
 
+    wertsteigerungProzentJaehrlich: row.wertsteigerungProzentJaehrlich,
+    kostensteigerungProzentJaehrlich: row.kostensteigerungProzentJaehrlich,
+
     hausgeldUmlagefaehigMonatlich: row.hausgeldUmlagefaehigMonatlich,
     hausgeldNichtUmlagefaehigMonatlich: row.hausgeldNichtUmlagefaehigMonatlich,
     grundsteuerJaehrlich: row.grundsteuerJaehrlich,
@@ -84,10 +87,9 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
     exit: row.exit
       ? {
           geplant: row.exit.geplant,
-          wertsteigerungProzentJaehrlich: row.exit.wertsteigerungProzentJaehrlich,
           haltedauerJahre: row.exit.haltedauerJahre,
         }
-      : { geplant: false, wertsteigerungProzentJaehrlich: 1.5, haltedauerJahre: 10 },
+      : { geplant: false, haltedauerJahre: 10 },
   };
 }
 

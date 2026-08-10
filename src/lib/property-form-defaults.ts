@@ -26,6 +26,9 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     kaltmieteMonatlich: 700,
     mietsteigerungProzentJaehrlich: 1.5,
 
+    wertsteigerungProzentJaehrlich: 2,
+    kostensteigerungProzentJaehrlich: 2,
+
     hausgeldUmlagefaehigMonatlich: 120,
     hausgeldNichtUmlagefaehigMonatlich: 80,
     grundsteuerJaehrlich: 0,
@@ -50,7 +53,6 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     gewerke: [],
     exit: {
       geplant: false,
-      wertsteigerungProzentJaehrlich: 1.5,
       haltedauerJahre: 10,
     },
   };

@@ -34,7 +34,6 @@ const financingSchema = z.object({
 
 const exitSchema = z.object({
   geplant: z.boolean(),
-  wertsteigerungProzentJaehrlich: z.coerce.number(),
   haltedauerJahre: z.coerce.number().int().min(1),
 });
 
@@ -62,6 +61,9 @@ const propertySchema = z.object({
 
   kaltmieteMonatlich: z.coerce.number().min(0),
   mietsteigerungProzentJaehrlich: z.coerce.number(),
+
+  wertsteigerungProzentJaehrlich: z.coerce.number(),
+  kostensteigerungProzentJaehrlich: z.coerce.number(),
 
   hausgeldUmlagefaehigMonatlich: z.coerce.number().min(0),
   hausgeldNichtUmlagefaehigMonatlich: z.coerce.number().min(0),
@@ -169,6 +171,8 @@ export async function dupliziereObjekt(id: string) {
       sofortinvestitionPauschal: original.sofortinvestitionPauschal,
       kaltmieteMonatlich: original.kaltmieteMonatlich,
       mietsteigerungProzentJaehrlich: original.mietsteigerungProzentJaehrlich,
+      wertsteigerungProzentJaehrlich: original.wertsteigerungProzentJaehrlich,
+      kostensteigerungProzentJaehrlich: original.kostensteigerungProzentJaehrlich,
       hausgeldUmlagefaehigMonatlich: original.hausgeldUmlagefaehigMonatlich,
       hausgeldNichtUmlagefaehigMonatlich: original.hausgeldNichtUmlagefaehigMonatlich,
       grundsteuerJaehrlich: original.grundsteuerJaehrlich,
@@ -197,7 +201,6 @@ export async function dupliziereObjekt(id: string) {
         ? {
             create: {
               geplant: original.exit.geplant,
-              wertsteigerungProzentJaehrlich: original.exit.wertsteigerungProzentJaehrlich,
               haltedauerJahre: original.exit.haltedauerJahre,
             },
           }

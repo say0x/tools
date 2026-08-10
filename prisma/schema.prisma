@@ -149,6 +149,10 @@ model Property {
   kaltmieteMonatlich            Float
   mietsteigerungProzentJaehrlich Float @default(1.5)
 
+  // Wertentwicklung — wirkt immer im Vermögensverlauf, unabhängig vom Exit-Plan
+  wertsteigerungProzentJaehrlich   Float @default(2)
+  kostensteigerungProzentJaehrlich Float @default(2)
+
   // Laufende Kosten
   hausgeldUmlagefaehigMonatlich    Float @default(0)
   hausgeldNichtUmlagefaehigMonatlich Float @default(0)
@@ -232,9 +236,8 @@ model PropertyExit {
   propertyId String   @unique
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
-  geplant                       Boolean @default(false)
-  wertsteigerungProzentJaehrlich Float  @default(1.5)
-  haltedauerJahre                Int    @default(10)
+  geplant        Boolean @default(false)
+  haltedauerJahre Int    @default(10)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
