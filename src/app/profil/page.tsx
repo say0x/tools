@@ -11,7 +11,9 @@ export default async function ProfilPage() {
 
   const initialValues = {
     nettoEinkommenMonatlich: profil?.nettoEinkommenMonatlich ?? 0,
+    bruttoEinkommenMonatlich: profil?.bruttoEinkommenMonatlich ?? 0,
     zuVersteuerndesEinkommenJaehrlich: profil?.zuVersteuerndesEinkommenJaehrlich ?? 0,
+    zvEOverride: profil?.zvEOverride ?? false,
     fixkostenMonatlich: profil?.fixkostenMonatlich ?? 0,
     vorhandenesEigenkapital: profil?.vorhandenesEigenkapital ?? 0,
     maxSchuldendienstquoteProzent: profil?.maxSchuldendienstquoteProzent ?? 35,

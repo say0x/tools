@@ -70,11 +70,13 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
 
     hausgeldUmlagefaehigMonatlich: 150,
     hausgeldNichtUmlagefaehigMonatlich: 80,
+    grundsteuerJaehrlich: 0,
     instandhaltungsruecklageMonatlich: 0,
     instandhaltungsruecklageOverride: false,
     verwaltungskostenMonatlich: 25,
     leerstandsquoteProzent: 2,
     versicherungJaehrlich: 250,
+    versicherungUmlagefaehig: false,
 
     afaSatzProzent: 2,
     afaSonderabschreibung: false,
@@ -100,7 +102,9 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
 export function makeProfileFixture(overrides: Partial<ProfileInput> = {}): ProfileInput {
   return {
     nettoEinkommenMonatlich: 4000,
+    bruttoEinkommenMonatlich: 5500,
     zuVersteuerndesEinkommenJaehrlich: 65000,
+    zvEOverride: true,
     fixkostenMonatlich: 1800,
     vorhandenesEigenkapital: 80000,
     maxSchuldendienstquoteProzent: 35,

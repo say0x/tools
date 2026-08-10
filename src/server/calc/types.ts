@@ -98,11 +98,13 @@ export interface PropertyInput {
 
   hausgeldUmlagefaehigMonatlich: number;
   hausgeldNichtUmlagefaehigMonatlich: number;
+  grundsteuerJaehrlich: number;
   instandhaltungsruecklageMonatlich: number;
   instandhaltungsruecklageOverride: boolean;
   verwaltungskostenMonatlich: number;
   leerstandsquoteProzent: number;
   versicherungJaehrlich: number;
+  versicherungUmlagefaehig: boolean;
 
   afaSatzProzent: number;
   afaSonderabschreibung: boolean;
@@ -120,7 +122,9 @@ export interface UserLiabilityInput {
 
 export interface ProfileInput {
   nettoEinkommenMonatlich: number;
+  bruttoEinkommenMonatlich: number;
   zuVersteuerndesEinkommenJaehrlich: number;
+  zvEOverride: boolean;
   fixkostenMonatlich: number;
   vorhandenesEigenkapital: number;
   maxSchuldendienstquoteProzent: number;

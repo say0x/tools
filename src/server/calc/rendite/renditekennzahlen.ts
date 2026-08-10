@@ -22,11 +22,15 @@ export function berechneRenditeKennzahlen(input: RenditeKennzahlenInput): Rendit
 
   const effektiveJahresmiete = round2(jahreskaltmiete * (1 - property.leerstandsquoteProzent / 100));
 
+  // Umlagefähige Posten (Hausgeld umlagefähig, Grundsteuer, ggf. Versicherung)
+  // sind für den Eigentümer cash-neutral: Mieter erstattet sie über die
+  // Nebenkosten, sie fließen daher weder in die laufenden Kosten noch in die
+  // steuerliche Bemessungsgrundlage ein.
   const laufendeKostenMonatlich = round2(
     property.hausgeldNichtUmlagefaehigMonatlich +
       input.instandhaltungsruecklageTatsaechlichMonatlich +
       property.verwaltungskostenMonatlich +
-      property.versicherungJaehrlich / 12
+      (property.versicherungUmlagefaehig ? 0 : property.versicherungJaehrlich / 12)
   );
 
   const nettomietrenditeProzent =

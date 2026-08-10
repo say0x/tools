@@ -28,11 +28,13 @@ export function defaultPropertyFormValues(): PropertyFormValues {
 
     hausgeldUmlagefaehigMonatlich: 120,
     hausgeldNichtUmlagefaehigMonatlich: 80,
+    grundsteuerJaehrlich: 0,
     instandhaltungsruecklageMonatlich: 0,
     instandhaltungsruecklageOverride: false,
     verwaltungskostenMonatlich: 25,
     leerstandsquoteProzent: 2,
     versicherungJaehrlich: 200,
+    versicherungUmlagefaehig: false,
 
     afaSatzProzent: 2,
     afaSonderabschreibung: false,

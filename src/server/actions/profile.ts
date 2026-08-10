@@ -12,7 +12,9 @@ const liabilitySchema = z.object({
 
 const profileSchema = z.object({
   nettoEinkommenMonatlich: z.coerce.number().min(0),
+  bruttoEinkommenMonatlich: z.coerce.number().min(0),
   zuVersteuerndesEinkommenJaehrlich: z.coerce.number().min(0),
+  zvEOverride: z.boolean(),
   fixkostenMonatlich: z.coerce.number().min(0),
   vorhandenesEigenkapital: z.coerce.number().min(0),
   maxSchuldendienstquoteProzent: z.coerce.number().min(0).max(100),
@@ -31,29 +33,21 @@ export async function upsertProfile(values: ProfileFormValues) {
 
   const bestehend = await prisma.userProfile.findFirst();
 
+  const profileData = {
+    nettoEinkommenMonatlich: data.nettoEinkommenMonatlich,
+    bruttoEinkommenMonatlich: data.bruttoEinkommenMonatlich,
+    zuVersteuerndesEinkommenJaehrlich: data.zuVersteuerndesEinkommenJaehrlich,
+    zvEOverride: data.zvEOverride,
+    fixkostenMonatlich: data.fixkostenMonatlich,
+    vorhandenesEigenkapital: data.vorhandenesEigenkapital,
+    maxSchuldendienstquoteProzent: data.maxSchuldendienstquoteProzent,
+    mindestLiquiditaetsreserveEuro: data.mindestLiquiditaetsreserveEuro,
+  };
+
   await prisma.$transaction(async (tx) => {
     const profile = bestehend
-      ? await tx.userProfile.update({
-          where: { id: bestehend.id },
-          data: {
-            nettoEinkommenMonatlich: data.nettoEinkommenMonatlich,
-            zuVersteuerndesEinkommenJaehrlich: data.zuVersteuerndesEinkommenJaehrlich,
-            fixkostenMonatlich: data.fixkostenMonatlich,
-            vorhandenesEigenkapital: data.vorhandenesEigenkapital,
-            maxSchuldendienstquoteProzent: data.maxSchuldendienstquoteProzent,
-            mindestLiquiditaetsreserveEuro: data.mindestLiquiditaetsreserveEuro,
-          },
-        })
-      : await tx.userProfile.create({
-          data: {
-            nettoEinkommenMonatlich: data.nettoEinkommenMonatlich,
-            zuVersteuerndesEinkommenJaehrlich: data.zuVersteuerndesEinkommenJaehrlich,
-            fixkostenMonatlich: data.fixkostenMonatlich,
-            vorhandenesEigenkapital: data.vorhandenesEigenkapital,
-            maxSchuldendienstquoteProzent: data.maxSchuldendienstquoteProzent,
-            mindestLiquiditaetsreserveEuro: data.mindestLiquiditaetsreserveEuro,
-          },
-        });
+      ? await tx.userProfile.update({ where: { id: bestehend.id }, data: profileData })
+      : await tx.userProfile.create({ data: profileData });
 
     await tx.userLiability.deleteMany({ where: { profileId: profile.id } });
     if (data.liabilities.length > 0) {

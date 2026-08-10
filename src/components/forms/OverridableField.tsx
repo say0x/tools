@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { type Control, type FieldValues, type Path, type UseFormRegister, type UseFormSetValue, useWatch } from "react-hook-form";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
@@ -22,7 +22,7 @@ export function OverridableField<T extends FieldValues>({
   setValue,
   step = "any",
 }: {
-  label: string;
+  label: ReactNode;
   control: Control<T>;
   register: UseFormRegister<T>;
   valueField: Path<T>;

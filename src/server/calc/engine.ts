@@ -7,6 +7,7 @@ import { berechneTilgungsplan } from "./financing/tilgungsplan";
 import { berechneBreakevenKaufpreis } from "./rendite/breakeven";
 import { berechneRenditeKennzahlen } from "./rendite/renditekennzahlen";
 import { berechneVermoegensverlauf } from "./rendite/vermoegensverlauf";
+import { schaetzeZvEAusBrutto } from "./tax/zve-schaetzung";
 import { VERMOEGENSVERLAUF_MAX_JAHRE } from "./constants";
 import type { CalculationResult, Meilensteine, ProfileInput, PropertyInput, ReferenceDataSnapshot } from "./types";
 
@@ -23,6 +24,10 @@ export function berechneObjekt(
 ): CalculationResult {
   const steuerjahr = optionen.steuerjahr ?? new Date().getFullYear();
   const bezugsjahr = optionen.bezugsjahr ?? new Date().getFullYear();
+
+  const zvEEffektiv = profile.zvEOverride
+    ? profile.zuVersteuerndesEinkommenJaehrlich
+    : schaetzeZvEAusBrutto(profile.bruttoEinkommenMonatlich * 12);
 
   const kaufnebenkosten = berechneKaufnebenkosten(property, referenceData);
   const gewerke = berechneGewerkeAuswertung(property.gewerke, property.wohnflaeche, referenceData);
@@ -61,7 +66,7 @@ export function berechneObjekt(
     eigenkapitalEinsatzEuro: finanzierung.eigenkapitalEinsatzEuro,
     instandhaltungsruecklageTatsaechlichMonatlich: instandhaltungTatsaechlichMonatlich,
     tilgungsplanJahr1: tilgungsplan[0],
-    zuVersteuerndesEinkommenJaehrlich: profile.zuVersteuerndesEinkommenJaehrlich,
+    zuVersteuerndesEinkommenJaehrlich: zvEEffektiv,
     steuerjahr,
   });
 
@@ -102,7 +107,7 @@ export function berechneObjekt(
       eigenkapitalEinsatzEuro: hypFinanzierung.eigenkapitalEinsatzEuro,
       instandhaltungsruecklageTatsaechlichMonatlich: instandhaltungTatsaechlichMonatlich,
       tilgungsplanJahr1: hypTilgungsplanJahr1,
-      zuVersteuerndesEinkommenJaehrlich: profile.zuVersteuerndesEinkommenJaehrlich,
+      zuVersteuerndesEinkommenJaehrlich: zvEEffektiv,
       steuerjahr,
     });
     return hypRendite.monatlicherCashflowNachSteuer;

@@ -44,7 +44,11 @@ model UserProfile {
   id String @id @default(cuid())
 
   nettoEinkommenMonatlich Float @default(0)
+  bruttoEinkommenMonatlich Float @default(0)
+  // computed-with-override: bei zvEOverride=false wird das zvE live aus dem
+  // Brutto-Einkommen geschätzt (Pauschbeträge), sonst gilt der manuelle Wert.
   zuVersteuerndesEinkommenJaehrlich Float @default(0)
+  zvEOverride             Boolean @default(false)
   fixkostenMonatlich      Float @default(0)
   vorhandenesEigenkapital Float @default(0)
 
@@ -148,11 +152,13 @@ model Property {
   // Laufende Kosten
   hausgeldUmlagefaehigMonatlich    Float @default(0)
   hausgeldNichtUmlagefaehigMonatlich Float @default(0)
+  grundsteuerJaehrlich              Float @default(0)
   instandhaltungsruecklageMonatlich Float @default(0)
   instandhaltungsruecklageOverride  Boolean @default(false)
   verwaltungskostenMonatlich        Float @default(0)
   leerstandsquoteProzent            Float @default(2)
   versicherungJaehrlich             Float @default(0)
+  versicherungUmlagefaehig          Boolean @default(false)
 
   // Steuer (Näherung)
   afaSatzProzent        Float   @default(2)

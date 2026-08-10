@@ -45,11 +45,13 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
 
     hausgeldUmlagefaehigMonatlich: row.hausgeldUmlagefaehigMonatlich,
     hausgeldNichtUmlagefaehigMonatlich: row.hausgeldNichtUmlagefaehigMonatlich,
+    grundsteuerJaehrlich: row.grundsteuerJaehrlich,
     instandhaltungsruecklageMonatlich: row.instandhaltungsruecklageMonatlich,
     instandhaltungsruecklageOverride: row.instandhaltungsruecklageOverride,
     verwaltungskostenMonatlich: row.verwaltungskostenMonatlich,
     leerstandsquoteProzent: row.leerstandsquoteProzent,
     versicherungJaehrlich: row.versicherungJaehrlich,
+    versicherungUmlagefaehig: row.versicherungUmlagefaehig,
 
     afaSatzProzent: row.afaSatzProzent,
     afaSonderabschreibung: row.afaSonderabschreibung,
@@ -93,7 +95,9 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
   if (!row) {
     return {
       nettoEinkommenMonatlich: 0,
+      bruttoEinkommenMonatlich: 0,
       zuVersteuerndesEinkommenJaehrlich: 0,
+      zvEOverride: false,
       fixkostenMonatlich: 0,
       vorhandenesEigenkapital: 0,
       maxSchuldendienstquoteProzent: 35,
@@ -104,7 +108,9 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
 
   return {
     nettoEinkommenMonatlich: row.nettoEinkommenMonatlich,
+    bruttoEinkommenMonatlich: row.bruttoEinkommenMonatlich,
     zuVersteuerndesEinkommenJaehrlich: row.zuVersteuerndesEinkommenJaehrlich,
+    zvEOverride: row.zvEOverride,
     fixkostenMonatlich: row.fixkostenMonatlich,
     vorhandenesEigenkapital: row.vorhandenesEigenkapital,
     maxSchuldendienstquoteProzent: row.maxSchuldendienstquoteProzent,

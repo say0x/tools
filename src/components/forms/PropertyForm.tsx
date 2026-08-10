@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { AmpelBadge } from "@/components/ui/Badge";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { DualUnitInput } from "@/components/forms/DualUnitInput";
 import { OverridableField } from "@/components/forms/OverridableField";
 import { ObjektChartsPanel } from "@/components/charts/ObjektChartsPanel";
@@ -37,6 +38,7 @@ import {
   ZUSTAND_LABELS,
 } from "@/lib/labels";
 import { formatEuro } from "@/lib/format";
+import { FIELD_HILFE } from "@/lib/field-hilfe";
 
 export function PropertyForm({
   defaultValues,
@@ -145,7 +147,11 @@ export function PropertyForm({
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <OverridableField
-              label="Grunderwerbsteuer (%)"
+              label={
+                <>
+                  Grunderwerbsteuer (%) <InfoTooltip text={FIELD_HILFE.grunderwerbsteuer} />
+                </>
+              }
               control={control}
               register={register}
               valueField="grunderwerbsteuerProzent"
@@ -154,7 +160,11 @@ export function PropertyForm({
               setValue={setValue}
             />
             <OverridableField
-              label="Notar (%)"
+              label={
+                <>
+                  Notar (%) <InfoTooltip text={FIELD_HILFE.notar} />
+                </>
+              }
               control={control}
               register={register}
               valueField="notarProzent"
@@ -163,7 +173,11 @@ export function PropertyForm({
               setValue={setValue}
             />
             <OverridableField
-              label="Grundbuch (%)"
+              label={
+                <>
+                  Grundbuch (%) <InfoTooltip text={FIELD_HILFE.grundbuch} />
+                </>
+              }
               control={control}
               register={register}
               valueField="grundbuchProzent"
@@ -172,7 +186,11 @@ export function PropertyForm({
               setValue={setValue}
             />
             <OverridableField
-              label="Maklerprovision (%)"
+              label={
+                <>
+                  Maklerprovision (%) <InfoTooltip text={FIELD_HILFE.maklerprovision} />
+                </>
+              }
               control={control}
               register={register}
               valueField="maklerprovisionProzent"
@@ -212,7 +230,14 @@ export function PropertyForm({
         <Card>
           <CardTitle>Finanzierung</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Finanzierungsart" className="sm:col-span-2">
+            <Field
+              label={
+                <>
+                  Finanzierungsart <InfoTooltip text={FIELD_HILFE.finanzierungsart} />
+                </>
+              }
+              className="sm:col-span-2"
+            >
               <Select {...register("financing.finanzierungsart")}>
                 {FINANZIERUNGSARTEN.map((f) => (
                   <option key={f} value={f}>
@@ -232,7 +257,13 @@ export function PropertyForm({
             <Field label="Anfängliche Tilgung (%)">
               <Input type="number" step="any" {...register("financing.anfaenglicheTilgungProzent", { valueAsNumber: true })} />
             </Field>
-            <Field label="Zinsbindung (Jahre)">
+            <Field
+              label={
+                <>
+                  Zinsbindung (Jahre) <InfoTooltip text={FIELD_HILFE.zinsbindung} />
+                </>
+              }
+            >
               <Input type="number" {...register("financing.zinsbindungJahre", { valueAsNumber: true })} />
             </Field>
           </div>
@@ -267,14 +298,39 @@ export function PropertyForm({
         <Card>
           <CardTitle>Laufende Kosten</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Hausgeld umlagefähig (€/Monat)">
+            <Field
+              label={
+                <>
+                  Hausgeld umlagefähig (€/Monat) <InfoTooltip text={FIELD_HILFE.hausgeldUmlagefaehig} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("hausgeldUmlagefaehigMonatlich", { valueAsNumber: true })} />
             </Field>
-            <Field label="Hausgeld nicht umlagefähig (€/Monat)">
+            <Field
+              label={
+                <>
+                  Hausgeld nicht umlagefähig (€/Monat) <InfoTooltip text={FIELD_HILFE.hausgeldNichtUmlagefaehig} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("hausgeldNichtUmlagefaehigMonatlich", { valueAsNumber: true })} />
             </Field>
+            <Field
+              label={
+                <>
+                  Grundsteuer (€/Jahr) <InfoTooltip text={FIELD_HILFE.grundsteuer} />
+                </>
+              }
+            >
+              <Input type="number" step="any" {...register("grundsteuerJaehrlich", { valueAsNumber: true })} />
+            </Field>
             <OverridableField
-              label="Instandhaltungsrücklage (€/Monat)"
+              label={
+                <>
+                  Instandhaltungsrücklage (€/Monat) <InfoTooltip text={FIELD_HILFE.instandhaltungsruecklage} />
+                </>
+              }
               control={control}
               register={register}
               valueField="instandhaltungsruecklageMonatlich"
@@ -283,14 +339,39 @@ export function PropertyForm({
               setValue={setValue}
               step="any"
             />
-            <Field label="Verwaltungskosten (€/Monat)">
+            <Field
+              label={
+                <>
+                  Verwaltungskosten (€/Monat) <InfoTooltip text={FIELD_HILFE.verwaltungskosten} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("verwaltungskostenMonatlich", { valueAsNumber: true })} />
             </Field>
-            <Field label="Leerstandsquote (%)">
+            <Field
+              label={
+                <>
+                  Leerstandsquote (%) <InfoTooltip text={FIELD_HILFE.leerstandsquote} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("leerstandsquoteProzent", { valueAsNumber: true })} />
             </Field>
-            <Field label="Versicherung (€/Jahr)">
-              <Input type="number" step="any" {...register("versicherungJaehrlich", { valueAsNumber: true })} />
+            <Field
+              label={
+                <>
+                  Versicherung (€/Jahr) <InfoTooltip text={FIELD_HILFE.versicherung} />
+                </>
+              }
+            >
+              <div className="flex items-center gap-2">
+                <Input type="number" step="any" {...register("versicherungJaehrlich", { valueAsNumber: true })} />
+                <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+                  <Switch {...register("versicherungUmlagefaehig")} />
+                  umlagefähig
+                  <InfoTooltip text={FIELD_HILFE.versicherungUmlagefaehig} />
+                </label>
+              </div>
             </Field>
           </div>
         </Card>
@@ -298,21 +379,40 @@ export function PropertyForm({
         <Card>
           <CardTitle>Steuer (Näherung)</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="AfA-Satz (%)">
+            <Field
+              label={
+                <>
+                  AfA-Satz (%) <InfoTooltip text={FIELD_HILFE.afaSatz} />
+                </>
+              }
+            >
               <Input type="number" step="any" {...register("afaSatzProzent", { valueAsNumber: true })} />
             </Field>
-            <Field label="Sonderabschreibung Neubau">
+            <Field
+              label={
+                <>
+                  Sonderabschreibung Neubau <InfoTooltip text={FIELD_HILFE.afaSonderabschreibung} />
+                </>
+              }
+            >
               <div className="flex h-[38px] items-center">
                 <Switch {...register("afaSonderabschreibung")} />
               </div>
             </Field>
           </div>
-          {result && <p className="mt-3 text-sm text-slate-400">Grenzsteuersatz (aus Profil): <span className="text-slate-200">{result.rendite.grenzsteuersatzProzent}%</span></p>}
+          {result && (
+            <p className="mt-3 flex items-center gap-1 text-sm text-slate-400">
+              Grenzsteuersatz (aus Profil): <span className="text-slate-200">{result.rendite.grenzsteuersatzProzent}%</span>
+              <InfoTooltip text={FIELD_HILFE.grenzsteuersatz} />
+            </p>
+          )}
         </Card>
 
         <Card>
           <div className="flex items-center justify-between">
-            <CardTitle className="mb-0">Exit-Szenario</CardTitle>
+            <CardTitle className="mb-0 flex items-center gap-1">
+              Exit-Szenario <InfoTooltip text={FIELD_HILFE.exitWertsteigerung} />
+            </CardTitle>
             <Switch {...register("exit.geplant")} />
           </div>
           <div className={`mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 ${watched.exit?.geplant ? "" : "opacity-40"}`}>

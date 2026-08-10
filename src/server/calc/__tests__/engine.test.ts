@@ -140,3 +140,79 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.instandhaltung.tatsaechlichMonatlich).toBe(100);
   });
 });
+
+describe("Grundsteuer, Versicherung-Umlagefähigkeit und zvE-Schätzung", () => {
+  const basisProperty = makePropertyFixture({
+    kaufpreis: 200000,
+    wohnflaeche: 100,
+    bundesland: "BAYERN",
+    kaltmieteMonatlich: 1000,
+    leerstandsquoteProzent: 0,
+    hausgeldNichtUmlagefaehigMonatlich: 50,
+    instandhaltungsruecklageMonatlich: 100,
+    instandhaltungsruecklageOverride: true,
+    verwaltungskostenMonatlich: 20,
+    versicherungJaehrlich: 240,
+    grundsteuerJaehrlich: 600,
+    financing: {
+      eigenkapital: 20000,
+      zinssatzProzent: 4,
+      anfaenglicheTilgungProzent: 2,
+      zinsbindungJahre: 10,
+      finanzierungsart: "FINANZIERUNG_100",
+      eigenkapitalquoteManuellProzent: null,
+    },
+  });
+  const profile = makeProfileFixture({ zuVersteuerndesEinkommenJaehrlich: 65000 });
+
+  it("Grundsteuer ist cash-neutral (kein Effekt auf Cashflow, egal welche Höhe)", () => {
+    const ohneGrundsteuer = berechneObjekt(
+      { ...basisProperty, grundsteuerJaehrlich: 0 },
+      profile,
+      referenceDataFixture,
+      { steuerjahr: 2025 }
+    );
+    const mitGrundsteuer = berechneObjekt(basisProperty, profile, referenceDataFixture, { steuerjahr: 2025 });
+    expect(mitGrundsteuer.rendite.monatlicherCashflowVorSteuer).toBe(ohneGrundsteuer.rendite.monatlicherCashflowVorSteuer);
+    expect(mitGrundsteuer.rendite.monatlicherCashflowNachSteuer).toBe(ohneGrundsteuer.rendite.monatlicherCashflowNachSteuer);
+  });
+
+  it("Versicherung senkt den Cashflow nur, wenn sie NICHT umlagefähig ist", () => {
+    const nichtUmlagefaehig = berechneObjekt(
+      { ...basisProperty, versicherungUmlagefaehig: false },
+      profile,
+      referenceDataFixture,
+      { steuerjahr: 2025 }
+    );
+    const umlagefaehig = berechneObjekt(
+      { ...basisProperty, versicherungUmlagefaehig: true },
+      profile,
+      referenceDataFixture,
+      { steuerjahr: 2025 }
+    );
+    // Differenz vor Steuer muss exakt der monatlichen Versicherung entsprechen (240€/Jahr = 20€/Monat).
+    expect(
+      round2(umlagefaehig.rendite.monatlicherCashflowVorSteuer - nichtUmlagefaehig.rendite.monatlicherCashflowVorSteuer)
+    ).toBe(20);
+  });
+
+  it("zvE wird bei zvEOverride:false aus dem Brutto-Einkommen geschätzt statt dem gespeicherten zvE-Wert", () => {
+    const mitOverride = berechneObjekt(basisProperty, { ...profile, zvEOverride: true }, referenceDataFixture, {
+      steuerjahr: 2025,
+    });
+    const ohneOverride = berechneObjekt(
+      basisProperty,
+      { ...profile, zvEOverride: false, bruttoEinkommenMonatlich: 5500 },
+      referenceDataFixture,
+      { steuerjahr: 2025 }
+    );
+
+    // Override: nutzt exakt profile.zuVersteuerndesEinkommenJaehrlich (65.000).
+    expect(mitOverride.rendite.grenzsteuersatzProzent).toBeCloseTo(berechneGrenzsteuersatz(65000, 2025), 2);
+
+    // Ohne Override: geschätztes zvE aus 5.500€/Monat Brutto (=66.000€/Jahr) weicht vom fixen 65.000€ ab.
+    const erwartetesZvE = 66000 - 1230 - 36 - 66000 * 0.2;
+    expect(ohneOverride.rendite.grenzsteuersatzProzent).toBeCloseTo(berechneGrenzsteuersatz(erwartetesZvE, 2025), 2);
+    expect(ohneOverride.rendite.grenzsteuersatzProzent).not.toBeCloseTo(mitOverride.rendite.grenzsteuersatzProzent, 2);
+  });
+});

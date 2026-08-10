@@ -6,23 +6,30 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { OverridableField } from "@/components/forms/OverridableField";
 import { berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
+import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
+import { formatEuro } from "@/lib/format";
+import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { type ProfileFormValues, upsertProfile } from "@/server/actions/profile";
 
 export function ProfileForm({ initialValues }: { initialValues: ProfileFormValues }) {
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
 
-  const { register, control, handleSubmit, watch } = useForm<ProfileFormValues>({
+  const { register, control, handleSubmit, watch, setValue } = useForm<ProfileFormValues>({
     defaultValues: initialValues,
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "liabilities" });
 
+  const brutto = watch("bruttoEinkommenMonatlich");
   const zvE = watch("zuVersteuerndesEinkommenJaehrlich");
   const netto = watch("nettoEinkommenMonatlich");
   const fixkosten = watch("fixkostenMonatlich");
 
+  const zvESchaetzung = useMemo(() => schaetzeZvEAusBrutto((Number(brutto) || 0) * 12), [brutto]);
   const grenzsteuersatz = useMemo(() => berechneGrenzsteuersatz(Number(zvE) || 0, new Date().getFullYear()), [zvE]);
   const verfuegbaresBudget = (Number(netto) || 0) - (Number(fixkosten) || 0);
 
@@ -39,13 +46,45 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       <Card>
         <CardTitle>Einkommen &amp; Budget</CardTitle>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Netto-Einkommen (€/Monat)">
+          <Field
+            label={
+              <>
+                Brutto-Einkommen (€/Monat) <InfoTooltip text={FIELD_HILFE.bruttoEinkommen} />
+              </>
+            }
+            hint={`≈ ${formatEuro((Number(brutto) || 0) * 12)} pro Jahr`}
+          >
+            <Input type="number" step="any" {...register("bruttoEinkommenMonatlich")} />
+          </Field>
+          <Field
+            label={
+              <>
+                Netto-Einkommen (€/Monat) <InfoTooltip text={FIELD_HILFE.nettoEinkommen} />
+              </>
+            }
+          >
             <Input type="number" step="any" {...register("nettoEinkommenMonatlich")} />
           </Field>
-          <Field label="Zu versteuerndes Einkommen (€/Jahr)" hint="Für die Grenzsteuersatz-Berechnung">
-            <Input type="number" step="any" {...register("zuVersteuerndesEinkommenJaehrlich")} />
-          </Field>
-          <Field label="Fixkosten (€/Monat)">
+          <OverridableField
+            label={
+              <>
+                Zu versteuerndes Einkommen (€/Jahr) <InfoTooltip text={FIELD_HILFE.zvE} />
+              </>
+            }
+            control={control}
+            register={register}
+            valueField="zuVersteuerndesEinkommenJaehrlich"
+            overrideField="zvEOverride"
+            computedValue={zvESchaetzung}
+            setValue={setValue}
+          />
+          <Field
+            label={
+              <>
+                Fixkosten (€/Monat) <InfoTooltip text={FIELD_HILFE.fixkosten} />
+              </>
+            }
+          >
             <Input type="number" step="any" {...register("fixkostenMonatlich")} />
           </Field>
           <Field label="Vorhandenes Eigenkapital (€)">
@@ -71,10 +110,22 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
           Diese Werte steuern die Ampel bei jeder Objekt-Berechnung ("kann ich mir das leisten?").
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Max. Schuldendienstquote (%)" hint="Anteil des Nettoeinkommens für alle Kreditraten zusammen">
+          <Field
+            label={
+              <>
+                Max. Schuldendienstquote (%) <InfoTooltip text={FIELD_HILFE.maxSchuldendienstquote} />
+              </>
+            }
+          >
             <Input type="number" step="any" {...register("maxSchuldendienstquoteProzent")} />
           </Field>
-          <Field label="Mindest-Liquiditätsreserve (€)" hint="Soll nach dem Kauf übrig bleiben">
+          <Field
+            label={
+              <>
+                Mindest-Liquiditätsreserve (€) <InfoTooltip text={FIELD_HILFE.mindestLiquiditaetsreserve} />
+              </>
+            }
+          >
             <Input type="number" step="any" {...register("mindestLiquiditaetsreserveEuro")} />
           </Field>
         </div>

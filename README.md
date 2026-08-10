@@ -76,4 +76,7 @@ src/app/profil/                Nutzerprofil (Einkommen, Affordability-Schwellen)
 
 - Tilgungsplan nimmt einen konstanten Zins über den gesamten Betrachtungszeitraum an (keine Anschlussfinanzierung nach Ablauf der Zinsbindung).
 - Steuerliche Berechnungen (Grenzsteuersatz nach §32a EStG, AfA, Spekulationssteuer) sind Näherungen für die Investitionsentscheidung, keine Steuerberatung — Zonenwerte in `src/server/calc/tax/estg-zonen.ts` vor wichtigen Entscheidungen gegen die aktuelle BMF-Veröffentlichung prüfen.
-- Referenzdaten (Grunderwerbsteuer, Mietpreise, Sanierungskosten, Instandhaltungssätze) sind Startwerte ohne Live-Anbindung, aber auf `/immobilien/referenzdaten` frei editierbar.
+- Referenzdaten (Grunderwerbsteuer, Mietpreise, Sanierungskosten, Instandhaltungssätze, Notar-/Grundbuch-Standardsätze) sind Startwerte ohne Live-Anbindung, aber auf `/immobilien/referenzdaten` frei editierbar.
+- Cashflow-Fortschreibung über die Jahre (Vermögensverlauf-Chart) skaliert den Jahr-1-Cashflow pauschal mit der Mietsteigerung hoch, statt Zinsanteil/AfA/Grenzsteuersatz für jedes Jahr einzeln neu zu berechnen — für einen 50-Jahres-Trend eine grobe Näherung, keine Jahr-für-Jahr-Simulation.
+- Das zu versteuernde Einkommen (zvE) wird ohne Override grob aus dem Brutto-Einkommen geschätzt (Pauschbeträge für Werbungskosten/Sonderausgaben, ~20% pauschale Vorsorgeaufwendungen) — für Genauigkeit das echte zvE aus dem Steuerbescheid manuell eintragen.
+- Grundsteuer wird als vollständig umlagefähig (cash-neutral) behandelt und nicht automatisch berechnet, da der Betrag vom Hebesatz der jeweiligen Gemeinde abhängt.
