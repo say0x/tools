@@ -1,7 +1,10 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# --ignore-scripts: der postinstall-Hook (`prisma generate`) braucht prisma/schema.prisma,
+# das hier noch nicht kopiert ist. Generiert wird stattdessen explizit in der builder-Stage,
+# nachdem der volle Source-Tree kopiert wurde.
+RUN npm ci --ignore-scripts
 
 FROM node:22-alpine AS builder
 WORKDIR /app
