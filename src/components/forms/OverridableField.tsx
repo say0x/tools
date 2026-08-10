@@ -21,6 +21,7 @@ export function OverridableField<T extends FieldValues>({
   computedValue,
   setValue,
   step = "any",
+  formel,
 }: {
   label: ReactNode;
   control: Control<T>;
@@ -30,6 +31,8 @@ export function OverridableField<T extends FieldValues>({
   computedValue: number;
   setValue: UseFormSetValue<T>;
   step?: string;
+  /** Optionale Formel-Erklärung mit eingesetzten Zahlen, unter dem Feld angezeigt. */
+  formel?: ReactNode;
 }) {
   const override = useWatch({ control, name: overrideField }) as unknown as boolean;
 
@@ -49,6 +52,7 @@ export function OverridableField<T extends FieldValues>({
           manuell
         </label>
       </div>
+      {formel && !override && <p className="text-xs text-slate-500">{formel}</p>}
     </Field>
   );
 }

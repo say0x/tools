@@ -39,6 +39,7 @@ import {
 } from "@/lib/labels";
 import { formatEuro } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { ZUSTANDSFAKTOR } from "@/server/calc/constants";
 
 export function PropertyForm({
   defaultValues,
@@ -96,7 +97,10 @@ export function PropertyForm({
             <Field label="Name" className="sm:col-span-2">
               <Input {...register("name")} placeholder="z. B. Musterstraße 12, Köln" />
             </Field>
-            <Field label="Kaufpreis (€)">
+            <Field
+              label="Kaufpreis (€)"
+              hint={wohnflaeche > 0 ? `${formatEuro(Math.round(kaufpreis / wohnflaeche))}/m²` : undefined}
+            >
               <Input type="number" step="any" {...register("kaufpreis", { valueAsNumber: true })} />
             </Field>
             <Field label="Wohnfläche (m²)">
@@ -219,9 +223,24 @@ export function PropertyForm({
           </Field>
 
           {watched.sanierungsmodus === "GRANULAR" ? (
-            <GewerkeSubform control={control} register={register} fieldArray={gewerkeArray} result={result} />
+            <GewerkeSubform
+              control={control}
+              register={register}
+              fieldArray={gewerkeArray}
+              result={result}
+              referenceData={referenceData}
+              wohnflaeche={wohnflaeche}
+            />
           ) : (
-            <Field label="Sofortinvestition (€)" className="max-w-xs">
+            <Field
+              label="Sofortinvestition (€)"
+              className="max-w-xs"
+              hint={
+                wohnflaeche > 0 && Number(watched.sofortinvestitionPauschal) > 0
+                  ? `${formatEuro(Math.round((Number(watched.sofortinvestitionPauschal) || 0) / wohnflaeche))}/m²`
+                  : undefined
+              }
+            >
               <Input type="number" step="any" {...register("sofortinvestitionPauschal", { valueAsNumber: true })} />
             </Field>
           )}
@@ -269,7 +288,11 @@ export function PropertyForm({
           </div>
           {result && (
             <div className="mt-4 grid grid-cols-2 gap-3 rounded-md bg-slate-950/60 p-4 text-sm sm:grid-cols-3">
-              <Stat label="Gesamtinvestition" value={formatEuro(result.finanzierung.gesamtinvestitionEuro)} />
+              <Stat
+                label="Gesamtinvestition"
+                value={formatEuro(result.finanzierung.gesamtinvestitionEuro)}
+                subValue={wohnflaeche > 0 ? `${formatEuro(Math.round(result.finanzierung.gesamtinvestitionEuro / wohnflaeche))}/m²` : undefined}
+              />
               <Stat label="Darlehenssumme" value={formatEuro(result.finanzierung.darlehenssummeEuro)} />
               <Stat label="Eigenkapital-Einsatz" value={formatEuro(result.finanzierung.eigenkapitalEinsatzEuro)} />
             </div>
@@ -338,6 +361,15 @@ export function PropertyForm({
               computedValue={result?.instandhaltung.empfohleneRuecklageMonatlich ?? 0}
               setValue={setValue}
               step="any"
+              formel={
+                result && (
+                  <>
+                    {result.instandhaltung.basisSatzProM2ProJahr} €/m²/Jahr × {wohnflaeche}m² ×{" "}
+                    {result.instandhaltung.risikoMultiplikator} Risiko ÷ 12 ={" "}
+                    {formatEuro(result.instandhaltung.empfohleneRuecklageMonatlich)}
+                  </>
+                )
+              }
             />
             <Field
               label={
@@ -481,11 +513,12 @@ export function PropertyForm({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
   return (
     <div>
       <div className="text-xs text-slate-500">{label}</div>
       <div className="font-medium text-slate-100">{value}</div>
+      {subValue && <div className="text-xs text-slate-500">{subValue}</div>}
     </div>
   );
 }
@@ -495,11 +528,15 @@ function GewerkeSubform({
   register,
   fieldArray,
   result,
+  referenceData,
+  wohnflaeche,
 }: {
   control: any;
   register: any;
   fieldArray: ReturnType<typeof useFieldArray<PropertyFormValues, "gewerke">>;
   result: CalculationResult | null;
+  referenceData: ReferenceDataSnapshot;
+  wohnflaeche: number;
 }) {
   const { fields, append, remove } = fieldArray;
 
@@ -546,13 +583,27 @@ function GewerkeSubform({
                 ))}
               </Select>
             </Field>
-            <Field label="Geschätzte Kosten" hint={posten ? formatEuro(posten.geschaetzteKostenEuro) + " (auto)" : undefined}>
+            <Field
+              label="Geschätzte Kosten"
+              hint={
+                posten && !posten.istOverride
+                  ? (() => {
+                      const kosten = referenceData.gewerkKosten[posten.gewerk];
+                      const mittelwert = round1((kosten.min + kosten.max) / 2);
+                      const faktor = ZUSTANDSFAKTOR[posten.zustand] ?? ZUSTANDSFAKTOR[3];
+                      return `(${kosten.min}+${kosten.max})/2=${mittelwert}€/m² × ${wohnflaeche}m² × ${faktor * 100}% = ${formatEuro(posten.geschaetzteKostenEuro)}`;
+                    })()
+                  : posten
+                    ? `Manuell: ${formatEuro(posten.geschaetzteKostenEuro)}`
+                    : undefined
+              }
+            >
               <Input
                 type="number"
                 step="any"
                 placeholder="auto"
                 {...register(`gewerke.${index}.geschaetzteKostenOverride` as const, {
-                  setValueAs: (v: string) => (v === "" ? null : Number(v)),
+                  setValueAs: (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v)),
                 })}
               />
             </Field>
@@ -573,4 +624,8 @@ function GewerkeSubform({
       )}
     </div>
   );
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
 }

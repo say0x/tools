@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { VergleichChart } from "@/components/charts/VergleichChart";
+import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
 import { formatEuro } from "@/lib/format";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
@@ -94,6 +95,16 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
+              <CardTitle>Bruttomietrendite im Vergleich</CardTitle>
+              <VergleichChart
+                data={objekte.map((o) => ({
+                  name: o.name,
+                  value: o.result.rendite.bruttomietrenditeProzent,
+                  label: `${o.result.rendite.bruttomietrenditeProzent}%`,
+                }))}
+              />
+            </Card>
+            <Card>
               <CardTitle>Nettomietrendite im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
@@ -113,7 +124,48 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
                 }))}
               />
             </Card>
+            <Card>
+              <CardTitle>Eigenkapitalrendite im Vergleich</CardTitle>
+              <VergleichChart
+                data={objekte.map((o) => ({
+                  name: o.name,
+                  value: o.result.rendite.eigenkapitalrenditeProzent,
+                  label: `${o.result.rendite.eigenkapitalrenditeProzent}%`,
+                }))}
+              />
+            </Card>
+            <Card>
+              <CardTitle>Kaufpreisfaktor im Vergleich</CardTitle>
+              <VergleichChart
+                data={objekte.map((o) => ({
+                  name: o.name,
+                  value: o.result.rendite.kaufpreisfaktor,
+                  label: o.result.rendite.kaufpreisfaktor.toFixed(2),
+                }))}
+              />
+            </Card>
+            <Card>
+              <CardTitle>Kaufnebenkosten im Vergleich</CardTitle>
+              <VergleichChart
+                data={objekte.map((o) => ({
+                  name: o.name,
+                  value: o.result.kaufnebenkosten.summeEuro,
+                  label: formatEuro(o.result.kaufnebenkosten.summeEuro),
+                }))}
+              />
+            </Card>
           </div>
+
+          <Card>
+            <CardTitle>Eigenkapitalaufbau im Vergleich (30 Jahre)</CardTitle>
+            <VergleichVermoegensChart
+              objekte={objekte.map((o) => ({
+                id: o.id,
+                name: o.name,
+                eigenkapitalanteilProJahr: o.result.vermoegensverlauf.map((j) => j.eigenkapitalanteil),
+              }))}
+            />
+          </Card>
         </>
       )}
     </div>

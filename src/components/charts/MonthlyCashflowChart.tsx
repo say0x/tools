@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatEuro } from "@/lib/format";
+import { nullBasierteDomain } from "@/lib/chart-domain";
 
 const MONATE = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 
@@ -23,7 +24,7 @@ export function MonthlyCashflowChart({
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
         <XAxis dataKey="monat" stroke="#64748b" fontSize={12} />
-        <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} />
+        <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} domain={nullBasierteDomain} />
         <ReferenceLine y={0} stroke="#475569" />
         <Tooltip
           contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
