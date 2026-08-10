@@ -10,14 +10,15 @@ export interface VermoegensverlaufInput {
 
 /**
  * Jahresreihe für den Vermögensverlauf-Chart. Vereinfachung: die
- * Mietsteigerung wird pauschal auf den gesamten Nach-Steuer-Cashflow
- * angewandt (Kosten werden nicht separat fortgeschrieben) — für einen
- * groben Trendverlauf ausreichend, keine exakte Prognose.
+ * Mietsteigerung wird pauschal auf den gesamten Cashflow (vor wie nach
+ * Steuer) angewandt (Kosten werden nicht separat fortgeschrieben) — für
+ * einen groben Trendverlauf ausreichend, keine exakte Prognose.
  */
 export function berechneVermoegensverlauf(input: VermoegensverlaufInput): VermoegensverlaufJahr[] {
   const wertsteigerungProzent = input.exit.geplant ? input.exit.wertsteigerungProzentJaehrlich : 0;
 
-  let kumulierterCashflow = 0;
+  let kumulierterCashflowVorSteuer = 0;
+  let kumulierterCashflowNachSteuer = 0;
 
   return input.tilgungsplan.map((jahr) => {
     const immobilienwert = round2(
@@ -26,18 +27,22 @@ export function berechneVermoegensverlauf(input: VermoegensverlaufInput): Vermoe
     const restschuld = jahr.restschuldEnde;
     const eigenkapitalanteil = round2(immobilienwert - restschuld);
 
-    const cashflowJahr =
-      input.rendite.monatlicherCashflowNachSteuer *
-      12 *
-      Math.pow(1 + input.mietsteigerungProzentJaehrlich / 100, jahr.jahr - 1);
-    kumulierterCashflow = round2(kumulierterCashflow + cashflowJahr);
+    const wachstumsfaktor = Math.pow(1 + input.mietsteigerungProzentJaehrlich / 100, jahr.jahr - 1);
+    const cashflowVorSteuerJahr = round2(input.rendite.monatlicherCashflowVorSteuer * 12 * wachstumsfaktor);
+    const cashflowNachSteuerJahr = round2(input.rendite.monatlicherCashflowNachSteuer * 12 * wachstumsfaktor);
+
+    kumulierterCashflowVorSteuer = round2(kumulierterCashflowVorSteuer + cashflowVorSteuerJahr);
+    kumulierterCashflowNachSteuer = round2(kumulierterCashflowNachSteuer + cashflowNachSteuerJahr);
 
     return {
       jahr: jahr.jahr,
       restschuld,
       immobilienwert,
       eigenkapitalanteil,
-      kumulierterCashflow,
+      cashflowVorSteuerJahr,
+      cashflowNachSteuerJahr,
+      kumulierterCashflowVorSteuer,
+      kumulierterCashflowNachSteuer,
     };
   });
 }

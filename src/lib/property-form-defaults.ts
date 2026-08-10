@@ -13,8 +13,10 @@ export function defaultPropertyFormValues(): PropertyFormValues {
 
     grunderwerbsteuerProzent: 0,
     grunderwerbsteuerOverride: false,
-    notarGrundbuchProzent: 1.75,
-    notarGrundbuchOverride: false,
+    notarProzent: 1.0,
+    notarOverride: false,
+    grundbuchProzent: 0.5,
+    grundbuchOverride: false,
     maklerprovisionProzent: 0,
     maklerprovisionOverride: false,
 

@@ -4,12 +4,14 @@ import { BUNDESLAENDER, GEWERKE } from "@/server/calc/types";
 
 /** Lädt alle Referenztabellen und formt sie in das Format, das die Calc-Engine erwartet. */
 export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot> {
-  const [grunderwerbsteuer, mietpreise, gewerkKostenRows, instandhaltungssaetze] = await Promise.all([
-    prisma.referenceGrunderwerbsteuer.findMany(),
-    prisma.referenceMietpreis.findMany(),
-    prisma.referenceGewerkKosten.findMany(),
-    prisma.referenceInstandhaltungssatz.findMany({ orderBy: { altersklasseVonJahren: "asc" } }),
-  ]);
+  const [grunderwerbsteuer, mietpreise, gewerkKostenRows, instandhaltungssaetze, kaufnebenkostenDefaults] =
+    await Promise.all([
+      prisma.referenceGrunderwerbsteuer.findMany(),
+      prisma.referenceMietpreis.findMany(),
+      prisma.referenceGewerkKosten.findMany(),
+      prisma.referenceInstandhaltungssatz.findMany({ orderBy: { altersklasseVonJahren: "asc" } }),
+      prisma.referenceKaufnebenkostenDefaults.findFirst(),
+    ]);
 
   const grunderwerbsteuerByBundesland = Object.fromEntries(
     BUNDESLAENDER.map((b) => [b, grunderwerbsteuer.find((r) => r.bundesland === b)?.satzProzent ?? 0])
@@ -36,5 +38,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
       bis: s.altersklasseBisJahren,
       satz: s.satzProM2ProJahr,
     })),
+    notarProzentDefault: kaufnebenkostenDefaults?.notarProzent ?? 1.0,
+    grundbuchProzentDefault: kaufnebenkostenDefaults?.grundbuchProzent ?? 0.5,
   };
 }

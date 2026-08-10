@@ -3,14 +3,16 @@ import { prisma } from "@/server/db";
 import { GrunderwerbsteuerTable } from "./GrunderwerbsteuerTable";
 import { MietpreisTable } from "./MietpreisTable";
 import { GewerkKostenTable } from "./GewerkKostenTable";
+import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuer, mietpreise, gewerkKosten] = await Promise.all([
+  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults] = await Promise.all([
     prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
     prisma.referenceMietpreis.findMany(),
     prisma.referenceGewerkKosten.findMany(),
+    prisma.referenceKaufnebenkostenDefaults.findFirst(),
   ]);
 
   return (
@@ -26,6 +28,14 @@ export default async function ReferenzdatenPage() {
       <Card>
         <CardTitle>Grunderwerbsteuer nach Bundesland</CardTitle>
         <GrunderwerbsteuerTable initialRows={grunderwerbsteuer} />
+      </Card>
+
+      <Card>
+        <CardTitle>Notar- &amp; Grundbuch-Standardsätze</CardTitle>
+        <KaufnebenkostenDefaultsCard
+          initialNotarProzent={kaufnebenkostenDefaults?.notarProzent ?? 1.0}
+          initialGrundbuchProzent={kaufnebenkostenDefaults?.grundbuchProzent ?? 0.5}
+        />
       </Card>
 
       <Card>

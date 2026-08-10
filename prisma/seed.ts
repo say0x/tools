@@ -108,6 +108,13 @@ async function main() {
     });
   }
 
+  const kaufnebenkostenDefaults = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+  if (!kaufnebenkostenDefaults) {
+    await prisma.referenceKaufnebenkostenDefaults.create({
+      data: { notarProzent: 1.0, grundbuchProzent: 0.5 },
+    });
+  }
+
   console.log("Seed abgeschlossen.");
 }
 

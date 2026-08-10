@@ -11,8 +11,7 @@ import { Switch } from "@/components/ui/Switch";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { DualUnitInput } from "@/components/forms/DualUnitInput";
 import { OverridableField } from "@/components/forms/OverridableField";
-import { VermoegensChart } from "@/components/charts/VermoegensChart";
-import { CashflowChart } from "@/components/charts/CashflowChart";
+import { ObjektChartsPanel } from "@/components/charts/ObjektChartsPanel";
 import { berechneObjekt } from "@/server/calc/engine";
 import {
   BUNDESLAENDER,
@@ -75,7 +74,8 @@ export function PropertyForm({
 
   const berechneNebenkostenAutomatisch = () => {
     setValue("grunderwerbsteuerOverride", false);
-    setValue("notarGrundbuchOverride", false);
+    setValue("notarOverride", false);
+    setValue("grundbuchOverride", false);
     setValue("maklerprovisionOverride", false);
   };
 
@@ -143,7 +143,7 @@ export function PropertyForm({
               Automatisch berechnen
             </Button>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <OverridableField
               label="Grunderwerbsteuer (%)"
               control={control}
@@ -154,12 +154,21 @@ export function PropertyForm({
               setValue={setValue}
             />
             <OverridableField
-              label="Notar/Grundbuch (%)"
+              label="Notar (%)"
               control={control}
               register={register}
-              valueField="notarGrundbuchProzent"
-              overrideField="notarGrundbuchOverride"
-              computedValue={result?.kaufnebenkosten.notarGrundbuchProzent ?? 1.75}
+              valueField="notarProzent"
+              overrideField="notarOverride"
+              computedValue={result?.kaufnebenkosten.notarProzent ?? 1.0}
+              setValue={setValue}
+            />
+            <OverridableField
+              label="Grundbuch (%)"
+              control={control}
+              register={register}
+              valueField="grundbuchProzent"
+              overrideField="grundbuchOverride"
+              computedValue={result?.kaufnebenkosten.grundbuchProzent ?? 0.5}
               setValue={setValue}
             />
             <OverridableField
@@ -360,18 +369,7 @@ export function PropertyForm({
               ))}
             </Card>
 
-            {showCharts && (
-              <>
-                <Card>
-                  <CardTitle>Vermögensverlauf</CardTitle>
-                  <VermoegensChart data={result.vermoegensverlauf} />
-                </Card>
-                <Card>
-                  <CardTitle>Kumulierter Cashflow</CardTitle>
-                  <CashflowChart data={result.vermoegensverlauf} />
-                </Card>
-              </>
-            )}
+            {showCharts && <ObjektChartsPanel result={result} />}
           </>
         ) : (
           <Card>

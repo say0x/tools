@@ -1,12 +1,14 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { VermoegensverlaufJahr } from "@/server/calc/types";
+import { Area, AreaChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { Meilensteine, VermoegensverlaufJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
 
-export function VermoegensChart({ data }: { data: VermoegensverlaufJahr[] }) {
+export function VermoegensChart({ data, meilensteine }: { data: VermoegensverlaufJahr[]; meilensteine?: Meilensteine }) {
+  const maxJahr = data[data.length - 1]?.jahr ?? 0;
+
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="wert" x1="0" y1="0" x2="0" y2="1">
@@ -30,6 +32,22 @@ export function VermoegensChart({ data }: { data: VermoegensverlaufJahr[] }) {
         <Area type="monotone" dataKey="immobilienwert" name="Immobilienwert" stroke="#3b82f6" fill="url(#wert)" />
         <Area type="monotone" dataKey="restschuld" name="Restschuld" stroke="#f97316" fillOpacity={0} />
         <Area type="monotone" dataKey="eigenkapitalanteil" name="Eigenkapitalanteil" stroke="#10b981" fill="url(#ek)" />
+        {meilensteine && meilensteine.zinsbindungEndeJahr <= maxJahr && (
+          <ReferenceLine
+            x={meilensteine.zinsbindungEndeJahr}
+            stroke="#a855f7"
+            strokeDasharray="4 4"
+            label={{ value: "Zinsbindung endet", position: "insideTopLeft", fill: "#a855f7", fontSize: 11 }}
+          />
+        )}
+        {meilensteine?.volltilgungJahr != null && meilensteine.volltilgungJahr <= maxJahr && (
+          <ReferenceLine
+            x={meilensteine.volltilgungJahr}
+            stroke="#22c55e"
+            strokeDasharray="4 4"
+            label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#22c55e", fontSize: 11 }}
+          />
+        )}
       </AreaChart>
     </ResponsiveContainer>
   );

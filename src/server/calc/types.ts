@@ -83,8 +83,10 @@ export interface PropertyInput {
 
   grunderwerbsteuerProzent: number;
   grunderwerbsteuerOverride: boolean;
-  notarGrundbuchProzent: number;
-  notarGrundbuchOverride: boolean;
+  notarProzent: number;
+  notarOverride: boolean;
+  grundbuchProzent: number;
+  grundbuchOverride: boolean;
   maklerprovisionProzent: number;
   maklerprovisionOverride: boolean;
 
@@ -131,13 +133,17 @@ export interface ReferenceDataSnapshot {
   mietpreisByBundeslandLagetyp: Record<string, number>; // key: `${bundesland}:${lagetyp}`
   gewerkKosten: Record<Gewerk, { min: number; max: number }>;
   instandhaltungssaetze: { von: number; bis: number | null; satz: number }[];
+  notarProzentDefault: number;
+  grundbuchProzentDefault: number;
 }
 
 export interface KaufnebenkostenResult {
   grunderwerbsteuerProzent: number;
   grunderwerbsteuerEuro: number;
-  notarGrundbuchProzent: number;
-  notarGrundbuchEuro: number;
+  notarProzent: number;
+  notarEuro: number;
+  grundbuchProzent: number;
+  grundbuchEuro: number;
   maklerprovisionProzent: number;
   maklerprovisionEuro: number;
   summeEuro: number;
@@ -189,7 +195,15 @@ export interface VermoegensverlaufJahr {
   restschuld: number;
   immobilienwert: number;
   eigenkapitalanteil: number;
-  kumulierterCashflow: number;
+  cashflowVorSteuerJahr: number;
+  cashflowNachSteuerJahr: number;
+  kumulierterCashflowVorSteuer: number;
+  kumulierterCashflowNachSteuer: number;
+}
+
+export interface Meilensteine {
+  zinsbindungEndeJahr: number;
+  volltilgungJahr: number | null;
 }
 
 export interface BreakevenResult {
@@ -221,6 +235,7 @@ export interface CalculationResult {
   tilgungsplan: TilgungsplanJahr[];
   rendite: RenditeKennzahlen;
   vermoegensverlauf: VermoegensverlaufJahr[];
+  meilensteine: Meilensteine;
   breakeven: BreakevenResult;
   affordability: AffordabilityResult;
   dealBreaker: { rechnetSich: boolean; meldung: string };

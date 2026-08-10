@@ -45,17 +45,18 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
 
   const result = berechneObjekt(property, profile, referenceDataFixture, { steuerjahr: 2025, bezugsjahr: 2024 });
 
-  it("berechnet die Kaufnebenkosten exakt (7.000 GrESt + 3.500 Notar + 7.140 Makler)", () => {
+  it("berechnet die Kaufnebenkosten exakt (7.000 GrESt + 2.000 Notar + 1.000 Grundbuch + 7.140 Makler)", () => {
     expect(result.kaufnebenkosten.grunderwerbsteuerEuro).toBe(7000);
-    expect(result.kaufnebenkosten.notarGrundbuchEuro).toBe(3500);
+    expect(result.kaufnebenkosten.notarEuro).toBe(2000);
+    expect(result.kaufnebenkosten.grundbuchEuro).toBe(1000);
     expect(result.kaufnebenkosten.maklerprovisionEuro).toBeCloseTo(7140, 2);
-    expect(result.kaufnebenkosten.summeEuro).toBeCloseTo(17640, 2);
+    expect(result.kaufnebenkosten.summeEuro).toBeCloseTo(17140, 2);
   });
 
   it("leitet bei 100%-Finanzierung die Darlehenssumme aus dem Kaufpreis ab", () => {
-    expect(result.finanzierung.gesamtinvestitionEuro).toBeCloseTo(217640, 2);
+    expect(result.finanzierung.gesamtinvestitionEuro).toBeCloseTo(217140, 2);
     expect(result.finanzierung.darlehenssummeEuro).toBe(200000);
-    expect(result.finanzierung.eigenkapitalEinsatzEuro).toBeCloseTo(17640, 2);
+    expect(result.finanzierung.eigenkapitalEinsatzEuro).toBeCloseTo(17140, 2);
   });
 
   it("berechnet den Tilgungsplan für Jahr 1 exakt (Annuität 6% von 200.000)", () => {
@@ -70,9 +71,9 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.rendite.kaufpreisfaktor).toBeCloseTo(16.67, 2);
   });
 
-  it("berechnet die Nettomietrendite exakt (9.720€ / 217.640€ Gesamtinvestition)", () => {
+  it("berechnet die Nettomietrendite exakt (9.720€ / 217.140€ Gesamtinvestition)", () => {
     // laufende Kosten/Monat: 50 (Hausgeld) + 100 (Instandhaltung) + 20 (Verwaltung) + 20 (Versicherung/12) = 190
-    expect(result.rendite.nettomietrenditeProzent).toBeCloseTo(4.47, 2);
+    expect(result.rendite.nettomietrenditeProzent).toBeCloseTo(4.48, 2);
   });
 
   it("berechnet den Cashflow vor Steuer exakt (1.000 Miete − 190 Kosten − 1.000 Rate)", () => {
@@ -103,16 +104,35 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
 
   it("bewertet die Finanzierbarkeit anhand des Profils korrekt (25% Schuldendienstquote, ausreichend EK)", () => {
     expect(result.affordability.schuldendienstquoteProzent).toBe(25);
-    expect(result.affordability.liquiditaetsreserveNachKaufEuro).toBeCloseTo(80000 - 17640, 2);
+    expect(result.affordability.liquiditaetsreserveNachKaufEuro).toBeCloseTo(80000 - 17140, 2);
     expect(result.affordability.ampel).toBe("GRUEN");
   });
 
-  it("liefert einen 30-jährigen Vermögensverlauf, dessen Restschuld die des Tilgungsplans widerspiegelt", () => {
-    expect(result.vermoegensverlauf).toHaveLength(30);
+  it("liefert einen 50-jährigen Vermögensverlauf, dessen Restschuld die des Tilgungsplans widerspiegelt", () => {
+    expect(result.vermoegensverlauf).toHaveLength(50);
     expect(result.vermoegensverlauf[0].restschuld).toBe(result.tilgungsplan[0].restschuldEnde);
     // Kein Exit geplant -> Wertsteigerung 0%, Immobilienwert bleibt konstant.
     expect(result.vermoegensverlauf[0].immobilienwert).toBe(200000);
-    expect(result.vermoegensverlauf[29].immobilienwert).toBe(200000);
+    expect(result.vermoegensverlauf[49].immobilienwert).toBe(200000);
+  });
+
+  it("verfolgt kumulierten Cashflow vor UND nach Steuer getrennt über die Jahre", () => {
+    expect(result.vermoegensverlauf[0].cashflowVorSteuerJahr).toBe(-190 * 12);
+    expect(result.vermoegensverlauf[0].kumulierterCashflowVorSteuer).toBe(result.vermoegensverlauf[0].cashflowVorSteuerJahr);
+    expect(result.vermoegensverlauf[0].kumulierterCashflowNachSteuer).toBeGreaterThan(
+      result.vermoegensverlauf[0].kumulierterCashflowVorSteuer
+    );
+  });
+
+  it("liefert Meilensteine für Zinsbindungsende und Volltilgung, konsistent zum Tilgungsplan", () => {
+    expect(result.meilensteine.zinsbindungEndeJahr).toBe(10);
+
+    const erwarteterVolltilgungseintrag = result.tilgungsplan.find(
+      (j) => j.restschuldEnde <= 0.01 && j.restschuldStart > 0.01
+    );
+    expect(result.meilensteine.volltilgungJahr).toBe(erwarteterVolltilgungseintrag?.jahr ?? null);
+    expect(result.meilensteine.volltilgungJahr).not.toBeNull();
+    expect(result.meilensteine.volltilgungJahr).toBeLessThanOrEqual(50);
   });
 
   it("übernimmt die manuell überschriebene Instandhaltungsrücklage unverändert", () => {

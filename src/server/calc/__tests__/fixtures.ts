@@ -39,6 +39,8 @@ export const referenceDataFixture: ReferenceDataSnapshot = {
     { von: 22, bis: 32, satz: 9.0 },
     { von: 33, bis: null, satz: 11.5 },
   ],
+  notarProzentDefault: 1.0,
+  grundbuchProzentDefault: 0.5,
 };
 
 export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): PropertyInput {
@@ -53,8 +55,10 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
 
     grunderwerbsteuerProzent: 0,
     grunderwerbsteuerOverride: false,
-    notarGrundbuchProzent: 1.75,
-    notarGrundbuchOverride: false,
+    notarProzent: 1.0,
+    notarOverride: false,
+    grundbuchProzent: 0.5,
+    grundbuchOverride: false,
     maklerprovisionProzent: 0,
     maklerprovisionOverride: false,
 

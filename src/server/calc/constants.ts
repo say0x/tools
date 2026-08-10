@@ -23,5 +23,12 @@ export const ZUSTANDSFAKTOR: Record<number, number> = {
 /** Ab dieser Haltedauer (Jahre) entfällt die Spekulationssteuer auf Immobiliengewinne (§23 EStG). */
 export const SPEKULATIONSFRIST_JAHRE = 10;
 
-/** Horizont für den Vermögensverlauf-Chart, wenn kein Exit-Datum vorgegeben ist. */
-export const VERMOEGENSVERLAUF_STANDARD_JAHRE = 30;
+/**
+ * Maximaler Betrachtungszeitraum für Tilgungsplan/Vermögensverlauf. Die
+ * Engine berechnet immer den vollen Horizont; die Chart-UI schneidet client-
+ * seitig auf den vom Nutzer gewählten Betrachtungszeitraum (max. 50 Jahre) zu.
+ */
+export const VERMOEGENSVERLAUF_MAX_JAHRE = 50;
+
+/** Vordefinierte Schnellauswahl-Werte für den Betrachtungszeitraum-Regler. */
+export const BETRACHTUNGSZEITRAUM_PRESETS = [1, 5, 10, 15, 30, 50] as const;

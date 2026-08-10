@@ -7,8 +7,8 @@ import { berechneTilgungsplan } from "./financing/tilgungsplan";
 import { berechneBreakevenKaufpreis } from "./rendite/breakeven";
 import { berechneRenditeKennzahlen } from "./rendite/renditekennzahlen";
 import { berechneVermoegensverlauf } from "./rendite/vermoegensverlauf";
-import { VERMOEGENSVERLAUF_STANDARD_JAHRE } from "./constants";
-import type { CalculationResult, ProfileInput, PropertyInput, ReferenceDataSnapshot } from "./types";
+import { VERMOEGENSVERLAUF_MAX_JAHRE } from "./constants";
+import type { CalculationResult, Meilensteine, ProfileInput, PropertyInput, ReferenceDataSnapshot } from "./types";
 
 /**
  * Orchestriert die gesamte Kennzahlen-Berechnung für ein Objekt. Einzige
@@ -51,7 +51,7 @@ export function berechneObjekt(
     finanzierung.darlehenssummeEuro,
     property.financing.zinssatzProzent,
     property.financing.anfaenglicheTilgungProzent,
-    VERMOEGENSVERLAUF_STANDARD_JAHRE
+    VERMOEGENSVERLAUF_MAX_JAHRE
   );
 
   const rendite = berechneRenditeKennzahlen({
@@ -64,6 +64,12 @@ export function berechneObjekt(
     zuVersteuerndesEinkommenJaehrlich: profile.zuVersteuerndesEinkommenJaehrlich,
     steuerjahr,
   });
+
+  const volltilgungEintrag = tilgungsplan.find((j) => j.restschuldEnde <= 0.01 && j.restschuldStart > 0.01);
+  const meilensteine: Meilensteine = {
+    zinsbindungEndeJahr: property.financing.zinsbindungJahre,
+    volltilgungJahr: volltilgungEintrag?.jahr ?? null,
+  };
 
   const vermoegensverlauf = berechneVermoegensverlauf({
     kaufpreis: property.kaufpreis,
@@ -140,6 +146,7 @@ export function berechneObjekt(
     tilgungsplan,
     rendite,
     vermoegensverlauf,
+    meilensteine,
     breakeven,
     affordability,
     dealBreaker: { rechnetSich, meldung },

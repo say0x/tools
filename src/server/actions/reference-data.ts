@@ -9,6 +9,10 @@ const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2:
 const gewerkKostenUpdateSchema = z.array(
   z.object({ id: z.string(), kostenProM2Min: z.coerce.number().min(0), kostenProM2Max: z.coerce.number().min(0) })
 );
+const kaufnebenkostenDefaultsSchema = z.object({
+  notarProzent: z.coerce.number().min(0).max(100),
+  grundbuchProzent: z.coerce.number().min(0).max(100),
+});
 
 export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
   const data = grunderwerbsteuerUpdateSchema.parse(updates);
@@ -36,5 +40,16 @@ export async function aktualisiereGewerkKosten(updates: z.infer<typeof gewerkKos
       })
     )
   );
+  revalidatePath("/immobilien/referenzdaten");
+}
+
+export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof kaufnebenkostenDefaultsSchema>) {
+  const data = kaufnebenkostenDefaultsSchema.parse(values);
+  const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+  if (bestehend) {
+    await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
+  } else {
+    await prisma.referenceKaufnebenkostenDefaults.create({ data });
+  }
   revalidatePath("/immobilien/referenzdaten");
 }

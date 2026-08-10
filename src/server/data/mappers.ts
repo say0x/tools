@@ -30,8 +30,10 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
 
     grunderwerbsteuerProzent: row.grunderwerbsteuerProzent,
     grunderwerbsteuerOverride: row.grunderwerbsteuerOverride,
-    notarGrundbuchProzent: row.notarGrundbuchProzent,
-    notarGrundbuchOverride: row.notarGrundbuchOverride,
+    notarProzent: row.notarProzent,
+    notarOverride: row.notarOverride,
+    grundbuchProzent: row.grundbuchProzent,
+    grundbuchOverride: row.grundbuchOverride,
     maklerprovisionProzent: row.maklerprovisionProzent,
     maklerprovisionOverride: row.maklerprovisionOverride,
 

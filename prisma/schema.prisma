@@ -130,8 +130,10 @@ model Property {
   // Kaufnebenkosten — computed-with-override
   grunderwerbsteuerProzent Float   @default(0)
   grunderwerbsteuerOverride Boolean @default(false)
-  notarGrundbuchProzent    Float   @default(1.75)
-  notarGrundbuchOverride   Boolean @default(false)
+  notarProzent             Float   @default(1.0)
+  notarOverride            Boolean @default(false)
+  grundbuchProzent         Float   @default(0.5)
+  grundbuchOverride        Boolean @default(false)
   maklerprovisionProzent   Float   @default(0)
   maklerprovisionOverride  Boolean @default(false)
 
@@ -269,4 +271,14 @@ model ReferenceInstandhaltungssatz {
   altersklasseBisJahren Int?
   satzProM2ProJahr      Float
   aktualisiertAm        DateTime @default(now())
+}
+
+/// Singleton (wie UserProfile) für die Notar-/Grundbuch-Standardsätze, die
+/// die computed-with-override-Felder auf Property vorschlagen. Bundesweit
+/// relativ einheitlich, daher kein Bundesland-Bezug wie bei der Grunderwerbsteuer.
+model ReferenceKaufnebenkostenDefaults {
+  id               String   @id @default(cuid())
+  notarProzent     Float    @default(1.0)
+  grundbuchProzent Float    @default(0.5)
+  updatedAt        DateTime @updatedAt
 }

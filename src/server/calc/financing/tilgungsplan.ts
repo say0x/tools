@@ -1,4 +1,4 @@
-import { VERMOEGENSVERLAUF_STANDARD_JAHRE } from "../constants";
+import { VERMOEGENSVERLAUF_MAX_JAHRE } from "../constants";
 import type { TilgungsplanJahr } from "../types";
 
 /**
@@ -10,7 +10,7 @@ export function berechneTilgungsplan(
   darlehenssummeEuro: number,
   zinssatzProzent: number,
   anfaenglicheTilgungProzent: number,
-  horizontJahre: number = VERMOEGENSVERLAUF_STANDARD_JAHRE
+  horizontJahre: number = VERMOEGENSVERLAUF_MAX_JAHRE
 ): TilgungsplanJahr[] {
   const annuitaet = darlehenssummeEuro * ((zinssatzProzent + anfaenglicheTilgungProzent) / 100);
   const jahre: TilgungsplanJahr[] = [];
