@@ -1,0 +1,138 @@
+import type {
+  Asset,
+  Property,
+  PropertyFinancing,
+  PropertyGewerk,
+  PropertyExit,
+  UserProfile,
+  UserLiability,
+} from "@/generated/prisma/client";
+import type { PropertyInput, ProfileInput } from "@/server/calc/types";
+import type { PropertyFormValues } from "@/server/actions/property";
+
+type PropertyWithRelations = Property & {
+  financing: PropertyFinancing | null;
+  gewerke: PropertyGewerk[];
+  exit: PropertyExit | null;
+};
+
+type PropertyWithAsset = PropertyWithRelations & { asset: Asset };
+
+export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
+  return {
+    kaufpreis: row.kaufpreis,
+    wohnflaeche: row.wohnflaeche,
+    bundesland: row.bundesland,
+    lagetyp: row.lagetyp,
+    objekttyp: row.objekttyp,
+    baujahr: row.baujahr,
+    anzahlEinheiten: row.anzahlEinheiten,
+
+    grunderwerbsteuerProzent: row.grunderwerbsteuerProzent,
+    grunderwerbsteuerOverride: row.grunderwerbsteuerOverride,
+    notarGrundbuchProzent: row.notarGrundbuchProzent,
+    notarGrundbuchOverride: row.notarGrundbuchOverride,
+    maklerprovisionProzent: row.maklerprovisionProzent,
+    maklerprovisionOverride: row.maklerprovisionOverride,
+
+    sanierungsmodus: row.sanierungsmodus,
+    sofortinvestitionPauschal: row.sofortinvestitionPauschal,
+
+    kaltmieteMonatlich: row.kaltmieteMonatlich,
+    mietsteigerungProzentJaehrlich: row.mietsteigerungProzentJaehrlich,
+
+    hausgeldUmlagefaehigMonatlich: row.hausgeldUmlagefaehigMonatlich,
+    hausgeldNichtUmlagefaehigMonatlich: row.hausgeldNichtUmlagefaehigMonatlich,
+    instandhaltungsruecklageMonatlich: row.instandhaltungsruecklageMonatlich,
+    instandhaltungsruecklageOverride: row.instandhaltungsruecklageOverride,
+    verwaltungskostenMonatlich: row.verwaltungskostenMonatlich,
+    leerstandsquoteProzent: row.leerstandsquoteProzent,
+    versicherungJaehrlich: row.versicherungJaehrlich,
+
+    afaSatzProzent: row.afaSatzProzent,
+    afaSonderabschreibung: row.afaSonderabschreibung,
+
+    financing: row.financing
+      ? {
+          eigenkapital: row.financing.eigenkapital,
+          zinssatzProzent: row.financing.zinssatzProzent,
+          anfaenglicheTilgungProzent: row.financing.anfaenglicheTilgungProzent,
+          zinsbindungJahre: row.financing.zinsbindungJahre,
+          finanzierungsart: row.financing.finanzierungsart,
+          eigenkapitalquoteManuellProzent: row.financing.eigenkapitalquoteManuellProzent,
+        }
+      : {
+          eigenkapital: 0,
+          zinssatzProzent: 3.5,
+          anfaenglicheTilgungProzent: 2,
+          zinsbindungJahre: 10,
+          finanzierungsart: "FINANZIERUNG_110",
+          eigenkapitalquoteManuellProzent: null,
+        },
+
+    gewerke: row.gewerke.map((g) => ({
+      gewerk: g.gewerk,
+      zustand: g.zustand,
+      eigentumsTyp: g.eigentumsTyp,
+      geschaetzteKostenOverride: g.geschaetzteKostenOverride,
+    })),
+
+    exit: row.exit
+      ? {
+          geplant: row.exit.geplant,
+          wertsteigerungProzentJaehrlich: row.exit.wertsteigerungProzentJaehrlich,
+          haltedauerJahre: row.exit.haltedauerJahre,
+        }
+      : { geplant: false, wertsteigerungProzentJaehrlich: 1.5, haltedauerJahre: 10 },
+  };
+}
+
+export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[] }) | null): ProfileInput {
+  if (!row) {
+    return {
+      nettoEinkommenMonatlich: 0,
+      zuVersteuerndesEinkommenJaehrlich: 0,
+      fixkostenMonatlich: 0,
+      vorhandenesEigenkapital: 0,
+      maxSchuldendienstquoteProzent: 35,
+      mindestLiquiditaetsreserveEuro: 10000,
+      liabilities: [],
+    };
+  }
+
+  return {
+    nettoEinkommenMonatlich: row.nettoEinkommenMonatlich,
+    zuVersteuerndesEinkommenJaehrlich: row.zuVersteuerndesEinkommenJaehrlich,
+    fixkostenMonatlich: row.fixkostenMonatlich,
+    vorhandenesEigenkapital: row.vorhandenesEigenkapital,
+    maxSchuldendienstquoteProzent: row.maxSchuldendienstquoteProzent,
+    mindestLiquiditaetsreserveEuro: row.mindestLiquiditaetsreserveEuro,
+    liabilities: row.liabilities.map((l) => ({
+      bezeichnung: l.bezeichnung,
+      monatlicheRate: l.monatlicheRate,
+      restschuld: l.restschuld,
+    })),
+  };
+}
+
+export const PROPERTY_INCLUDE = {
+  asset: true,
+  financing: true,
+  gewerke: true,
+  exit: true,
+} as const;
+
+export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues {
+  const input = toPropertyInput(row);
+  return {
+    name: row.asset.name,
+    ...input,
+    gewerke: row.gewerke.map((g) => ({
+      gewerk: g.gewerk,
+      zustand: g.zustand,
+      eigentumsTyp: g.eigentumsTyp,
+      geschaetzteKostenOverride: g.geschaetzteKostenOverride,
+      kommentar: g.kommentar ?? "",
+    })),
+  };
+}

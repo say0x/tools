@@ -1,0 +1,272 @@
+// Prisma schema for the "tools" suite — starts with the Immobilien-Rechner.
+// Design principle: the DB stores raw inputs only. Every derived figure
+// (Renditen, Tilgungsplan, Kostenschätzungen, ...) is computed at runtime by
+// the calc engine in src/server/calc. Fields that follow the
+// "computed-with-override" pattern (a value + an `xOverride` boolean) let the
+// engine auto-derive a default while still allowing a manual value to win.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Cross-tool foundation
+// ---------------------------------------------------------------------------
+
+enum AssetType {
+  IMMOBILIE
+}
+
+/// Every tool in the suite attaches one Asset row per position it manages.
+/// Future tools (Depot, Sparplan, ...) add their own AssetType + detail table
+/// and a shared "Finanzielle Freiheit" view can aggregate over Asset without
+/// needing to know about Immobilie-specific columns.
+model Asset {
+  id        String    @id @default(cuid())
+  type      AssetType
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  property Property?
+}
+
+// ---------------------------------------------------------------------------
+// User profile (single user, upsert pattern — no auth/multi-tenancy needed)
+// ---------------------------------------------------------------------------
+
+model UserProfile {
+  id String @id @default(cuid())
+
+  nettoEinkommenMonatlich Float @default(0)
+  zuVersteuerndesEinkommenJaehrlich Float @default(0)
+  fixkostenMonatlich      Float @default(0)
+  vorhandenesEigenkapital Float @default(0)
+
+  // Konfigurierbare Affordability-Schwellen, bewusst als Felder statt Konstanten.
+  maxSchuldendienstquoteProzent  Float @default(35)
+  mindestLiquiditaetsreserveEuro Float @default(10000)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  liabilities UserLiability[]
+}
+
+/// Bestehende Kredite/Verbindlichkeiten des Nutzers, einzeln statt als Summe,
+/// damit die Schuldendienstquote sauber mit bestehenden Raten rechnen kann.
+model UserLiability {
+  id            String @id @default(cuid())
+  profileId     String
+  profile       UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  bezeichnung       String
+  monatlicheRate    Float
+  restschuld        Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Property (Immobilien-Objekt)
+// ---------------------------------------------------------------------------
+
+enum Bundesland {
+  BADEN_WUERTTEMBERG
+  BAYERN
+  BERLIN
+  BRANDENBURG
+  BREMEN
+  HAMBURG
+  HESSEN
+  MECKLENBURG_VORPOMMERN
+  NIEDERSACHSEN
+  NORDRHEIN_WESTFALEN
+  RHEINLAND_PFALZ
+  SAARLAND
+  SACHSEN
+  SACHSEN_ANHALT
+  SCHLESWIG_HOLSTEIN
+  THUERINGEN
+}
+
+enum Lagetyp {
+  LAENDLICH
+  KLEINSTADT
+  GROSSSTADT
+}
+
+enum Objekttyp {
+  ETW
+  MEHRFAMILIENHAUS
+  HAUS
+}
+
+enum Sanierungsmodus {
+  PAUSCHAL
+  GRANULAR
+}
+
+model Property {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  kaufpreis       Float
+  kaufdatum       DateTime @default(now())
+  wohnflaeche     Float
+  bundesland      Bundesland
+  lagetyp         Lagetyp
+  objekttyp       Objekttyp
+  baujahr         Int
+  anzahlEinheiten Int @default(1)
+
+  // Kaufnebenkosten — computed-with-override
+  grunderwerbsteuerProzent Float   @default(0)
+  grunderwerbsteuerOverride Boolean @default(false)
+  notarGrundbuchProzent    Float   @default(1.75)
+  notarGrundbuchOverride   Boolean @default(false)
+  maklerprovisionProzent   Float   @default(0)
+  maklerprovisionOverride  Boolean @default(false)
+
+  // Sanierung / Sofortinvestition
+  sanierungsmodus        Sanierungsmodus @default(PAUSCHAL)
+  sofortinvestitionPauschal Float @default(0)
+
+  // Miete
+  kaltmieteMonatlich            Float
+  mietsteigerungProzentJaehrlich Float @default(1.5)
+
+  // Laufende Kosten
+  hausgeldUmlagefaehigMonatlich    Float @default(0)
+  hausgeldNichtUmlagefaehigMonatlich Float @default(0)
+  instandhaltungsruecklageMonatlich Float @default(0)
+  instandhaltungsruecklageOverride  Boolean @default(false)
+  verwaltungskostenMonatlich        Float @default(0)
+  leerstandsquoteProzent            Float @default(2)
+  versicherungJaehrlich             Float @default(0)
+
+  // Steuer (Näherung)
+  afaSatzProzent        Float   @default(2)
+  afaSonderabschreibung Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  financing PropertyFinancing?
+  gewerke   PropertyGewerk[]
+  exit      PropertyExit?
+}
+
+enum Finanzierungsart {
+  FINANZIERUNG_100
+  FINANZIERUNG_110
+  MANUELL
+}
+
+model PropertyFinancing {
+  id         String   @id @default(cuid())
+  propertyId String   @unique
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  eigenkapital                  Float @default(0)
+  zinssatzProzent                Float @default(3.5)
+  anfaenglicheTilgungProzent     Float @default(2)
+  zinsbindungJahre               Int   @default(10)
+  finanzierungsart                Finanzierungsart @default(FINANZIERUNG_110)
+  eigenkapitalquoteManuellProzent Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Gewerk {
+  DACH
+  FENSTER
+  HEIZUNG
+  ELEKTRIK
+  SANITAER_BAEDER
+  MAUERWERK_FASSADE
+  BODENBELAEGE
+  SONSTIGES
+}
+
+enum EigentumsTyp {
+  SONDEREIGENTUM
+  GEMEINSCHAFTSEIGENTUM
+}
+
+model PropertyGewerk {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  gewerk               Gewerk
+  zustand              Int          @default(3) // 1 (sehr gut) – 6 (sehr schlecht)
+  eigentumsTyp         EigentumsTyp @default(SONDEREIGENTUM)
+  geschaetzteKostenOverride Float?
+  kommentar            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+}
+
+model PropertyExit {
+  id         String   @id @default(cuid())
+  propertyId String   @unique
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  geplant                       Boolean @default(false)
+  wertsteigerungProzentJaehrlich Float  @default(1.5)
+  haltedauerJahre                Int    @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Referenzdaten (im UI editierbar, dienen als Startwerte/Vergleichsbasis)
+// ---------------------------------------------------------------------------
+
+model ReferenceGrunderwerbsteuer {
+  id           String     @id @default(cuid())
+  bundesland   Bundesland @unique
+  satzProzent  Float
+  gueltigAb    DateTime   @default(now())
+  quelle       String?
+  updatedAt    DateTime   @updatedAt
+}
+
+model ReferenceMietpreis {
+  id             String     @id @default(cuid())
+  bundesland     Bundesland
+  lagetyp        Lagetyp
+  mietpreisProM2 Float
+  aktualisiertAm DateTime   @default(now())
+
+  @@unique([bundesland, lagetyp])
+}
+
+model ReferenceGewerkKosten {
+  id             String     @id @default(cuid())
+  gewerk         Gewerk     @unique
+  kostenProM2Min Float
+  kostenProM2Max Float
+  aktualisiertAm DateTime   @default(now())
+}
+
+model ReferenceInstandhaltungssatz {
+  id                    String   @id @default(cuid())
+  altersklasseVonJahren Int
+  altersklasseBisJahren Int?
+  satzProM2ProJahr      Float
+  aktualisiertAm        DateTime @default(now())
+}
