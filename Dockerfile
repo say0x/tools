@@ -22,19 +22,28 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Prisma CLI + Schema/Migrationen für "migrate deploy" im Entrypoint.
-# (Nicht Teil des Output-File-Tracings, da nur zur Laufzeit per npx aufgerufen.)
+# Prisma CLI + Schema/Migrationen für "migrate deploy" im Entrypoint (und für
+# das manuelle "npx prisma db seed"). Bewusst das komplette node_modules aus
+# der builder-Stage statt einzelner Pakete: die Prisma-CLI zieht transitive
+# Abhängigkeiten (z.B. @prisma/config -> effect) aus node_modules-Wurzeln, die
+# nicht unter prisma/ oder @prisma/ liegen — gezieltes Cherry-Picking bricht
+# dadurch unvorhersehbar. Kostet etwas Image-Größe, ist aber für ein internes
+# Homelab-Tool unkritisch.
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/dotenv ./node_modules/dotenv
-COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
-COPY --from=builder /app/node_modules/.bin/tsx ./node_modules/.bin/tsx
+COPY --from=builder /app/node_modules ./node_modules
+# prisma/seed.ts importiert den generierten Client aus src/generated/prisma per
+# Relativpfad und wird von tsx zur Laufzeit (nicht vom Next-Build) ausgeführt,
+# braucht die Datei also zusätzlich hier.
+COPY --from=builder /app/src/generated ./src/generated
 
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
+
+# Smoke-Test: bricht den Build sofort ab, falls die Prisma-CLI im Image nicht
+# lauffähig ist (z.B. durch kaputte .bin-Symlinks), statt es erst zur Laufzeit
+# als crash-loopender Container zu bemerken.
+RUN npx prisma --version
 
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0
