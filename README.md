@@ -1,6 +1,6 @@
 # tools
 
-Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`lugx.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Weitere Tools (Zinsrechner, Depot-Tracker, "Finanzielle Freiheit"-Dashboard) sollen auf demselben `Asset`-Datenmodell aufbauen.
+Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`sayox.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Weitere Tools (Zinsrechner, Depot-Tracker, "Finanzielle Freiheit"-Dashboard) sollen auf demselben `Asset`-Datenmodell aufbauen.
 
 ## Tech-Stack
 
@@ -40,7 +40,7 @@ docker compose up -d postgres
 npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/__tests__/engine.test.ts
 ```
 
-## Deployment im Homelab (`tools.lugx.de`)
+## Deployment im Homelab (`tools.sayox.de`)
 
 ```bash
 docker compose up -d --build
@@ -56,7 +56,7 @@ docker compose exec app npx prisma db seed
 
 (Danach nicht erneut ausführen, sonst werden manuelle Anpassungen auf der Referenzdaten-Seite überschrieben — der Seed läuft bewusst nicht automatisch bei jedem Start.)
 
-Die App ist intern unter Port 3000 erreichbar; im Homelab per Reverse-Proxy auf `tools.lugx.de` mappen. Kein eigenes App-Level-Login eingebaut — die Absicherung erfolgt über das Docker-/Homelab-Netz bzw. den Reverse-Proxy (VPN-only o. ä.), da das Tool bewusst nicht öffentlich sein soll.
+Die App ist intern unter Port 3000 erreichbar; im Homelab per Reverse-Proxy auf `tools.sayox.de` mappen. Kein eigenes App-Level-Login eingebaut — die Absicherung erfolgt über das Docker-/Homelab-Netz bzw. den Reverse-Proxy (VPN-only o. ä.), da das Tool bewusst nicht öffentlich sein soll.
 
 ## Projektstruktur (Auszug)
 
