@@ -67,6 +67,7 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
           zinsbindungJahre: row.financing.zinsbindungJahre,
           finanzierungsart: row.financing.finanzierungsart,
           eigenkapitalquoteManuellProzent: row.financing.eigenkapitalquoteManuellProzent,
+          anschlusszinsAufschlagProzent: row.financing.anschlusszinsAufschlagProzent,
         }
       : {
           eigenkapital: 0,
@@ -75,6 +76,7 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
           zinsbindungJahre: 10,
           finanzierungsart: "FINANZIERUNG_110",
           eigenkapitalquoteManuellProzent: null,
+          anschlusszinsAufschlagProzent: 1,
         },
 
     gewerke: row.gewerke.map((g) => ({

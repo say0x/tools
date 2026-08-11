@@ -45,6 +45,9 @@ const financingSchema = z.object({
     .max(100, "EK-Quote darf maximal 100% betragen")
     .nullable()
     .optional(),
+  anschlusszinsAufschlagProzent: z.number({ error: "Anschlusszins-Aufschlag muss eine Zahl sein" })
+    .min(-10, "Anschlusszins-Aufschlag liegt außerhalb eines realistischen Bereichs")
+    .max(10, "Anschlusszins-Aufschlag liegt außerhalb eines realistischen Bereichs"),
 });
 
 const exitSchema = z.object({

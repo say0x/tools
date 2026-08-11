@@ -131,6 +131,7 @@ export async function dupliziereObjekt(id: string) {
               zinsbindungJahre: original.financing.zinsbindungJahre,
               finanzierungsart: original.financing.finanzierungsart,
               eigenkapitalquoteManuellProzent: original.financing.eigenkapitalquoteManuellProzent,
+              anschlusszinsAufschlagProzent: original.financing.anschlusszinsAufschlagProzent,
             },
           }
         : undefined,

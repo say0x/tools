@@ -25,6 +25,8 @@ export default async function NeuesObjektPage() {
   if (standardwerte.kostensteigerungProzent != null)
     defaultValues.kostensteigerungProzentJaehrlich = standardwerte.kostensteigerungProzent;
   if (standardwerte.leerstandsquoteProzent != null) defaultValues.leerstandsquoteProzent = standardwerte.leerstandsquoteProzent;
+  if (standardwerte.anschlusszinsAufschlagProzent != null)
+    defaultValues.financing.anschlusszinsAufschlagProzent = standardwerte.anschlusszinsAufschlagProzent;
 
   return (
     <div className="flex flex-col gap-6">

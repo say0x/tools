@@ -51,6 +51,7 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
         standardWertsteigerungProzent: werte.wertsteigerungProzent,
         standardKostensteigerungProzent: werte.kostensteigerungProzent,
         standardLeerstandsquoteProzent: werte.leerstandsquoteProzent,
+        standardAnschlusszinsAufschlagProzent: werte.anschlusszinsAufschlagProzent,
       });
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
@@ -110,6 +111,11 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
           value={werte.zinsbindungJahre}
           onChange={(v) => setWerte((w) => ({ ...w, zinsbindungJahre: v }))}
           step="1"
+        />
+        <NullableNumberField
+          label="Anschlusszins-Aufschlag (Prozentpunkte)"
+          value={werte.anschlusszinsAufschlagProzent}
+          onChange={(v) => setWerte((w) => ({ ...w, anschlusszinsAufschlagProzent: v }))}
         />
         <NullableNumberField
           label="Mietsteigerung (%/Jahr)"

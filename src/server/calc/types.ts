@@ -75,6 +75,8 @@ export interface PropertyFinancingInput {
   zinsbindungJahre: number;
   finanzierungsart: Finanzierungsart;
   eigenkapitalquoteManuellProzent?: number | null;
+  /** Anschlussfinanzierung: Aufschlag in Prozentpunkten auf zinssatzProzent, ab Ablauf der Zinsbindung angenommen. */
+  anschlusszinsAufschlagProzent: number;
 }
 
 export interface PropertyExitInput {
@@ -200,6 +202,8 @@ export interface TilgungsplanJahr {
   zinszahlung: number;
   tilgungszahlung: number;
   restschuldEnde: number;
+  /** Für dieses Jahr angesetzter Zinssatz — ändert sich einmalig beim Sprung in die Anschlussfinanzierung. */
+  zinssatzProzent: number;
 }
 
 export interface RenditeKennzahlen {
@@ -233,6 +237,8 @@ export interface VermoegensverlaufJahr {
 export interface Meilensteine {
   zinsbindungEndeJahr: number;
   volltilgungJahr: number | null;
+  /** Angenommener Zinssatz der Anschlussfinanzierung ab Jahr zinsbindungEndeJahr + 1 (zinssatzProzent + Aufschlag). */
+  anschlusszinssatzProzent: number;
 }
 
 export interface BreakevenResult {

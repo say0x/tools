@@ -340,6 +340,20 @@ export function PropertyForm({
             >
               <Input type="number" {...register("financing.zinsbindungJahre", { valueAsNumber: true })} />
             </Field>
+            <Field
+              label={
+                <>
+                  Anschlusszins-Aufschlag (Prozentpunkte) <InfoTooltip text={FIELD_HILFE.anschlusszinsAufschlag} />
+                </>
+              }
+              hint={
+                result
+                  ? `Angenommener Zins ab Jahr ${result.meilensteine.zinsbindungEndeJahr + 1}: ${formatNumber(result.meilensteine.anschlusszinssatzProzent)}%`
+                  : undefined
+              }
+            >
+              <Input type="number" step="any" {...register("financing.anschlusszinsAufschlagProzent", { valueAsNumber: true })} />
+            </Field>
           </div>
           {result && (
             <div className="mt-4 grid grid-cols-2 gap-3 rounded-md bg-slate-950/60 p-4 text-sm sm:grid-cols-3">

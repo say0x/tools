@@ -57,7 +57,9 @@ export function berechneObjekt(
     finanzierung.darlehenssummeEuro,
     property.financing.zinssatzProzent,
     property.financing.anfaenglicheTilgungProzent,
-    VERMOEGENSVERLAUF_MAX_JAHRE
+    VERMOEGENSVERLAUF_MAX_JAHRE,
+    property.financing.zinsbindungJahre,
+    property.financing.anschlusszinsAufschlagProzent
   );
 
   const rendite = berechneRenditeKennzahlen({
@@ -75,6 +77,7 @@ export function berechneObjekt(
   const meilensteine: Meilensteine = {
     zinsbindungEndeJahr: property.financing.zinsbindungJahre,
     volltilgungJahr: volltilgungEintrag?.jahr ?? null,
+    anschlusszinssatzProzent: round2(property.financing.zinssatzProzent + property.financing.anschlusszinsAufschlagProzent),
   };
 
   const vermoegensverlauf = berechneVermoegensverlauf({

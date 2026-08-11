@@ -104,6 +104,9 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
           Betrachtungszeitraum: {betrachtungszeitraum} {betrachtungszeitraum === 1 ? "Jahr" : "Jahre"}
           {result.meilensteine.volltilgungJahr != null &&
             ` · Kredit abbezahlt in Jahr ${result.meilensteine.volltilgungJahr}`}
+          {result.meilensteine.zinsbindungEndeJahr < betrachtungszeitraum &&
+            (result.meilensteine.volltilgungJahr == null || result.meilensteine.volltilgungJahr > result.meilensteine.zinsbindungEndeJahr) &&
+            ` · Anschlussfinanzierung ab Jahr ${result.meilensteine.zinsbindungEndeJahr + 1}: angenommen ${result.meilensteine.anschlusszinssatzProzent}% Zins`}
         </p>
       </Card>
 

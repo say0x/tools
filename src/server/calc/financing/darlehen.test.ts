@@ -12,6 +12,7 @@ function financing(overrides: Partial<PropertyFinancingInput> = {}): PropertyFin
     zinsbindungJahre: 10,
     finanzierungsart: "FINANZIERUNG_100",
     eigenkapitalquoteManuellProzent: null,
+    anschlusszinsAufschlagProzent: 1,
     ...overrides,
   };
 }

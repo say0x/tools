@@ -199,6 +199,12 @@ model PropertyFinancing {
   zinsbindungJahre               Int   @default(10)
   finanzierungsart                Finanzierungsart @default(FINANZIERUNG_110)
   eigenkapitalquoteManuellProzent Float?
+  /// Anschlussfinanzierung nach Ablauf der Zinsbindung: der neue Zinssatz wird
+  /// als (zinssatzProzent + anschlusszinsAufschlagProzent) angenommen, ab da mit
+  /// gleichem Tilgungssatz neu auf die dann aktuelle Restschuld berechnet.
+  /// Bewusste Vereinfachung: nur EIN Zinssprung wird simuliert, keine
+  /// wiederkehrende Anschlussfinanzierung bei mehrfachem Zinsbindungsablauf.
+  anschlusszinsAufschlagProzent  Float @default(1)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -328,6 +334,7 @@ model ReferenceKaufnebenkostenDefaults {
   standardWertsteigerungProzent   Float?
   standardKostensteigerungProzent Float?
   standardLeerstandsquoteProzent  Float?
+  standardAnschlusszinsAufschlagProzent Float?
 
   updatedAt DateTime @updatedAt
 }

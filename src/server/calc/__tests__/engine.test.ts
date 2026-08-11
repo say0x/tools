@@ -33,6 +33,7 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
       zinsbindungJahre: 10,
       finanzierungsart: "FINANZIERUNG_100",
       eigenkapitalquoteManuellProzent: null,
+      anschlusszinsAufschlagProzent: 0,
     },
   });
 
@@ -175,6 +176,7 @@ describe("Grundsteuer, Versicherung-Umlagefähigkeit und zvE-Schätzung", () => 
       zinsbindungJahre: 10,
       finanzierungsart: "FINANZIERUNG_100",
       eigenkapitalquoteManuellProzent: null,
+      anschlusszinsAufschlagProzent: 0,
     },
   });
   const profile = makeProfileFixture({ zuVersteuerndesEinkommenJaehrlich: 65000 });

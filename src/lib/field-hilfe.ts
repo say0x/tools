@@ -58,6 +58,8 @@ export const FIELD_HILFE = {
     "100%: Die Bank finanziert nur den Kaufpreis, du zahlst die Kaufnebenkosten aus Eigenkapital. 110%: Die Bank finanziert Kaufpreis UND Kaufnebenkosten mit. Manuell: du gibst deine eigene Eigenkapitalquote vor.",
   zinsbindung:
     "Zeitraum, für den der Zinssatz fest vereinbart ist. Danach ist eine Anschlussfinanzierung zu neuen (unbekannten) Konditionen nötig — im Chart als Marke sichtbar.",
+  anschlusszinsAufschlag:
+    "Nach Ablauf der Zinsbindung ist der künftige Zins unbekannt — als grobe Annahme wird er hier als 'aktueller Zins + X Prozentpunkte' abgeschätzt (z. B. 1 Prozentpunkt mehr). Ab dann rechnet die Kalkulation mit dem neuen Zinssatz auf die dann noch offene Restschuld, mit gleichbleibendem Tilgungssatz. Bewusste Vereinfachung: nur ein einziger Zinssprung wird simuliert, keine weiteren Anschlussfinanzierungen danach.",
 
   // Exit
   exitSzenario:
