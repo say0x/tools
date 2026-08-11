@@ -163,6 +163,16 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
           >
             <Input type="number" step="any" min={0} {...register("mindestLiquiditaetsreserveEuro", { valueAsNumber: true })} />
           </Field>
+          <Field
+            label={
+              <>
+                Mietanrechnung durch Bank (%) <InfoTooltip text={FIELD_HILFE.mietanrechnung} />
+              </>
+            }
+            error={errors.mietanrechnungProzent?.message}
+          >
+            <Input type="number" step="any" min={0} max={100} {...register("mietanrechnungProzent", { valueAsNumber: true })} />
+          </Field>
         </div>
       </Card>
 

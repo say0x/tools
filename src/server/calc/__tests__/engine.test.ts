@@ -105,8 +105,10 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     }
   });
 
-  it("bewertet die Finanzierbarkeit anhand des Profils korrekt (25% Schuldendienstquote, ausreichend EK)", () => {
-    expect(result.affordability.schuldendienstquoteProzent).toBe(25);
+  it("bewertet die Finanzierbarkeit anhand des Profils korrekt (Rate 1.000€, Netto 4.000€ + 800€ angerechnete Miete)", () => {
+    // Angerechnete Miete: 1.000 effektive Nettomiete/Monat × 80% Mietanrechnung = 800€ -> Einkommen 4.800€
+    expect(result.affordability.angerechneteMieteMonatlich).toBe(800);
+    expect(result.affordability.schuldendienstquoteProzent).toBeCloseTo(round2((1000 / 4800) * 100), 2);
     expect(result.affordability.liquiditaetsreserveNachKaufEuro).toBeCloseTo(80000 - 17140, 2);
     expect(result.affordability.ampel).toBe("GRUEN");
   });

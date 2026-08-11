@@ -128,6 +128,7 @@ export function berechneObjekt(
       ? round2((tilgungsplan[0].zinszahlung + tilgungsplan[0].tilgungszahlung) / 12)
       : 0,
     eigenkapitalEinsatzEuro: finanzierung.eigenkapitalEinsatzEuro,
+    mieteinnahmenMonatlich: round2(rendite.effektiveJahresmiete / 12),
   });
 
   const rechnetSich = rendite.monatlicherCashflowNachSteuer >= 0 && affordability.ampel !== "ROT";

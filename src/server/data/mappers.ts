@@ -57,6 +57,7 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
     versicherungUmlagefaehig: row.versicherungUmlagefaehig,
 
     afaSatzProzent: row.afaSatzProzent,
+    afaSatzProzentOverride: row.afaSatzProzentOverride,
     afaSonderabschreibung: row.afaSonderabschreibung,
 
     financing: row.financing
@@ -112,6 +113,7 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
       vorhandenesEigenkapital: 0,
       maxSchuldendienstquoteProzent: 35,
       mindestLiquiditaetsreserveEuro: 10000,
+      mietanrechnungProzent: 80,
       liabilities: [],
     };
   }
@@ -125,6 +127,7 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
     vorhandenesEigenkapital: row.vorhandenesEigenkapital,
     maxSchuldendienstquoteProzent: row.maxSchuldendienstquoteProzent,
     mindestLiquiditaetsreserveEuro: row.mindestLiquiditaetsreserveEuro,
+    mietanrechnungProzent: row.mietanrechnungProzent,
     liabilities: row.liabilities.map((l) => ({
       bezeichnung: l.bezeichnung,
       monatlicheRate: l.monatlicheRate,

@@ -1,4 +1,4 @@
-import { berechneAfaJaehrlich } from "../tax/afa";
+import { berechneAfaJaehrlich, ermittleAfaSatzProzent } from "../tax/afa";
 import { berechneGrenzsteuersatz } from "../tax/grenzsteuersatz";
 import { GEBAEUDEANTEIL_PROZENT } from "../constants";
 import type { PropertyInput, RenditeKennzahlen, TilgungsplanJahr } from "../types";
@@ -51,7 +51,8 @@ export function berechneRenditeKennzahlen(input: RenditeKennzahlenInput): Rendit
   const grenzsteuersatzProzent = berechneGrenzsteuersatz(input.zuVersteuerndesEinkommenJaehrlich, input.steuerjahr);
 
   const gebaeudewertEuro = input.kaufpreis * (GEBAEUDEANTEIL_PROZENT / 100);
-  const afaJaehrlich = berechneAfaJaehrlich(gebaeudewertEuro, property.afaSatzProzent);
+  const afaSatzProzentEffektiv = ermittleAfaSatzProzent(property.baujahr, property.afaSatzProzentOverride, property.afaSatzProzent);
+  const afaJaehrlich = berechneAfaJaehrlich(gebaeudewertEuro, afaSatzProzentEffektiv);
   const zinsJahr1 = input.tilgungsplanJahr1?.zinszahlung ?? 0;
 
   const steuerlichesErgebnisJahr = round2(
@@ -73,6 +74,7 @@ export function berechneRenditeKennzahlen(input: RenditeKennzahlenInput): Rendit
     kaufpreisfaktor,
     effektiveJahresmiete,
     laufendeKostenJaehrlich: round2(laufendeKostenMonatlich * 12),
+    afaSatzProzentEffektiv,
     afaJaehrlich,
     monatlicherCashflowVorSteuer,
     monatlicherCashflowNachSteuer,

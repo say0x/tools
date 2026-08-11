@@ -103,6 +103,7 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
     versicherungUmlagefaehig: false,
 
     afaSatzProzent: 2,
+    afaSatzProzentOverride: false,
     afaSonderabschreibung: false,
 
     financing: {
@@ -135,6 +136,7 @@ export function makeProfileFixture(overrides: Partial<ProfileInput> = {}): Profi
     vorhandenesEigenkapital: 80000,
     maxSchuldendienstquoteProzent: 35,
     mindestLiquiditaetsreserveEuro: 10000,
+    mietanrechnungProzent: 80,
     liabilities: [],
     ...overrides,
   };

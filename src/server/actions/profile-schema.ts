@@ -24,6 +24,10 @@ export const profileSchema = z.object({
     .number({ error: "Liquiditätsreserve muss eine Zahl sein" })
     .min(0, "Liquiditätsreserve darf nicht negativ sein")
     .max(100_000_000, "Liquiditätsreserve ist unrealistisch hoch"),
+  mietanrechnungProzent: z
+    .number({ error: "Mietanrechnung muss eine Zahl sein" })
+    .min(0, "Mietanrechnung darf nicht negativ sein")
+    .max(100, "Mietanrechnung darf maximal 100% betragen"),
   liabilities: z.array(liabilitySchema),
 });
 

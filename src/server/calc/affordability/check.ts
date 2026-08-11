@@ -4,6 +4,8 @@ export interface AffordabilityInput {
   profile: ProfileInput;
   neueFinanzierungsrateMonatlich: number;
   eigenkapitalEinsatzEuro: number;
+  /** Erwartete Nettomiete des Objekts (€/Monat, nach Leerstand), Basis für die Mietanrechnung der Bank. */
+  mieteinnahmenMonatlich: number;
 }
 
 /** Prüft die geplante Finanzierung gegen die im Profil hinterlegten, konfigurierbaren Schwellen. */
@@ -13,9 +15,12 @@ export function berechneAffordability(input: AffordabilityInput): AffordabilityR
   const bestehendeRatenMonatlich = profile.liabilities.reduce((sum, l) => sum + l.monatlicheRate, 0);
   const gesamtrateMonatlich = bestehendeRatenMonatlich + input.neueFinanzierungsrateMonatlich;
 
+  const angerechneteMieteMonatlich = round2(input.mieteinnahmenMonatlich * (profile.mietanrechnungProzent / 100));
+  const nettoEinkommenMitMieteMonatlich = profile.nettoEinkommenMonatlich + angerechneteMieteMonatlich;
+
   const schuldendienstquoteProzent =
-    profile.nettoEinkommenMonatlich > 0
-      ? round2((gesamtrateMonatlich / profile.nettoEinkommenMonatlich) * 100)
+    nettoEinkommenMitMieteMonatlich > 0
+      ? round2((gesamtrateMonatlich / nettoEinkommenMitMieteMonatlich) * 100)
       : 100;
 
   const liquiditaetsreserveNachKaufEuro = round2(profile.vorhandenesEigenkapital - input.eigenkapitalEinsatzEuro);
@@ -33,6 +38,12 @@ export function berechneAffordability(input: AffordabilityInput): AffordabilityR
     begruendung.push(`Schuldendienstquote ${schuldendienstquoteProzent}% nähert sich der Grenze von ${profile.maxSchuldendienstquoteProzent}%.`);
   }
 
+  if (angerechneteMieteMonatlich > 0) {
+    begruendung.push(
+      `Davon ${angerechneteMieteMonatlich} € durch angerechnete Mieteinnahmen (${profile.mietanrechnungProzent}% von ${round2(input.mieteinnahmenMonatlich)} €) gedeckt.`
+    );
+  }
+
   if (liquiditaetsreserveNachKaufEuro < 0) {
     ampel = "ROT";
     begruendung.push(`Eigenkapital reicht nicht aus, Lücke von ${Math.abs(liquiditaetsreserveNachKaufEuro)} €.`);
@@ -47,7 +58,7 @@ export function berechneAffordability(input: AffordabilityInput): AffordabilityR
     begruendung.push("Schuldendienstquote und Liquiditätsreserve liegen innerhalb der eingestellten Grenzen.");
   }
 
-  return { schuldendienstquoteProzent, liquiditaetsreserveNachKaufEuro, ampel, begruendung };
+  return { schuldendienstquoteProzent, liquiditaetsreserveNachKaufEuro, angerechneteMieteMonatlich, ampel, begruendung };
 }
 
 function round2(n: number): number {

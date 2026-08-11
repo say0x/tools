@@ -40,6 +40,7 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     versicherungUmlagefaehig: false,
 
     afaSatzProzent: 2,
+    afaSatzProzentOverride: false,
     afaSonderabschreibung: false,
 
     ansprechpartnerName: "",

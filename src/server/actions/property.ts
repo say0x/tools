@@ -116,6 +116,7 @@ export async function dupliziereObjekt(id: string) {
       versicherungJaehrlich: original.versicherungJaehrlich,
       versicherungUmlagefaehig: original.versicherungUmlagefaehig,
       afaSatzProzent: original.afaSatzProzent,
+      afaSatzProzentOverride: original.afaSatzProzentOverride,
       afaSonderabschreibung: original.afaSonderabschreibung,
       ansprechpartnerName: original.ansprechpartnerName,
       ansprechpartnerTelefon: original.ansprechpartnerTelefon,

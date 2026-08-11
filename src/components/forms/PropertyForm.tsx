@@ -549,15 +549,20 @@ export function PropertyForm({
         <Card>
           <CardTitle>Steuer (Näherung)</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field
+            <OverridableField
               label={
                 <>
                   AfA-Satz (%) <InfoTooltip text={FIELD_HILFE.afaSatz} />
                 </>
               }
-            >
-              <Input type="number" step="any" {...register("afaSatzProzent", { valueAsNumber: true })} />
-            </Field>
+              control={control}
+              register={register}
+              valueField="afaSatzProzent"
+              overrideField="afaSatzProzentOverride"
+              computedValue={result?.rendite.afaSatzProzentEffektiv ?? 2}
+              setValue={setValue}
+              formel={`Aus dem Baujahr ${watched.baujahr ?? 1995} hergeleitet (§7 Abs. 4 EStG): ${(watched.baujahr ?? 1995) < 1925 ? "2,5% (Altbau, Baujahr vor 1925)" : "2% (Standardsatz)"}.`}
+            />
             <Field
               label={
                 <>

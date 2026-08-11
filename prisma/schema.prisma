@@ -55,6 +55,9 @@ model UserProfile {
   // Konfigurierbare Affordability-Schwellen, bewusst als Felder statt Konstanten.
   maxSchuldendienstquoteProzent  Float @default(35)
   mindestLiquiditaetsreserveEuro Float @default(10000)
+  /// Anteil der erwarteten Nettomiete eines Objekts, den die Bank bei der
+  /// Schuldendienstquote als zusätzliches Einkommen anrechnet (Kapitaldienstfähigkeit).
+  mietanrechnungProzent          Float @default(80)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,8 +168,11 @@ model Property {
   versicherungUmlagefaehig          Boolean @default(false)
 
   // Steuer (Näherung)
-  afaSatzProzent        Float   @default(2)
-  afaSonderabschreibung Boolean @default(false)
+  afaSatzProzent         Float   @default(2)
+  /// computed-with-override: ohne Override wird der AfA-Satz aus dem Baujahr
+  /// hergeleitet (§7 Abs. 4 EStG: 2%, bzw. 2,5% bei Baujahr vor 1925).
+  afaSatzProzentOverride Boolean @default(false)
+  afaSonderabschreibung  Boolean @default(false)
 
   // Ansprechpartner / Makler — reine Metadaten, fließen nicht in die Kalkulation ein
   ansprechpartnerName     String @default("")

@@ -120,6 +120,7 @@ export const propertySchema = z.object({
   versicherungUmlagefaehig: z.boolean(),
 
   afaSatzProzent: z.number({ error: "AfA-Satz muss eine Zahl sein" }).min(0, "AfA-Satz darf nicht negativ sein").max(100, "AfA-Satz darf maximal 100% betragen"),
+  afaSatzProzentOverride: z.boolean(),
   afaSonderabschreibung: z.boolean(),
 
   ansprechpartnerName: z.string().trim().max(200, "Name ist zu lang (max. 200 Zeichen)"),

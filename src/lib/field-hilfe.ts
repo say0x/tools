@@ -47,7 +47,7 @@ export const FIELD_HILFE = {
 
   // Steuer
   afaSatz:
-    "Lineare Abschreibung für Abnutzung — jährlicher Prozentsatz vom Gebäudewert (ohne Grundstücksanteil), den du steuerlich als Werbungskosten geltend machen kannst. Standard: 2% (bzw. 2,5% bei Baujahr vor 1925).",
+    "Lineare Abschreibung für Abnutzung — jährlicher Prozentsatz vom Gebäudewert (ohne Grundstücksanteil), den du steuerlich als Werbungskosten geltend machen kannst. Wird automatisch aus dem Baujahr hergeleitet (§7 Abs. 4 EStG): 2%, bzw. 2,5% bei Baujahr vor 1925. Bei abweichender tatsächlicher Regelung (z. B. Denkmalschutz-AfA) kannst du den Satz manuell überschreiben.",
   afaSonderabschreibung:
     "Zusätzliche Sonderabschreibung für bestimmten Neubau (§7b EStG), sofern die Voraussetzungen erfüllt sind. Wirkt sich in dieser Kalkulation aktuell nicht auf die AfA-Berechnung aus — nur als Kennzeichnung erfasst.",
   grenzsteuersatz:
@@ -79,7 +79,9 @@ export const FIELD_HILFE = {
   fixkosten:
     "Deine monatlichen Fixkosten (Miete, Versicherungen, Abos, laufende Ausgaben) — wird vom Netto-Einkommen abgezogen, um dein verfügbares Budget zu ermitteln.",
   maxSchuldendienstquote:
-    "Maximaler Anteil deines Netto-Einkommens, der für alle Kreditraten zusammen (bestehende + neue Immobilie) drauf gehen darf, bevor die Ampel auf Rot springt.",
+    "Maximaler Anteil deines Netto-Einkommens (plus angerechnete Mieteinnahmen, siehe Mietanrechnung), der für alle Kreditraten zusammen (bestehende + neue Immobilie) drauf gehen darf, bevor die Ampel auf Rot springt.",
   mindestLiquiditaetsreserve:
     "Wie viel Eigenkapital nach dem Kauf mindestens übrig bleiben soll, als Puffer für Unvorhergesehenes.",
+  mietanrechnung:
+    "Banken rechnen bei der Kapitaldienstfähigkeit einen Teil der erwarteten Mieteinnahmen als zusätzliches Einkommen an (üblich: 55–90%, abhängig von Bank und Objekt). Dieser Anteil der Nettomiete des jeweiligen Objekts wird deinem Netto-Einkommen für die Schuldendienstquote hinzugerechnet. 0% = keine Anrechnung.",
 } as const;

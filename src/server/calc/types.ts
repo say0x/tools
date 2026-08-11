@@ -126,6 +126,8 @@ export interface PropertyInput {
   versicherungUmlagefaehig: boolean;
 
   afaSatzProzent: number;
+  /** computed-with-override: ohne Override wird der AfA-Satz aus dem Baujahr hergeleitet (§7 Abs. 4 EStG). */
+  afaSatzProzentOverride: boolean;
   afaSonderabschreibung: boolean;
 
   financing: PropertyFinancingInput;
@@ -148,6 +150,8 @@ export interface ProfileInput {
   vorhandenesEigenkapital: number;
   maxSchuldendienstquoteProzent: number;
   mindestLiquiditaetsreserveEuro: number;
+  /** Anteil der erwarteten Nettomiete, den die Bank als Einkommen anrechnet (Kapitaldienstfähigkeit). */
+  mietanrechnungProzent: number;
   liabilities: UserLiabilityInput[];
 }
 
@@ -219,6 +223,8 @@ export interface RenditeKennzahlen {
   kaufpreisfaktor: number;
   effektiveJahresmiete: number;
   laufendeKostenJaehrlich: number;
+  /** Tatsächlich angesetzter AfA-Satz (%) — aus Baujahr hergeleitet oder manuell überschrieben. */
+  afaSatzProzentEffektiv: number;
   afaJaehrlich: number;
   monatlicherCashflowVorSteuer: number;
   monatlicherCashflowNachSteuer: number;
@@ -256,6 +262,8 @@ export interface BreakevenResult {
 export interface AffordabilityResult {
   schuldendienstquoteProzent: number;
   liquiditaetsreserveNachKaufEuro: number;
+  /** Von der Bank angerechneter Anteil der Nettomiete (€/Monat), der die Schuldendienstquote entlastet. */
+  angerechneteMieteMonatlich: number;
   ampel: "GRUEN" | "GELB" | "ROT";
   begruendung: string[];
 }
