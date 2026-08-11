@@ -13,6 +13,8 @@ function financing(overrides: Partial<PropertyFinancingInput> = {}): PropertyFin
     finanzierungsart: "FINANZIERUNG_100",
     eigenkapitalquoteManuellProzent: null,
     anschlusszinsAufschlagProzent: 1,
+    sondertilgungProzent: 0,
+    sondertilgungMaxProzent: 5,
     ...overrides,
   };
 }

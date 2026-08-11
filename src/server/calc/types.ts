@@ -77,6 +77,10 @@ export interface PropertyFinancingInput {
   eigenkapitalquoteManuellProzent?: number | null;
   /** Anschlussfinanzierung: Aufschlag in Prozentpunkten auf zinssatzProzent, ab Ablauf der Zinsbindung angenommen. */
   anschlusszinsAufschlagProzent: number;
+  /** Geplante jährliche Sondertilgung, in % der ursprünglichen Darlehenssumme. 0 = keine geplant. */
+  sondertilgungProzent: number;
+  /** Vertraglich maximal erlaubte jährliche Sondertilgung (% der ursprünglichen Darlehenssumme). */
+  sondertilgungMaxProzent: number;
 }
 
 export interface PropertyExitInput {
@@ -204,6 +208,8 @@ export interface TilgungsplanJahr {
   restschuldEnde: number;
   /** Für dieses Jahr angesetzter Zinssatz — ändert sich einmalig beim Sprung in die Anschlussfinanzierung. */
   zinssatzProzent: number;
+  /** Zusätzliche Sondertilgung in diesem Jahr (bereits in restschuldEnde berücksichtigt, aber NICHT in tilgungszahlung). */
+  sondertilgungBetrag: number;
 }
 
 export interface RenditeKennzahlen {

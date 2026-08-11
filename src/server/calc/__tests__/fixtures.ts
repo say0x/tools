@@ -113,6 +113,8 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
       finanzierungsart: "FINANZIERUNG_110",
       eigenkapitalquoteManuellProzent: null,
       anschlusszinsAufschlagProzent: 0,
+      sondertilgungProzent: 0,
+      sondertilgungMaxProzent: 5,
     },
     gewerke: [],
     exit: {

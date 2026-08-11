@@ -132,6 +132,8 @@ export async function dupliziereObjekt(id: string) {
               finanzierungsart: original.financing.finanzierungsart,
               eigenkapitalquoteManuellProzent: original.financing.eigenkapitalquoteManuellProzent,
               anschlusszinsAufschlagProzent: original.financing.anschlusszinsAufschlagProzent,
+              sondertilgungProzent: original.financing.sondertilgungProzent,
+              sondertilgungMaxProzent: original.financing.sondertilgungMaxProzent,
             },
           }
         : undefined,

@@ -55,6 +55,8 @@ export function defaultPropertyFormValues(): PropertyFormValues {
       finanzierungsart: "FINANZIERUNG_110",
       eigenkapitalquoteManuellProzent: 20,
       anschlusszinsAufschlagProzent: 1,
+      sondertilgungProzent: 0,
+      sondertilgungMaxProzent: 5,
     },
     gewerke: [],
     exit: {

@@ -354,6 +354,30 @@ export function PropertyForm({
             >
               <Input type="number" step="any" {...register("financing.anschlusszinsAufschlagProzent", { valueAsNumber: true })} />
             </Field>
+            <Field
+              label={
+                <>
+                  Sondertilgung (%/Jahr) <InfoTooltip text={FIELD_HILFE.sondertilgung} />
+                </>
+              }
+              error={errors.financing?.sondertilgungProzent?.message}
+              hint={
+                result && result.tilgungsplan[0]
+                  ? `→ ${formatEuro(result.tilgungsplan[0].sondertilgungBetrag)}/Jahr zusätzlich`
+                  : undefined
+              }
+            >
+              <Input type="number" step="any" {...register("financing.sondertilgungProzent", { valueAsNumber: true })} />
+            </Field>
+            <Field
+              label={
+                <>
+                  Max. Sondertilgung laut Vertrag (%/Jahr) <InfoTooltip text={FIELD_HILFE.sondertilgungMax} />
+                </>
+              }
+            >
+              <Input type="number" step="any" {...register("financing.sondertilgungMaxProzent", { valueAsNumber: true })} />
+            </Field>
           </div>
           {result && (
             <div className="mt-4 grid grid-cols-2 gap-3 rounded-md bg-slate-950/60 p-4 text-sm sm:grid-cols-3">

@@ -34,6 +34,8 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
       finanzierungsart: "FINANZIERUNG_100",
       eigenkapitalquoteManuellProzent: null,
       anschlusszinsAufschlagProzent: 0,
+      sondertilgungProzent: 0,
+      sondertilgungMaxProzent: 5,
     },
   });
 
@@ -177,6 +179,8 @@ describe("Grundsteuer, Versicherung-Umlagefähigkeit und zvE-Schätzung", () => 
       finanzierungsart: "FINANZIERUNG_100",
       eigenkapitalquoteManuellProzent: null,
       anschlusszinsAufschlagProzent: 0,
+      sondertilgungProzent: 0,
+      sondertilgungMaxProzent: 5,
     },
   });
   const profile = makeProfileFixture({ zuVersteuerndesEinkommenJaehrlich: 65000 });

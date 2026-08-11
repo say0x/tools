@@ -68,6 +68,8 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
           finanzierungsart: row.financing.finanzierungsart,
           eigenkapitalquoteManuellProzent: row.financing.eigenkapitalquoteManuellProzent,
           anschlusszinsAufschlagProzent: row.financing.anschlusszinsAufschlagProzent,
+          sondertilgungProzent: row.financing.sondertilgungProzent,
+          sondertilgungMaxProzent: row.financing.sondertilgungMaxProzent,
         }
       : {
           eigenkapital: 0,
@@ -77,6 +79,8 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
           finanzierungsart: "FINANZIERUNG_110",
           eigenkapitalquoteManuellProzent: null,
           anschlusszinsAufschlagProzent: 1,
+          sondertilgungProzent: 0,
+          sondertilgungMaxProzent: 5,
         },
 
     gewerke: row.gewerke.map((g) => ({

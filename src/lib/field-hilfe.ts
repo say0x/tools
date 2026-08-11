@@ -60,6 +60,10 @@ export const FIELD_HILFE = {
     "Zeitraum, für den der Zinssatz fest vereinbart ist. Danach ist eine Anschlussfinanzierung zu neuen (unbekannten) Konditionen nötig — im Chart als Marke sichtbar.",
   anschlusszinsAufschlag:
     "Nach Ablauf der Zinsbindung ist der künftige Zins unbekannt — als grobe Annahme wird er hier als 'aktueller Zins + X Prozentpunkte' abgeschätzt (z. B. 1 Prozentpunkt mehr). Ab dann rechnet die Kalkulation mit dem neuen Zinssatz auf die dann noch offene Restschuld, mit gleichbleibendem Tilgungssatz. Bewusste Vereinfachung: nur ein einziger Zinssprung wird simuliert, keine weiteren Anschlussfinanzierungen danach.",
+  sondertilgung:
+    "Geplante zusätzliche Tilgung pro Jahr, in % der ursprünglichen Darlehenssumme (nicht der jeweils aktuellen Restschuld — das entspricht der üblichen vertraglichen Definition des Sondertilgungsrechts). 0% = keine Sondertilgung geplant. Beschleunigt die Restschuld-Tilgung und damit den Vermögensaufbau, wirkt sich aber bewusst NICHT auf die laufende Cashflow-/Schuldendienst-Berechnung aus — wie eine zusätzliche Kapitaleinlage behandelt, nicht wie eine laufende Kostenposition.",
+  sondertilgungMax:
+    "Die vertraglich maximal erlaubte jährliche Sondertilgung laut Darlehensvertrag (üblich: 5% oder 10% der Darlehenssumme, manchmal unbegrenzt). Die geplante Sondertilgung darf diesen Wert nie überschreiten — bei einem anderen vertraglichen Limit hier anpassen.",
 
   // Exit
   exitSzenario:

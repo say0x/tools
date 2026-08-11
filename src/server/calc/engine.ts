@@ -59,7 +59,9 @@ export function berechneObjekt(
     property.financing.anfaenglicheTilgungProzent,
     VERMOEGENSVERLAUF_MAX_JAHRE,
     property.financing.zinsbindungJahre,
-    property.financing.anschlusszinsAufschlagProzent
+    property.financing.anschlusszinsAufschlagProzent,
+    property.financing.sondertilgungProzent,
+    property.financing.sondertilgungMaxProzent
   );
 
   const rendite = berechneRenditeKennzahlen({

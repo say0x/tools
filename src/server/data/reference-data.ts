@@ -75,6 +75,8 @@ export interface Standardwerte {
   kostensteigerungProzent: number | null;
   leerstandsquoteProzent: number | null;
   anschlusszinsAufschlagProzent: number | null;
+  sondertilgungProzent: number | null;
+  sondertilgungMaxProzent: number | null;
 }
 
 /** Werte, mit denen neue Objekte vorausgefüllt werden sollen — jedes Feld null, wenn kein Standard gesetzt ist. */
@@ -91,5 +93,7 @@ export async function ladeStandardwerte(): Promise<Standardwerte> {
     kostensteigerungProzent: row?.standardKostensteigerungProzent ?? null,
     leerstandsquoteProzent: row?.standardLeerstandsquoteProzent ?? null,
     anschlusszinsAufschlagProzent: row?.standardAnschlusszinsAufschlagProzent ?? null,
+    sondertilgungProzent: row?.standardSondertilgungProzent ?? null,
+    sondertilgungMaxProzent: row?.standardSondertilgungMaxProzent ?? null,
   };
 }

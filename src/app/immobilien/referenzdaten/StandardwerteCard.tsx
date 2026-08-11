@@ -52,6 +52,8 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
         standardKostensteigerungProzent: werte.kostensteigerungProzent,
         standardLeerstandsquoteProzent: werte.leerstandsquoteProzent,
         standardAnschlusszinsAufschlagProzent: werte.anschlusszinsAufschlagProzent,
+        standardSondertilgungProzent: werte.sondertilgungProzent,
+        standardSondertilgungMaxProzent: werte.sondertilgungMaxProzent,
       });
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
@@ -116,6 +118,16 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
           label="Anschlusszins-Aufschlag (Prozentpunkte)"
           value={werte.anschlusszinsAufschlagProzent}
           onChange={(v) => setWerte((w) => ({ ...w, anschlusszinsAufschlagProzent: v }))}
+        />
+        <NullableNumberField
+          label="Sondertilgung (%/Jahr)"
+          value={werte.sondertilgungProzent}
+          onChange={(v) => setWerte((w) => ({ ...w, sondertilgungProzent: v }))}
+        />
+        <NullableNumberField
+          label="Max. Sondertilgung laut Vertrag (%/Jahr)"
+          value={werte.sondertilgungMaxProzent}
+          onChange={(v) => setWerte((w) => ({ ...w, sondertilgungMaxProzent: v }))}
         />
         <NullableNumberField
           label="Mietsteigerung (%/Jahr)"

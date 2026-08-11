@@ -8,6 +8,18 @@ import type { TilgungsplanJahr } from "../types";
  * die dann aktuelle Restschuld neu berechnet. Vereinfachende Annahme: nur dieser
  * eine Zinssprung wird abgebildet, keine wiederkehrende Anschlussfinanzierung bei
  * mehrfachem Zinsbindungsablauf innerhalb des Betrachtungszeitraums.
+ *
+ * Zusätzlich kann eine jährliche Sondertilgung angesetzt werden: ein fester
+ * Betrag (sondertilgungProzent % der URSPRÜNGLICHEN Darlehenssumme — die
+ * übliche vertragliche Definition des Sondertilgungsrechts, nicht % der
+ * jeweils aktuellen Restschuld) wird jedes Jahr zusätzlich zur regulären
+ * Tilgung vom Restschuld abgezogen. sondertilgungProzent wird defensiv auf
+ * sondertilgungMaxProzent gedeckelt, auch wenn das bereits auf Schema-Ebene
+ * validiert sein sollte. Die Sondertilgung fließt NICHT in tilgungszahlung
+ * ein (separates Feld sondertilgungBetrag) und wirkt sich damit bewusst
+ * nicht auf die laufende Cashflow-/Schuldendienst-Berechnung aus — sie wird
+ * wie eine zusätzliche Kapitaleinlage behandelt, nicht wie eine laufende
+ * Kostenposition.
  */
 export function berechneTilgungsplan(
   darlehenssummeEuro: number,
@@ -15,9 +27,14 @@ export function berechneTilgungsplan(
   anfaenglicheTilgungProzent: number,
   horizontJahre: number = VERMOEGENSVERLAUF_MAX_JAHRE,
   zinsbindungJahre: number = Infinity,
-  anschlusszinsAufschlagProzent: number = 0
+  anschlusszinsAufschlagProzent: number = 0,
+  sondertilgungProzent: number = 0,
+  sondertilgungMaxProzent: number = 100
 ): TilgungsplanJahr[] {
   const jahre: TilgungsplanJahr[] = [];
+
+  const sondertilgungProzentEffektiv = Math.min(Math.max(0, sondertilgungProzent), Math.max(0, sondertilgungMaxProzent));
+  const sondertilgungBetragJahr = round2(darlehenssummeEuro * (sondertilgungProzentEffektiv / 100));
 
   let restschuld = darlehenssummeEuro;
   let zinssatzAktuell = zinssatzProzent;
@@ -37,16 +54,18 @@ export function berechneTilgungsplan(
     let tilgungszahlung = round2(annuitaet - zinszahlung);
     if (tilgungszahlung > restschuldStart) tilgungszahlung = restschuldStart;
 
-    const restschuldEnde = round2(Math.max(0, restschuldStart - tilgungszahlung));
+    const sondertilgungBetrag = round2(Math.min(sondertilgungBetragJahr, Math.max(0, restschuldStart - tilgungszahlung)));
 
-    jahre.push({ jahr, restschuldStart, zinszahlung, tilgungszahlung, restschuldEnde, zinssatzProzent: zinssatzAktuell });
+    const restschuldEnde = round2(Math.max(0, restschuldStart - tilgungszahlung - sondertilgungBetrag));
+
+    jahre.push({ jahr, restschuldStart, zinszahlung, tilgungszahlung, restschuldEnde, zinssatzProzent: zinssatzAktuell, sondertilgungBetrag });
     restschuld = restschuldEnde;
   }
 
   // Ist das Darlehen vor Horizontende getilgt, den Rest des Horizonts mit
   // Restschuld 0 auffüllen, damit der Vermögensverlauf-Chart eine durchgehende Reihe hat.
   for (let jahr = jahre.length + 1; jahr <= horizontJahre; jahr++) {
-    jahre.push({ jahr, restschuldStart: 0, zinszahlung: 0, tilgungszahlung: 0, restschuldEnde: 0, zinssatzProzent: 0 });
+    jahre.push({ jahr, restschuldStart: 0, zinszahlung: 0, tilgungszahlung: 0, restschuldEnde: 0, zinssatzProzent: 0, sondertilgungBetrag: 0 });
   }
 
   return jahre;

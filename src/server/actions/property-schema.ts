@@ -48,6 +48,15 @@ const financingSchema = z.object({
   anschlusszinsAufschlagProzent: z.number({ error: "Anschlusszins-Aufschlag muss eine Zahl sein" })
     .min(-10, "Anschlusszins-Aufschlag liegt außerhalb eines realistischen Bereichs")
     .max(10, "Anschlusszins-Aufschlag liegt außerhalb eines realistischen Bereichs"),
+  sondertilgungProzent: z.number({ error: "Sondertilgung muss eine Zahl sein" })
+    .min(0, "Sondertilgung darf nicht negativ sein")
+    .max(100, "Sondertilgung liegt außerhalb eines realistischen Bereichs"),
+  sondertilgungMaxProzent: z.number({ error: "Max. Sondertilgung muss eine Zahl sein" })
+    .min(0, "Max. Sondertilgung darf nicht negativ sein")
+    .max(100, "Max. Sondertilgung liegt außerhalb eines realistischen Bereichs"),
+}).refine((data) => data.sondertilgungProzent <= data.sondertilgungMaxProzent, {
+  message: "Sondertilgung darf die vertraglich maximale Sondertilgung nicht überschreiten",
+  path: ["sondertilgungProzent"],
 });
 
 const exitSchema = z.object({

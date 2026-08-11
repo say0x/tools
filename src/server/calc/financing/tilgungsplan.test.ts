@@ -19,7 +19,7 @@ describe("berechneTilgungsplan", () => {
     const plan = berechneTilgungsplan(10000, 0, 50, 5);
     expect(plan).toHaveLength(5);
     expect(plan[1].restschuldEnde).toBe(0);
-    expect(plan[2]).toEqual({ jahr: 3, restschuldStart: 0, zinszahlung: 0, tilgungszahlung: 0, restschuldEnde: 0, zinssatzProzent: 0 });
+    expect(plan[2]).toEqual({ jahr: 3, restschuldStart: 0, zinszahlung: 0, tilgungszahlung: 0, restschuldEnde: 0, zinssatzProzent: 0, sondertilgungBetrag: 0 });
     expect(plan[4].restschuldEnde).toBe(0);
   });
 
@@ -33,14 +33,14 @@ describe("berechneTilgungsplan", () => {
       const plan = berechneTilgungsplan(100000, 4, 2, 3, 1, 2);
 
       // Jahr 1 (innerhalb Zinsbindung): unverändert wie ohne Anschlussfinanzierung.
-      expect(plan[0]).toEqual({ jahr: 1, restschuldStart: 100000, zinszahlung: 4000, tilgungszahlung: 2000, restschuldEnde: 98000, zinssatzProzent: 4 });
+      expect(plan[0]).toEqual({ jahr: 1, restschuldStart: 100000, zinszahlung: 4000, tilgungszahlung: 2000, restschuldEnde: 98000, zinssatzProzent: 4, sondertilgungBetrag: 0 });
 
       // Jahr 2: Zinsbindung abgelaufen (zinsbindungJahre=1) -> neuer Zins 4+2=6%,
       // neue Annuität = 98000 * (6+2)/100 = 7840.
-      expect(plan[1]).toEqual({ jahr: 2, restschuldStart: 98000, zinszahlung: 5880, tilgungszahlung: 1960, restschuldEnde: 96040, zinssatzProzent: 6 });
+      expect(plan[1]).toEqual({ jahr: 2, restschuldStart: 98000, zinszahlung: 5880, tilgungszahlung: 1960, restschuldEnde: 96040, zinssatzProzent: 6, sondertilgungBetrag: 0 });
 
       // Jahr 3: bleibt beim neuen Zins/der neuen Annuität (nur EIN Zinssprung simuliert).
-      expect(plan[2]).toEqual({ jahr: 3, restschuldStart: 96040, zinszahlung: 5762.4, tilgungszahlung: 2077.6, restschuldEnde: 93962.4, zinssatzProzent: 6 });
+      expect(plan[2]).toEqual({ jahr: 3, restschuldStart: 96040, zinszahlung: 5762.4, tilgungszahlung: 2077.6, restschuldEnde: 93962.4, zinssatzProzent: 6, sondertilgungBetrag: 0 });
     });
 
     it("verändert bei Aufschlag 0 den Tilgungsplan nicht gegenüber einem durchgehenden Darlehen ohne Anschlussfinanzierung", () => {
@@ -53,6 +53,53 @@ describe("berechneTilgungsplan", () => {
       const plan = berechneTilgungsplan(100000, 4, 2, 4, 1, 2);
       // Jahre 2-4 bleiben alle beim einmalig gesetzten Anschlusszins von 6%.
       expect(plan.slice(1).every((j) => j.zinssatzProzent === 6)).toBe(true);
+    });
+  });
+
+  describe("Sondertilgung", () => {
+    it("tilgt zusätzlich zur regulären Annuität einen festen Anteil der ursprünglichen Darlehenssumme pro Jahr", () => {
+      // Sondertilgung 5% von 100000 = 5000/Jahr, zusätzlich zur regulären Tilgung.
+      const plan = berechneTilgungsplan(100000, 4, 2, 3, Infinity, 0, 5, 5);
+
+      expect(plan[0].tilgungszahlung).toBe(2000); // reguläre Tilgung unverändert
+      expect(plan[0].sondertilgungBetrag).toBe(5000);
+      expect(plan[0].restschuldEnde).toBe(93000); // 100000 - 2000 (regulär) - 5000 (Sondertilgung)
+    });
+
+    it("reduziert die Restschuld schneller als ohne Sondertilgung und verkürzt die Laufzeit bis zur Volltilgung", () => {
+      const ohneSondertilgung = berechneTilgungsplan(100000, 4, 2, 50);
+      const mitSondertilgung = berechneTilgungsplan(100000, 4, 2, 50, Infinity, 0, 5, 5);
+
+      const volltilgungOhne = ohneSondertilgung.findIndex((j) => j.restschuldEnde <= 0.01 && j.restschuldStart > 0.01);
+      const volltilgungMit = mitSondertilgung.findIndex((j) => j.restschuldEnde <= 0.01 && j.restschuldStart > 0.01);
+
+      expect(volltilgungMit).toBeLessThan(volltilgungOhne);
+    });
+
+    it("lässt tilgungszahlung unverändert (Sondertilgung fließt nicht in die reguläre Tilgung/Cashflow-Basis ein)", () => {
+      const ohneSondertilgung = berechneTilgungsplan(100000, 4, 2, 3);
+      const mitSondertilgung = berechneTilgungsplan(100000, 4, 2, 3, Infinity, 0, 5, 5);
+      expect(mitSondertilgung[0].tilgungszahlung).toBe(ohneSondertilgung[0].tilgungszahlung);
+      expect(mitSondertilgung[0].zinszahlung).toBe(ohneSondertilgung[0].zinszahlung);
+    });
+
+    it("deckelt die Sondertilgung defensiv auf sondertilgungMaxProzent, auch wenn sondertilgungProzent darüber liegt", () => {
+      const gedeckelt = berechneTilgungsplan(100000, 4, 2, 3, Infinity, 0, 20, 5);
+      const erwartet = berechneTilgungsplan(100000, 4, 2, 3, Infinity, 0, 5, 5);
+      expect(gedeckelt).toEqual(erwartet);
+    });
+
+    it("kappt die Sondertilgung im letzten Jahr auf die verbleibende Restschuld, statt ins Negative zu tilgen", () => {
+      // Kleines Darlehen, hohe Sondertilgung -> Restschuld ist nach Jahr 1 bereits deutlich unter dem Sondertilgungsbetrag.
+      const plan = berechneTilgungsplan(10000, 4, 2, 5, Infinity, 0, 50, 50);
+      expect(plan.every((j) => j.restschuldEnde >= 0)).toBe(true);
+      expect(plan.find((j) => j.restschuldEnde <= 0.01)).toBeDefined();
+    });
+
+    it("bleibt bei sondertilgungProzent 0 (Default) identisch zum Tilgungsplan ohne Sondertilgung", () => {
+      const ohne = berechneTilgungsplan(100000, 4, 2, 10);
+      const mitNull = berechneTilgungsplan(100000, 4, 2, 10, Infinity, 0, 0, 5);
+      expect(mitNull).toEqual(ohne);
     });
   });
 });

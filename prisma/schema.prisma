@@ -205,6 +205,17 @@ model PropertyFinancing {
   /// Bewusste Vereinfachung: nur EIN Zinssprung wird simuliert, keine
   /// wiederkehrende Anschlussfinanzierung bei mehrfachem Zinsbindungsablauf.
   anschlusszinsAufschlagProzent  Float @default(1)
+  /// Geplante jährliche Sondertilgung, in % der ursprünglichen Darlehenssumme
+  /// (nicht der jeweils aktuellen Restschuld — entspricht der üblichen
+  /// vertraglichen Definition des Sondertilgungsrechts). Default 0 = keine
+  /// Sondertilgung geplant. Reduziert die Restschuld zusätzlich zur regulären
+  /// Tilgung, wirkt sich aber NICHT auf die laufende monatliche Cashflow-/
+  /// Schuldendienst-Berechnung aus (bewusste Vereinfachung: wie eine separate
+  /// Kapitaleinlage behandelt, nicht wie eine laufende Kostenposition).
+  sondertilgungProzent    Float @default(0)
+  /// Vertraglich maximal erlaubte jährliche Sondertilgung (% der ursprünglichen
+  /// Darlehenssumme) — sondertilgungProzent darf diesen Wert nie überschreiten.
+  sondertilgungMaxProzent Float @default(5)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -335,6 +346,8 @@ model ReferenceKaufnebenkostenDefaults {
   standardKostensteigerungProzent Float?
   standardLeerstandsquoteProzent  Float?
   standardAnschlusszinsAufschlagProzent Float?
+  standardSondertilgungProzent    Float?
+  standardSondertilgungMaxProzent Float?
 
   updatedAt DateTime @updatedAt
 }

@@ -27,6 +27,9 @@ export default async function NeuesObjektPage() {
   if (standardwerte.leerstandsquoteProzent != null) defaultValues.leerstandsquoteProzent = standardwerte.leerstandsquoteProzent;
   if (standardwerte.anschlusszinsAufschlagProzent != null)
     defaultValues.financing.anschlusszinsAufschlagProzent = standardwerte.anschlusszinsAufschlagProzent;
+  if (standardwerte.sondertilgungProzent != null) defaultValues.financing.sondertilgungProzent = standardwerte.sondertilgungProzent;
+  if (standardwerte.sondertilgungMaxProzent != null)
+    defaultValues.financing.sondertilgungMaxProzent = standardwerte.sondertilgungMaxProzent;
 
   return (
     <div className="flex flex-col gap-6">

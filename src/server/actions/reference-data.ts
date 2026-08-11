@@ -27,6 +27,8 @@ const standardwerteSchema = z.object({
   standardKostensteigerungProzent: z.coerce.number().min(-20).max(50).nullable(),
   standardLeerstandsquoteProzent: z.coerce.number().min(0).max(100).nullable(),
   standardAnschlusszinsAufschlagProzent: z.coerce.number().min(-10).max(10).nullable(),
+  standardSondertilgungProzent: z.coerce.number().min(0).max(100).nullable(),
+  standardSondertilgungMaxProzent: z.coerce.number().min(0).max(100).nullable(),
 });
 
 export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
