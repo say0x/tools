@@ -290,13 +290,25 @@ model ReferenceInstandhaltungssatz {
 
 /// Singleton (wie UserProfile) für allgemeine Standardwerte, die neue
 /// Objekte vorausfüllen bzw. die computed-with-override-Felder vorschlagen.
+/// Alle "standard*"-Felder sind bewusst nullable: null = kein Standard
+/// gesetzt, das hartcodierte Fallback aus defaultPropertyFormValues() gilt.
+/// Jedes vorausgefüllte Feld bleibt pro Objekt frei überschreibbar.
 model ReferenceKaufnebenkostenDefaults {
   id                 String      @id @default(cuid())
   notarProzent       Float       @default(1.0)
   grundbuchProzent   Float       @default(0.5)
-  /// Bundesland, mit dem neue Objekte vorausgefüllt werden (frei überschreibbar). Kein Standard, wenn null.
   standardBundesland Bundesland?
-  updatedAt          DateTime    @updatedAt
+
+  standardZinssatzProzent         Float?
+  standardTilgungProzent          Float?
+  standardZinsbindungJahre        Int?
+  standardFinanzierungsart        Finanzierungsart?
+  standardMietsteigerungProzent   Float?
+  standardWertsteigerungProzent   Float?
+  standardKostensteigerungProzent Float?
+  standardLeerstandsquoteProzent  Float?
+
+  updatedAt DateTime @updatedAt
 }
 
 /// Vergleichswert für Kaufpreisfaktor (= Kaufpreis / Jahreskaltmiete) je

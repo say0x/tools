@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/server/db";
-import { BUNDESLAENDER } from "@/server/calc/types";
+import { BUNDESLAENDER, FINANZIERUNGSARTEN } from "@/server/calc/types";
 
 const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(100) }));
 const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0) }));
@@ -15,7 +15,17 @@ const kaufnebenkostenDefaultsSchema = z.object({
   grundbuchProzent: z.coerce.number().min(0).max(100),
 });
 const kaufpreisfaktorUpdateSchema = z.array(z.object({ id: z.string(), kaufpreisfaktorReferenz: z.coerce.number().min(0) }));
-const standardBundeslandSchema = z.enum(BUNDESLAENDER).nullable();
+const standardwerteSchema = z.object({
+  standardBundesland: z.enum(BUNDESLAENDER).nullable(),
+  standardZinssatzProzent: z.coerce.number().min(0).nullable(),
+  standardTilgungProzent: z.coerce.number().min(0).nullable(),
+  standardZinsbindungJahre: z.coerce.number().int().min(1).nullable(),
+  standardFinanzierungsart: z.enum(FINANZIERUNGSARTEN).nullable(),
+  standardMietsteigerungProzent: z.coerce.number().nullable(),
+  standardWertsteigerungProzent: z.coerce.number().nullable(),
+  standardKostensteigerungProzent: z.coerce.number().nullable(),
+  standardLeerstandsquoteProzent: z.coerce.number().min(0).max(100).nullable(),
+});
 
 export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
   const data = grunderwerbsteuerUpdateSchema.parse(updates);
@@ -67,8 +77,8 @@ export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kauf
   revalidatePath("/immobilien/referenzdaten");
 }
 
-export async function aktualisiereStandardBundesland(bundesland: z.infer<typeof standardBundeslandSchema>) {
-  const data = { standardBundesland: standardBundeslandSchema.parse(bundesland) };
+export async function aktualisiereStandardwerte(values: z.infer<typeof standardwerteSchema>) {
+  const data = standardwerteSchema.parse(values);
   const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
   if (bestehend) {
     await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });

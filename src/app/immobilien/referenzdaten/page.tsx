@@ -5,18 +5,21 @@ import { MietpreisTable } from "./MietpreisTable";
 import { GewerkKostenTable } from "./GewerkKostenTable";
 import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
 import { KaufpreisfaktorTable } from "./KaufpreisfaktorTable";
-import { StandardBundeslandCard } from "./StandardBundeslandCard";
+import { StandardwerteCard } from "./StandardwerteCard";
+import { ladeStandardwerte } from "@/server/data/reference-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults, kaufpreisfaktoren] = await Promise.all([
-    prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
-    prisma.referenceMietpreis.findMany(),
-    prisma.referenceGewerkKosten.findMany(),
-    prisma.referenceKaufnebenkostenDefaults.findFirst(),
-    prisma.referenceKaufpreisfaktor.findMany(),
-  ]);
+  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults, kaufpreisfaktoren, standardwerte] =
+    await Promise.all([
+      prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
+      prisma.referenceMietpreis.findMany(),
+      prisma.referenceGewerkKosten.findMany(),
+      prisma.referenceKaufnebenkostenDefaults.findFirst(),
+      prisma.referenceKaufpreisfaktor.findMany(),
+      ladeStandardwerte(),
+    ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,8 +45,8 @@ export default async function ReferenzdatenPage() {
       </Card>
 
       <Card>
-        <CardTitle>Standard-Bundesland für neue Objekte</CardTitle>
-        <StandardBundeslandCard initialBundesland={kaufnebenkostenDefaults?.standardBundesland ?? null} />
+        <CardTitle>Standardwerte für neue Objekte</CardTitle>
+        <StandardwerteCard initialWerte={standardwerte} />
       </Card>
 
       <Card>

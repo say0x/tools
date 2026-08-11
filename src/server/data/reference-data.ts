@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db";
-import type { Bundesland } from "@/generated/prisma/client";
+import type { Bundesland, Finanzierungsart } from "@/generated/prisma/client";
 import type { ReferenceDataSnapshot } from "@/server/calc/types";
 import { BUNDESLAENDER, GEWERKE } from "@/server/calc/types";
 
@@ -51,8 +51,30 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
   };
 }
 
-/** Bundesland, mit dem neue Objekte vorausgefüllt werden sollen — null, wenn kein Standard gesetzt ist. */
-export async function ladeStandardBundesland(): Promise<Bundesland | null> {
+export interface Standardwerte {
+  bundesland: Bundesland | null;
+  zinssatzProzent: number | null;
+  tilgungProzent: number | null;
+  zinsbindungJahre: number | null;
+  finanzierungsart: Finanzierungsart | null;
+  mietsteigerungProzent: number | null;
+  wertsteigerungProzent: number | null;
+  kostensteigerungProzent: number | null;
+  leerstandsquoteProzent: number | null;
+}
+
+/** Werte, mit denen neue Objekte vorausgefüllt werden sollen — jedes Feld null, wenn kein Standard gesetzt ist. */
+export async function ladeStandardwerte(): Promise<Standardwerte> {
   const row = await prisma.referenceKaufnebenkostenDefaults.findFirst();
-  return row?.standardBundesland ?? null;
+  return {
+    bundesland: row?.standardBundesland ?? null,
+    zinssatzProzent: row?.standardZinssatzProzent ?? null,
+    tilgungProzent: row?.standardTilgungProzent ?? null,
+    zinsbindungJahre: row?.standardZinsbindungJahre ?? null,
+    finanzierungsart: row?.standardFinanzierungsart ?? null,
+    mietsteigerungProzent: row?.standardMietsteigerungProzent ?? null,
+    wertsteigerungProzent: row?.standardWertsteigerungProzent ?? null,
+    kostensteigerungProzent: row?.standardKostensteigerungProzent ?? null,
+    leerstandsquoteProzent: row?.standardLeerstandsquoteProzent ?? null,
+  };
 }

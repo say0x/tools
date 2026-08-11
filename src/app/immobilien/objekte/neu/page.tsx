@@ -2,20 +2,29 @@ import { PropertyForm } from "@/components/forms/PropertyForm";
 import { defaultPropertyFormValues } from "@/lib/property-form-defaults";
 import { ladeProfil } from "@/server/actions/profile";
 import { erstelleObjekt } from "@/server/actions/property";
-import { ladeReferenceDataSnapshot, ladeStandardBundesland } from "@/server/data/reference-data";
+import { ladeReferenceDataSnapshot, ladeStandardwerte } from "@/server/data/reference-data";
 import { toProfileInput } from "@/server/data/mappers";
 
 export const dynamic = "force-dynamic";
 
 export default async function NeuesObjektPage() {
-  const [profilRow, referenceData, standardBundesland] = await Promise.all([
+  const [profilRow, referenceData, standardwerte] = await Promise.all([
     ladeProfil(),
     ladeReferenceDataSnapshot(),
-    ladeStandardBundesland(),
+    ladeStandardwerte(),
   ]);
 
   const defaultValues = defaultPropertyFormValues();
-  if (standardBundesland) defaultValues.bundesland = standardBundesland;
+  if (standardwerte.bundesland) defaultValues.bundesland = standardwerte.bundesland;
+  if (standardwerte.zinssatzProzent != null) defaultValues.financing.zinssatzProzent = standardwerte.zinssatzProzent;
+  if (standardwerte.tilgungProzent != null) defaultValues.financing.anfaenglicheTilgungProzent = standardwerte.tilgungProzent;
+  if (standardwerte.zinsbindungJahre != null) defaultValues.financing.zinsbindungJahre = standardwerte.zinsbindungJahre;
+  if (standardwerte.finanzierungsart != null) defaultValues.financing.finanzierungsart = standardwerte.finanzierungsart;
+  if (standardwerte.mietsteigerungProzent != null) defaultValues.mietsteigerungProzentJaehrlich = standardwerte.mietsteigerungProzent;
+  if (standardwerte.wertsteigerungProzent != null) defaultValues.wertsteigerungProzentJaehrlich = standardwerte.wertsteigerungProzent;
+  if (standardwerte.kostensteigerungProzent != null)
+    defaultValues.kostensteigerungProzentJaehrlich = standardwerte.kostensteigerungProzent;
+  if (standardwerte.leerstandsquoteProzent != null) defaultValues.leerstandsquoteProzent = standardwerte.leerstandsquoteProzent;
 
   return (
     <div className="flex flex-col gap-6">
