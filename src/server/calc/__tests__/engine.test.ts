@@ -113,6 +113,17 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.affordability.ampel).toBe("GRUEN");
   });
 
+  it("bewertet die Kapitaleffizienz konsistent zur EK-Rendite (EK-Einsatz 17.140€ liegt über der Prüfschwelle von 5.000€)", () => {
+    expect(result.finanzierung.eigenkapitalEinsatzEuro).toBeCloseTo(17140, 2);
+    if (result.rendite.eigenkapitalrenditeProzent < 0) {
+      expect(result.kapitaleffizienz.ampel).toBe("ROT");
+    } else if (result.rendite.eigenkapitalrenditeProzent < 4) {
+      expect(result.kapitaleffizienz.ampel).toBe("GELB");
+    } else {
+      expect(result.kapitaleffizienz.ampel).toBe("GRUEN");
+    }
+  });
+
   it("liefert einen 50-jährigen Vermögensverlauf mit Wertsteigerung unabhängig vom Exit-Plan (Default 2%/Jahr)", () => {
     expect(result.vermoegensverlauf).toHaveLength(50);
     expect(result.vermoegensverlauf[0].restschuld).toBe(result.tilgungsplan[0].restschuldEnde);

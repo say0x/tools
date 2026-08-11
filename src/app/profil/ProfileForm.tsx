@@ -177,6 +177,36 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       </Card>
 
       <Card>
+        <CardTitle>Kapitaleffizienz-Schwellen</CardTitle>
+        <p className="mb-4 text-sm text-slate-400">
+          Eigenständiges Signal, ob eingesetztes Eigenkapital effizient arbeitet — unabhängig von Cashflow und
+          Schuldendienstquote (relevant z. B. wenn viel EK statt eines größeren Kredits verwendet wird).
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label={
+              <>
+                Mindest-Eigenkapitalrendite (%) <InfoTooltip text={FIELD_HILFE.mindestEigenkapitalrendite} />
+              </>
+            }
+            error={errors.mindestEigenkapitalrenditeProzent?.message}
+          >
+            <Input type="number" step="any" {...register("mindestEigenkapitalrenditeProzent", { valueAsNumber: true })} />
+          </Field>
+          <Field
+            label={
+              <>
+                Prüfschwelle EK-Einsatz (€) <InfoTooltip text={FIELD_HILFE.eigenkapitalPruefungAb} />
+              </>
+            }
+            error={errors.eigenkapitalPruefungAbEuro?.message}
+          >
+            <Input type="number" step="any" min={0} {...register("eigenkapitalPruefungAbEuro", { valueAsNumber: true })} />
+          </Field>
+        </div>
+      </Card>
+
+      <Card>
         <div className="mb-4 flex items-center justify-between">
           <CardTitle className="mb-0">Bestehende Kredite</CardTitle>
           <Button

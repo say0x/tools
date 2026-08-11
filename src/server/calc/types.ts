@@ -152,6 +152,10 @@ export interface ProfileInput {
   mindestLiquiditaetsreserveEuro: number;
   /** Anteil der erwarteten Nettomiete, den die Bank als Einkommen anrechnet (Kapitaldienstfähigkeit). */
   mietanrechnungProzent: number;
+  /** Mindest-EK-Rendite, unterhalb derer die Kapitaleffizienz-Ampel warnt. */
+  mindestEigenkapitalrenditeProzent: number;
+  /** EK-Einsatz, ab dem die Kapitaleffizienz-Prüfung überhaupt greift. */
+  eigenkapitalPruefungAbEuro: number;
   liabilities: UserLiabilityInput[];
 }
 
@@ -276,6 +280,12 @@ export interface InstandhaltungResultForCalc {
   istOverride: boolean;
 }
 
+/** Eigenständiges Signal, ob das eingesetzte Eigenkapital effizient arbeitet — unabhängig von Cashflow/Finanzierbarkeit. */
+export interface KapitaleffizienzResult {
+  ampel: "GRUEN" | "GELB" | "ROT";
+  begruendung: string[];
+}
+
 export interface CalculationResult {
   kaufnebenkosten: KaufnebenkostenResult;
   gewerke: GewerkeAuswertung;
@@ -287,6 +297,7 @@ export interface CalculationResult {
   meilensteine: Meilensteine;
   breakeven: BreakevenResult;
   affordability: AffordabilityResult;
+  kapitaleffizienz: KapitaleffizienzResult;
   dealBreaker: { rechnetSich: boolean; meldung: string };
   verhandlungsargumente: Verhandlungsargument[];
 }

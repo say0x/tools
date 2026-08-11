@@ -137,6 +137,8 @@ export function makeProfileFixture(overrides: Partial<ProfileInput> = {}): Profi
     maxSchuldendienstquoteProzent: 35,
     mindestLiquiditaetsreserveEuro: 10000,
     mietanrechnungProzent: 80,
+    mindestEigenkapitalrenditeProzent: 4,
+    eigenkapitalPruefungAbEuro: 5000,
     liabilities: [],
     ...overrides,
   };

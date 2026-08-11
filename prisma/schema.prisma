@@ -58,6 +58,11 @@ model UserProfile {
   /// Anteil der erwarteten Nettomiete eines Objekts, den die Bank bei der
   /// Schuldendienstquote als zusätzliches Einkommen anrechnet (Kapitaldienstfähigkeit).
   mietanrechnungProzent          Float @default(80)
+  /// Mindest-Eigenkapitalrendite, unterhalb derer die Kapitaleffizienz-Ampel warnt.
+  mindestEigenkapitalrenditeProzent Float @default(4)
+  /// EK-Einsatz, ab dem die Kapitaleffizienz-Prüfung überhaupt greift (bei
+  /// kleinen EK-Beträgen, z.B. 100%-Finanzierung, ist die % sonst irreführend volatil).
+  eigenkapitalPruefungAbEuro        Float @default(5000)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

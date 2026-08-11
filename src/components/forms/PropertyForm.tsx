@@ -42,6 +42,7 @@ import {
   VERGLASUNG_LABELS,
   ZUSTAND_LABELS,
 } from "@/lib/labels";
+import { GEWERK_ZUSTAND_BESCHREIBUNG } from "@/lib/gewerk-zustand-beschreibungen";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
@@ -645,6 +646,18 @@ export function PropertyForm({
               ))}
             </Card>
 
+            <Card>
+              <div className="mb-3 flex items-center justify-between">
+                <CardTitle className="mb-0">Kapitaleffizienz</CardTitle>
+                <AmpelBadge status={result.kapitaleffizienz.ampel} />
+              </div>
+              {result.kapitaleffizienz.begruendung.map((b, i) => (
+                <p key={i} className="text-xs text-slate-500">
+                  {b}
+                </p>
+              ))}
+            </Card>
+
             {result.verhandlungsargumente.length > 0 && (
               <Card>
                 <CardTitle>Verhandlungs-Argumente</CardTitle>
@@ -703,7 +716,7 @@ function GewerkeSubform({
   result: CalculationResult | null;
   referenceData: ReferenceDataSnapshot;
   wohnflaeche: number;
-  watched: { gewerke?: { gewerk?: string }[] };
+  watched: { gewerke?: { gewerk?: string; zustand?: number }[] };
   errors: FieldErrors<PropertyFormValues>;
 }) {
   const { fields, append, remove } = fieldArray;
@@ -732,8 +745,12 @@ function GewerkeSubform({
 
       {fields.map((field, index) => {
         const posten = result?.gewerke.posten[index];
-        const istFenster = watched.gewerke?.[index]?.gewerk === "FENSTER";
+        const gewerkWert = watched.gewerke?.[index]?.gewerk as (typeof GEWERKE)[number] | undefined;
+        const zustandWert = watched.gewerke?.[index]?.zustand;
+        const istFenster = gewerkWert === "FENSTER";
         const gewerkErrors = errors.gewerke?.[index];
+        const zustandBeschreibung =
+          gewerkWert && zustandWert ? GEWERK_ZUSTAND_BESCHREIBUNG[gewerkWert]?.[zustandWert] : undefined;
         return (
           <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_auto]">
             <Field label="Gewerk">
@@ -745,7 +762,13 @@ function GewerkeSubform({
                 ))}
               </Select>
             </Field>
-            <Field label="Zustand">
+            <Field
+              label={
+                <>
+                  Zustand {zustandBeschreibung && <InfoTooltip text={zustandBeschreibung} />}
+                </>
+              }
+            >
               <Select {...register(`gewerke.${index}.zustand` as const, { valueAsNumber: true })}>
                 {[1, 2, 3, 4, 5, 6].map((z) => (
                   <option key={z} value={z}>

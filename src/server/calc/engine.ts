@@ -6,6 +6,7 @@ import { berechneKaufnebenkosten } from "./costs/kaufnebenkosten";
 import { berechneFinanzierung, berechneGesamtinvestition } from "./financing/darlehen";
 import { berechneTilgungsplan } from "./financing/tilgungsplan";
 import { berechneBreakevenKaufpreis } from "./rendite/breakeven";
+import { berechneKapitaleffizienz } from "./rendite/kapitaleffizienz";
 import { berechneRenditeKennzahlen } from "./rendite/renditekennzahlen";
 import { berechneVermoegensverlauf } from "./rendite/vermoegensverlauf";
 import { schaetzeZvEAusBrutto } from "./tax/zve-schaetzung";
@@ -131,6 +132,13 @@ export function berechneObjekt(
     mieteinnahmenMonatlich: round2(rendite.effektiveJahresmiete / 12),
   });
 
+  const kapitaleffizienz = berechneKapitaleffizienz({
+    eigenkapitalrenditeProzent: rendite.eigenkapitalrenditeProzent,
+    eigenkapitalEinsatzEuro: finanzierung.eigenkapitalEinsatzEuro,
+    mindestEigenkapitalrenditeProzent: profile.mindestEigenkapitalrenditeProzent,
+    eigenkapitalPruefungAbEuro: profile.eigenkapitalPruefungAbEuro,
+  });
+
   const rechnetSich = rendite.monatlicherCashflowNachSteuer >= 0 && affordability.ampel !== "ROT";
   let meldung: string;
   if (rechnetSich) {
@@ -182,6 +190,7 @@ export function berechneObjekt(
     meilensteine,
     breakeven,
     affordability,
+    kapitaleffizienz,
     dealBreaker: { rechnetSich, meldung },
     verhandlungsargumente,
   };

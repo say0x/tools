@@ -114,6 +114,8 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
       maxSchuldendienstquoteProzent: 35,
       mindestLiquiditaetsreserveEuro: 10000,
       mietanrechnungProzent: 80,
+      mindestEigenkapitalrenditeProzent: 4,
+      eigenkapitalPruefungAbEuro: 5000,
       liabilities: [],
     };
   }
@@ -128,6 +130,8 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
     maxSchuldendienstquoteProzent: row.maxSchuldendienstquoteProzent,
     mindestLiquiditaetsreserveEuro: row.mindestLiquiditaetsreserveEuro,
     mietanrechnungProzent: row.mietanrechnungProzent,
+    mindestEigenkapitalrenditeProzent: row.mindestEigenkapitalrenditeProzent,
+    eigenkapitalPruefungAbEuro: row.eigenkapitalPruefungAbEuro,
     liabilities: row.liabilities.map((l) => ({
       bezeichnung: l.bezeichnung,
       monatlicheRate: l.monatlicheRate,

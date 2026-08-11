@@ -84,4 +84,8 @@ export const FIELD_HILFE = {
     "Wie viel Eigenkapital nach dem Kauf mindestens übrig bleiben soll, als Puffer für Unvorhergesehenes.",
   mietanrechnung:
     "Banken rechnen bei der Kapitaldienstfähigkeit einen Teil der erwarteten Mieteinnahmen als zusätzliches Einkommen an (üblich: 55–90%, abhängig von Bank und Objekt). Dieser Anteil der Nettomiete des jeweiligen Objekts wird deinem Netto-Einkommen für die Schuldendienstquote hinzugerechnet. 0% = keine Anrechnung.",
+  mindestEigenkapitalrendite:
+    "Ab welcher jährlichen Eigenkapitalrendite (Cashflow nach Steuer / eingesetztes Eigenkapital) ein Objekt als kapitaleffizient gilt. Positiver Cashflow allein sagt nichts darüber aus, ob dein eingesetztes Kapital gut arbeitet — z. B. wenn du viel EK statt eines größeren Kredits einsetzt, kann die Rendite trotzdem schlecht sein. Greift erst oberhalb der Prüfschwelle.",
+  eigenkapitalPruefungAb:
+    "Ab welchem EK-Einsatz (€) die Kapitaleffizienz-Ampel überhaupt bewertet wird. Bei sehr kleinem EK-Einsatz (z. B. nahe 100%-Finanzierung) schwankt die %-Rendite stark und wäre ohne diese Schwelle irreführend.",
 } as const;

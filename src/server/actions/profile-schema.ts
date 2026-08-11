@@ -28,6 +28,14 @@ export const profileSchema = z.object({
     .number({ error: "Mietanrechnung muss eine Zahl sein" })
     .min(0, "Mietanrechnung darf nicht negativ sein")
     .max(100, "Mietanrechnung darf maximal 100% betragen"),
+  mindestEigenkapitalrenditeProzent: z
+    .number({ error: "Mindest-EK-Rendite muss eine Zahl sein" })
+    .min(-100, "Mindest-EK-Rendite liegt außerhalb eines realistischen Bereichs")
+    .max(100, "Mindest-EK-Rendite liegt außerhalb eines realistischen Bereichs"),
+  eigenkapitalPruefungAbEuro: z
+    .number({ error: "Prüfschwelle muss eine Zahl sein" })
+    .min(0, "Prüfschwelle darf nicht negativ sein")
+    .max(100_000_000, "Prüfschwelle ist unrealistisch hoch"),
   liabilities: z.array(liabilitySchema),
 });
 

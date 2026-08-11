@@ -19,6 +19,8 @@ export default async function ProfilPage() {
     maxSchuldendienstquoteProzent: profil?.maxSchuldendienstquoteProzent ?? 35,
     mindestLiquiditaetsreserveEuro: profil?.mindestLiquiditaetsreserveEuro ?? 10000,
     mietanrechnungProzent: profil?.mietanrechnungProzent ?? 80,
+    mindestEigenkapitalrenditeProzent: profil?.mindestEigenkapitalrenditeProzent ?? 4,
+    eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro ?? 5000,
     liabilities:
       profil?.liabilities.map((l) => ({
         bezeichnung: l.bezeichnung,

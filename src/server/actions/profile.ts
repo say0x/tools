@@ -30,6 +30,8 @@ export async function upsertProfile(values: ProfileFormValues) {
     maxSchuldendienstquoteProzent: data.maxSchuldendienstquoteProzent,
     mindestLiquiditaetsreserveEuro: data.mindestLiquiditaetsreserveEuro,
     mietanrechnungProzent: data.mietanrechnungProzent,
+    mindestEigenkapitalrenditeProzent: data.mindestEigenkapitalrenditeProzent,
+    eigenkapitalPruefungAbEuro: data.eigenkapitalPruefungAbEuro,
   };
 
   await prisma.$transaction(async (tx) => {
