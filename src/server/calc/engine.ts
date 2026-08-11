@@ -1,4 +1,5 @@
 import { berechneAffordability } from "./affordability/check";
+import { ermittleVerhandlungsargumente } from "./analyse/verhandlungsargumente";
 import { berechneGewerkeAuswertung } from "./costs/gewerke";
 import { berechneEmpfohleneInstandhaltungsruecklage } from "./costs/instandhaltungsruecklage";
 import { berechneKaufnebenkosten } from "./costs/kaufnebenkosten";
@@ -140,14 +141,27 @@ export function berechneObjekt(
     meldung = "Cashflow ist positiv, aber die Finanzierbarkeit (Schuldendienst/Liquidität) ist laut Profil-Check kritisch.";
   }
 
+  const instandhaltung = {
+    ...instandhaltungEmpfohlen,
+    tatsaechlichMonatlich: instandhaltungTatsaechlichMonatlich,
+    istOverride: property.instandhaltungsruecklageOverride,
+  };
+
+  const verhandlungsargumente = ermittleVerhandlungsargumente({
+    gewerkePosten: gewerke.posten,
+    gewerkKostenReferenz: referenceData.gewerkKosten,
+    wohnflaeche: property.wohnflaeche,
+    instandhaltung,
+    cashflowNachSteuerMonatlich: rendite.monatlicherCashflowNachSteuer,
+    aktuellerKaufpreis: property.kaufpreis,
+    breakevenKaufpreis: breakeven.breakevenKaufpreis,
+    differenzZuAktuellemKaufpreis: breakeven.differenzZuAktuellemKaufpreis,
+  });
+
   return {
     kaufnebenkosten,
     gewerke,
-    instandhaltung: {
-      ...instandhaltungEmpfohlen,
-      tatsaechlichMonatlich: instandhaltungTatsaechlichMonatlich,
-      istOverride: property.instandhaltungsruecklageOverride,
-    },
+    instandhaltung,
     finanzierung,
     tilgungsplan,
     rendite,
@@ -156,6 +170,7 @@ export function berechneObjekt(
     breakeven,
     affordability,
     dealBreaker: { rechnetSich, meldung },
+    verhandlungsargumente,
   };
 }
 

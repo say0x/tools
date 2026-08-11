@@ -168,6 +168,12 @@ model Property {
   afaSatzProzent        Float   @default(2)
   afaSonderabschreibung Boolean @default(false)
 
+  // Ansprechpartner / Makler — reine Metadaten, fließen nicht in die Kalkulation ein
+  ansprechpartnerName     String @default("")
+  ansprechpartnerTelefon  String @default("")
+  ansprechpartnerEmail    String @default("")
+  ansprechpartnerNotizen  String @default("")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

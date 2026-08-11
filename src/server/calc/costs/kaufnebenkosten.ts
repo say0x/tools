@@ -1,6 +1,6 @@
 import type { KaufnebenkostenResult, PropertyInput, ReferenceDataSnapshot } from "../types";
 
-const MAKLERPROVISION_DEFAULT_PROZENT = 3.57; // üblicher Käuferanteil inkl. USt., grober Richtwert
+export const MAKLERPROVISION_DEFAULT_PROZENT = 3.57; // üblicher Käuferanteil inkl. USt., grober Richtwert
 
 /**
  * Berechnet die vier Kaufnebenkosten-Positionen (Grunderwerbsteuer, Notar,

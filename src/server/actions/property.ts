@@ -78,6 +78,11 @@ const propertySchema = z.object({
   afaSatzProzent: z.coerce.number().min(0),
   afaSonderabschreibung: z.boolean(),
 
+  ansprechpartnerName: z.string(),
+  ansprechpartnerTelefon: z.string(),
+  ansprechpartnerEmail: z.string(),
+  ansprechpartnerNotizen: z.string(),
+
   financing: financingSchema,
   gewerke: z.array(gewerkSchema),
   exit: exitSchema,
@@ -184,6 +189,10 @@ export async function dupliziereObjekt(id: string) {
       versicherungUmlagefaehig: original.versicherungUmlagefaehig,
       afaSatzProzent: original.afaSatzProzent,
       afaSonderabschreibung: original.afaSonderabschreibung,
+      ansprechpartnerName: original.ansprechpartnerName,
+      ansprechpartnerTelefon: original.ansprechpartnerTelefon,
+      ansprechpartnerEmail: original.ansprechpartnerEmail,
+      ansprechpartnerNotizen: original.ansprechpartnerNotizen,
       asset: { create: { type: "IMMOBILIE", name: `${original.asset.name} (Kopie)` } },
       financing: original.financing
         ? {

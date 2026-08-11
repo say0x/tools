@@ -24,9 +24,9 @@ export function VergleichVermoegensChart({
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
         <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
-        <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+        <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} width={48} />
         <Tooltip
           contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
           labelFormatter={(jahr) => `Jahr ${jahr}`}
@@ -40,8 +40,9 @@ export function VergleichVermoegensChart({
             dataKey={o.id}
             name={o.id}
             stroke={FARBEN[i % FARBEN.length]}
-            strokeWidth={2}
+            strokeWidth={2.5}
             dot={false}
+            activeDot={{ r: 5 }}
           />
         ))}
       </LineChart>

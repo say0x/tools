@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { AmpelBadge } from "@/components/ui/Badge";
@@ -39,7 +40,9 @@ import {
 } from "@/lib/labels";
 import { formatEuro } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
 import { ZUSTANDSFAKTOR } from "@/server/calc/constants";
+import { MAKLERPROVISION_DEFAULT_PROZENT } from "@/server/calc/costs/kaufnebenkosten";
 
 export function PropertyForm({
   defaultValues,
@@ -143,6 +146,27 @@ export function PropertyForm({
         </Card>
 
         <Card>
+          <CardTitle>Ansprechpartner / Makler</CardTitle>
+          <p className="mb-4 text-xs text-slate-500">
+            Reine Notizfelder, fließen nicht in die Berechnung ein.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Name">
+              <Input {...register("ansprechpartnerName")} placeholder="z. B. Max Mustermann, ImmoMakler GmbH" />
+            </Field>
+            <Field label="Telefon">
+              <Input {...register("ansprechpartnerTelefon")} placeholder="z. B. 0170 1234567" />
+            </Field>
+            <Field label="E-Mail">
+              <Input type="email" {...register("ansprechpartnerEmail")} placeholder="z. B. kontakt@makler.de" />
+            </Field>
+            <Field label="Notizen" className="sm:col-span-2">
+              <Textarea {...register("ansprechpartnerNotizen")} rows={2} placeholder="z. B. Besichtigungstermin, Provisionsabsprache, offene Fragen" />
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
           <div className="mb-4 flex items-center justify-between">
             <CardTitle className="mb-0">Kaufnebenkosten</CardTitle>
             <Button type="button" variant="secondary" size="sm" onClick={berechneNebenkostenAutomatisch}>
@@ -162,6 +186,7 @@ export function PropertyForm({
               overrideField="grunderwerbsteuerOverride"
               computedValue={result?.kaufnebenkosten.grunderwerbsteuerProzent ?? 0}
               setValue={setValue}
+              formel={`Übernommen aus dem Bundesland ${BUNDESLAND_LABELS[watched.bundesland ?? "NORDRHEIN_WESTFALEN"]}: ${referenceData.grunderwerbsteuerByBundesland[watched.bundesland ?? "NORDRHEIN_WESTFALEN"] ?? 0}% (editierbar auf /immobilien/referenzdaten).`}
             />
             <OverridableField
               label={
@@ -175,6 +200,7 @@ export function PropertyForm({
               overrideField="notarOverride"
               computedValue={result?.kaufnebenkosten.notarProzent ?? 1.0}
               setValue={setValue}
+              formel={`Standard-Satz aus den Referenzdaten: ${referenceData.notarProzentDefault}% vom Kaufpreis.`}
             />
             <OverridableField
               label={
@@ -188,6 +214,7 @@ export function PropertyForm({
               overrideField="grundbuchOverride"
               computedValue={result?.kaufnebenkosten.grundbuchProzent ?? 0.5}
               setValue={setValue}
+              formel={`Standard-Satz aus den Referenzdaten: ${referenceData.grundbuchProzentDefault}% vom Kaufpreis.`}
             />
             <OverridableField
               label={
@@ -201,6 +228,7 @@ export function PropertyForm({
               overrideField="maklerprovisionOverride"
               computedValue={result?.kaufnebenkosten.maklerprovisionProzent ?? 0}
               setValue={setValue}
+              formel={`Kein Makler bekannt: grober Richtwert von ${MAKLERPROVISION_DEFAULT_PROZENT}% (üblicher hälftiger Käuferanteil inkl. USt.) angenommen. Sobald ein Makler feststeht, hier den tatsächlichen Satz eintragen.`}
             />
           </div>
           {result && (
@@ -516,6 +544,26 @@ export function PropertyForm({
                 </p>
               ))}
             </Card>
+
+            {result.verhandlungsargumente.length > 0 && (
+              <Card>
+                <CardTitle>Verhandlungs-Argumente</CardTitle>
+                <p className="mb-3 text-xs text-slate-500">
+                  Automatisch aus deinen Angaben abgeleitet — Fakten für ein Gespräch mit Verkäufer oder Makler.
+                </p>
+                <div className="flex flex-col gap-3">
+                  {result.verhandlungsargumente.map((arg, i) => {
+                    const { titel, text } = formatiereVerhandlungsargument(arg);
+                    return (
+                      <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                        <p className="text-sm font-medium text-amber-300">{titel}</p>
+                        <p className="mt-1 text-sm text-slate-300">{text}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
 
             {showCharts && <ObjektChartsPanel result={result} />}
           </>

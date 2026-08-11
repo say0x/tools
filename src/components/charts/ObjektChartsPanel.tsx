@@ -6,11 +6,18 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import type { CalculationResult } from "@/server/calc/types";
+import { formatEuro } from "@/lib/format";
 import { VermoegensChart } from "./VermoegensChart";
 import { CashflowChart } from "./CashflowChart";
 import { MonthlyCashflowChart } from "./MonthlyCashflowChart";
+import { MietVerwendungChart } from "./MietVerwendungChart";
+import { CashflowAufschluesselungChart } from "./CashflowAufschluesselungChart";
 
 const MAX_JAHRE = 50;
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
 
 export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
   const [betrachtungszeitraum, setBetrachtungszeitraum] = useState(30);
@@ -29,8 +36,43 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
     if (ausgewaehltesJahr > geklemmt) setAusgewaehltesJahr(geklemmt);
   };
 
+  const zinsMonatlich = round2((result.tilgungsplan[0]?.zinszahlung ?? 0) / 12);
+  const tilgungMonatlich = round2((result.tilgungsplan[0]?.tilgungszahlung ?? 0) / 12);
+  const laufendeKostenMonatlich = round2(result.rendite.laufendeKostenJaehrlich / 12);
+  const steuerMonatlich = round2(result.rendite.monatlicherCashflowVorSteuer - result.rendite.monatlicherCashflowNachSteuer);
+
   return (
     <>
+      <Card>
+        <CardTitle>Wohin geht die Miete? (Jahr 1)</CardTitle>
+        <MietVerwendungChart
+          zinsMonatlich={zinsMonatlich}
+          tilgungMonatlich={tilgungMonatlich}
+          laufendeKostenMonatlich={laufendeKostenMonatlich}
+          cashflowVorSteuerMonatlich={result.rendite.monatlicherCashflowVorSteuer}
+        />
+        <p className="mt-2 text-xs text-slate-500">
+          Effektive Kaltmiete Jahr 1: {formatEuro(result.rendite.effektiveJahresmiete / 12)}/Monat, aufgeteilt auf Zins, Tilgung,
+          laufende Kosten und den verbleibenden Cashflow.
+        </p>
+      </Card>
+
+      <Card>
+        <CardTitle>Cashflow vor &amp; nach Steuer im Vergleich (Jahr 1)</CardTitle>
+        <CashflowAufschluesselungChart
+          zinsMonatlich={zinsMonatlich}
+          tilgungMonatlich={tilgungMonatlich}
+          laufendeKostenMonatlich={laufendeKostenMonatlich}
+          steuerMonatlich={steuerMonatlich}
+          cashflowVorSteuerMonatlich={result.rendite.monatlicherCashflowVorSteuer}
+          cashflowNachSteuerMonatlich={result.rendite.monatlicherCashflowNachSteuer}
+        />
+        <p className="mt-2 text-xs text-slate-500">
+          Gleiche Bausteine wie oben, zusätzlich mit Steuer-Segment (rot = Steuerlast, wächst der Cashflow-Balken statt dessen,
+          war es eine Steuererstattung).
+        </p>
+      </Card>
+
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="mb-0">Vermögensverlauf</CardTitle>

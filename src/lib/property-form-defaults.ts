@@ -42,6 +42,11 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     afaSatzProzent: 2,
     afaSonderabschreibung: false,
 
+    ansprechpartnerName: "",
+    ansprechpartnerTelefon: "",
+    ansprechpartnerEmail: "",
+    ansprechpartnerNotizen: "",
+
     financing: {
       eigenkapital: 0,
       zinssatzProzent: 3.8,

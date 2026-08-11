@@ -137,6 +137,10 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
   return {
     name: row.asset.name,
     ...input,
+    ansprechpartnerName: row.ansprechpartnerName,
+    ansprechpartnerTelefon: row.ansprechpartnerTelefon,
+    ansprechpartnerEmail: row.ansprechpartnerEmail,
+    ansprechpartnerNotizen: row.ansprechpartnerNotizen,
     gewerke: row.gewerke.map((g) => ({
       gewerk: g.gewerk,
       zustand: g.zustand,

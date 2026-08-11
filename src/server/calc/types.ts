@@ -3,6 +3,9 @@
 // Prisma enum names 1:1, so Property/UserProfile rows can be passed in
 // directly without an import from the generated client.
 
+import type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
+export type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
+
 export const BUNDESLAENDER = [
   "BADEN_WUERTTEMBERG",
   "BAYERN",
@@ -251,4 +254,5 @@ export interface CalculationResult {
   breakeven: BreakevenResult;
   affordability: AffordabilityResult;
   dealBreaker: { rechnetSich: boolean; meldung: string };
+  verhandlungsargumente: Verhandlungsargument[];
 }
