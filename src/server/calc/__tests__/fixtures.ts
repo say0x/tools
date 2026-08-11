@@ -41,6 +41,17 @@ export const referenceDataFixture: ReferenceDataSnapshot = {
   ],
   notarProzentDefault: 1.0,
   grundbuchProzentDefault: 0.5,
+  kaufpreisfaktorReferenzByObjekttypLagetyp: {
+    "ETW:GROSSSTADT": 28,
+    "ETW:KLEINSTADT": 20,
+    "ETW:LAENDLICH": 15,
+    "MEHRFAMILIENHAUS:GROSSSTADT": 24,
+    "MEHRFAMILIENHAUS:KLEINSTADT": 18,
+    "MEHRFAMILIENHAUS:LAENDLICH": 14,
+    "HAUS:GROSSSTADT": 26,
+    "HAUS:KLEINSTADT": 19,
+    "HAUS:LAENDLICH": 15,
+  },
 };
 
 export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): PropertyInput {

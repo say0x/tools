@@ -1,5 +1,5 @@
 import type { Verhandlungsargument } from "@/server/calc/types";
-import { EIGENTUMSTYP_LABELS, GEWERK_LABELS } from "@/lib/labels";
+import { EIGENTUMSTYP_LABELS, GEWERK_LABELS, LAGETYP_LABELS, OBJEKTTYP_LABELS } from "@/lib/labels";
 import { formatEuro } from "@/lib/format";
 
 /** Rendert ein Verhandlungsargument aus der Calc-Engine zu einem fertigen deutschen Text mit eingesetzten Zahlen. */
@@ -29,6 +29,19 @@ export function formatiereVerhandlungsargument(arg: Verhandlungsargument): { tit
       )}/Monat unter dem anhand von Baujahr und Bauteilzustand empfohlenen Wert (${formatEuro(
         arg.empfohleneRuecklageMonatlich
       )}/Monat) — das deutet auf einen Instandhaltungsstau hin, der beim Kaufpreis berücksichtigt werden sollte.`,
+    };
+  }
+
+  if (arg.typ === "KAUFPREISFAKTOR_UEBER_REFERENZ") {
+    return {
+      titel: "Kaufpreisfaktor über Vergleichswert",
+      text: `Der Kaufpreisfaktor liegt bei ${arg.kaufpreisfaktorAktuell.toFixed(2)} (Bruttomietrendite ${arg.bruttomietrenditeAktuellProzent}%). Für ${OBJEKTTYP_LABELS[arg.objekttyp]} in ${LAGETYP_LABELS[arg.lagetyp]}-Lage liegt der Vergleichswert in deinen Referenzdaten bei ${arg.kaufpreisfaktorReferenz.toFixed(
+        2
+      )} (${arg.bruttomietrenditeReferenzProzent}% Rendite) — das ist ${arg.abweichungProzent}% höher. Bei einem Kaufpreisfaktor von ${arg.kaufpreisfaktorReferenz.toFixed(
+        2
+      )} läge ein fairer Kaufpreis bei rund ${formatEuro(arg.fairerKaufpreisEuro)} (aktuell: ${formatEuro(
+        arg.aktuellerKaufpreis
+      )}). Vergleichswert auf /immobilien/referenzdaten editierbar.`,
     };
   }
 

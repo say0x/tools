@@ -156,6 +156,12 @@ export function berechneObjekt(
     aktuellerKaufpreis: property.kaufpreis,
     breakevenKaufpreis: breakeven.breakevenKaufpreis,
     differenzZuAktuellemKaufpreis: breakeven.differenzZuAktuellemKaufpreis,
+    objekttyp: property.objekttyp,
+    lagetyp: property.lagetyp,
+    kaufpreisfaktorAktuell: rendite.kaufpreisfaktor,
+    bruttomietrenditeAktuellProzent: rendite.bruttomietrenditeProzent,
+    jahreskaltmiete: rendite.jahreskaltmiete,
+    kaufpreisfaktorReferenzByObjekttypLagetyp: referenceData.kaufpreisfaktorReferenzByObjekttypLagetyp,
   });
 
   return {

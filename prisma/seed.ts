@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, Bundesland, Lagetyp, Gewerk } from "../src/generated/prisma/client";
+import { PrismaClient, Bundesland, Lagetyp, Gewerk, Objekttyp } from "../src/generated/prisma/client";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -67,6 +67,15 @@ const gewerkKosten: Record<Gewerk, { min: number; max: number }> = {
   SONSTIGES: { min: 50, max: 100 },
 };
 
+// Vergleichs-Kaufpreisfaktor je Objekttyp/Lagetyp — grober Richtwert für die
+// Verhandlungsargumente, keine Marktdaten. Bruttomietrendite ergibt sich als
+// Kehrwert (100 / Faktor).
+const kaufpreisfaktorReferenz: Record<Objekttyp, Record<Lagetyp, number>> = {
+  ETW: { GROSSSTADT: 28, KLEINSTADT: 20, LAENDLICH: 15 },
+  MEHRFAMILIENHAUS: { GROSSSTADT: 24, KLEINSTADT: 18, LAENDLICH: 14 },
+  HAUS: { GROSSSTADT: 26, KLEINSTADT: 19, LAENDLICH: 15 },
+};
+
 // Peters'sche Formel — Instandhaltungsrücklage nach Gebäudealter (€/m² Wohnfläche/Jahr).
 const instandhaltungssaetze = [
   { von: 0, bis: 21, satz: 7.1 },
@@ -99,6 +108,17 @@ async function main() {
       update: { kostenProM2Min: min, kostenProM2Max: max },
       create: { gewerk, kostenProM2Min: min, kostenProM2Max: max },
     });
+  }
+
+  for (const objekttyp of Object.values(Objekttyp)) {
+    for (const lagetyp of Object.values(Lagetyp)) {
+      const wert = kaufpreisfaktorReferenz[objekttyp][lagetyp];
+      await prisma.referenceKaufpreisfaktor.upsert({
+        where: { objekttyp_lagetyp: { objekttyp, lagetyp } },
+        update: { kaufpreisfaktorReferenz: wert },
+        create: { objekttyp, lagetyp, kaufpreisfaktorReferenz: wert },
+      });
+    }
   }
 
   await prisma.referenceInstandhaltungssatz.deleteMany();

@@ -288,12 +288,27 @@ model ReferenceInstandhaltungssatz {
   aktualisiertAm        DateTime @default(now())
 }
 
-/// Singleton (wie UserProfile) für die Notar-/Grundbuch-Standardsätze, die
-/// die computed-with-override-Felder auf Property vorschlagen. Bundesweit
-/// relativ einheitlich, daher kein Bundesland-Bezug wie bei der Grunderwerbsteuer.
+/// Singleton (wie UserProfile) für allgemeine Standardwerte, die neue
+/// Objekte vorausfüllen bzw. die computed-with-override-Felder vorschlagen.
 model ReferenceKaufnebenkostenDefaults {
-  id               String   @id @default(cuid())
-  notarProzent     Float    @default(1.0)
-  grundbuchProzent Float    @default(0.5)
-  updatedAt        DateTime @updatedAt
+  id                 String      @id @default(cuid())
+  notarProzent       Float       @default(1.0)
+  grundbuchProzent   Float       @default(0.5)
+  /// Bundesland, mit dem neue Objekte vorausgefüllt werden (frei überschreibbar). Kein Standard, wenn null.
+  standardBundesland Bundesland?
+  updatedAt          DateTime    @updatedAt
+}
+
+/// Vergleichswert für Kaufpreisfaktor (= Kaufpreis / Jahreskaltmiete) je
+/// Objekttyp und Lagetyp — Bruttomietrendite ergibt sich als Kehrwert
+/// (100 / Kaufpreisfaktor) und wird nicht separat gespeichert, damit beide
+/// Werte nicht auseinanderlaufen können. Dient als Verhandlungs-Referenz.
+model ReferenceKaufpreisfaktor {
+  id                      String   @id @default(cuid())
+  objekttyp               Objekttyp
+  lagetyp                 Lagetyp
+  kaufpreisfaktorReferenz Float
+  aktualisiertAm          DateTime @default(now())
+
+  @@unique([objekttyp, lagetyp])
 }

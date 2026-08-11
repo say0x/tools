@@ -4,15 +4,18 @@ import { GrunderwerbsteuerTable } from "./GrunderwerbsteuerTable";
 import { MietpreisTable } from "./MietpreisTable";
 import { GewerkKostenTable } from "./GewerkKostenTable";
 import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
+import { KaufpreisfaktorTable } from "./KaufpreisfaktorTable";
+import { StandardBundeslandCard } from "./StandardBundeslandCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults] = await Promise.all([
+  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults, kaufpreisfaktoren] = await Promise.all([
     prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
     prisma.referenceMietpreis.findMany(),
     prisma.referenceGewerkKosten.findMany(),
     prisma.referenceKaufnebenkostenDefaults.findFirst(),
+    prisma.referenceKaufpreisfaktor.findMany(),
   ]);
 
   return (
@@ -39,8 +42,18 @@ export default async function ReferenzdatenPage() {
       </Card>
 
       <Card>
+        <CardTitle>Standard-Bundesland für neue Objekte</CardTitle>
+        <StandardBundeslandCard initialBundesland={kaufnebenkostenDefaults?.standardBundesland ?? null} />
+      </Card>
+
+      <Card>
         <CardTitle>Vergleichs-Mietpreis (€/m²) nach Bundesland &amp; Lagetyp</CardTitle>
         <MietpreisTable initialRows={mietpreise} />
+      </Card>
+
+      <Card>
+        <CardTitle>Kaufpreisfaktor-Vergleichswert nach Objekttyp &amp; Lagetyp</CardTitle>
+        <KaufpreisfaktorTable initialRows={kaufpreisfaktoren} />
       </Card>
 
       <Card>

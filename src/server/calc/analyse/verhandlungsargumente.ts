@@ -1,8 +1,17 @@
 import { ZUSTANDSFAKTOR } from "../constants";
-import type { EigentumsTyp, GewerkKostenResult, Gewerk, InstandhaltungResultForCalc, ReferenceDataSnapshot } from "../types";
+import type {
+  EigentumsTyp,
+  GewerkKostenResult,
+  Gewerk,
+  InstandhaltungResultForCalc,
+  Lagetyp,
+  Objekttyp,
+  ReferenceDataSnapshot,
+} from "../types";
 
 const ZUSTAND_RISIKO_SCHWELLE = 5; // "schlecht" (5) oder "sehr schlecht" (6)
 const INSTANDHALTUNG_UNTERDECKUNG_SCHWELLE_EURO = 20; // Bagatellgrenze gegen Rundungsrauschen
+const KAUFPREISFAKTOR_ABWEICHUNG_SCHWELLE_PROZENT = 10; // ab wann die Abweichung als Argument zählt
 
 export interface VerhandlungsargumentGewerkRisiko {
   typ: "GEWERK_RISIKO";
@@ -33,10 +42,24 @@ export interface VerhandlungsargumentCashflowNegativ {
   differenzZuAktuellemKaufpreis: number | null;
 }
 
+export interface VerhandlungsargumentKaufpreisfaktorUeberReferenz {
+  typ: "KAUFPREISFAKTOR_UEBER_REFERENZ";
+  objekttyp: Objekttyp;
+  lagetyp: Lagetyp;
+  kaufpreisfaktorAktuell: number;
+  kaufpreisfaktorReferenz: number;
+  abweichungProzent: number;
+  bruttomietrenditeAktuellProzent: number;
+  bruttomietrenditeReferenzProzent: number;
+  aktuellerKaufpreis: number;
+  fairerKaufpreisEuro: number;
+}
+
 export type Verhandlungsargument =
   | VerhandlungsargumentGewerkRisiko
   | VerhandlungsargumentInstandhaltungUnterdeckung
-  | VerhandlungsargumentCashflowNegativ;
+  | VerhandlungsargumentCashflowNegativ
+  | VerhandlungsargumentKaufpreisfaktorUeberReferenz;
 
 export interface VerhandlungsargumenteInput {
   gewerkePosten: GewerkKostenResult[];
@@ -47,6 +70,12 @@ export interface VerhandlungsargumenteInput {
   aktuellerKaufpreis: number;
   breakevenKaufpreis: number | null;
   differenzZuAktuellemKaufpreis: number | null;
+  objekttyp: Objekttyp;
+  lagetyp: Lagetyp;
+  kaufpreisfaktorAktuell: number;
+  bruttomietrenditeAktuellProzent: number;
+  jahreskaltmiete: number;
+  kaufpreisfaktorReferenzByObjekttypLagetyp: ReferenceDataSnapshot["kaufpreisfaktorReferenzByObjekttypLagetyp"];
 }
 
 /**
@@ -103,12 +132,34 @@ export function ermittleVerhandlungsargumente(input: VerhandlungsargumenteInput)
     });
   }
 
+  const kaufpreisfaktorReferenz =
+    input.kaufpreisfaktorReferenzByObjekttypLagetyp[`${input.objekttyp}:${input.lagetyp}`];
+  if (
+    kaufpreisfaktorReferenz &&
+    kaufpreisfaktorReferenz > 0 &&
+    input.kaufpreisfaktorAktuell > kaufpreisfaktorReferenz * (1 + KAUFPREISFAKTOR_ABWEICHUNG_SCHWELLE_PROZENT / 100)
+  ) {
+    argumente.push({
+      typ: "KAUFPREISFAKTOR_UEBER_REFERENZ",
+      objekttyp: input.objekttyp,
+      lagetyp: input.lagetyp,
+      kaufpreisfaktorAktuell: input.kaufpreisfaktorAktuell,
+      kaufpreisfaktorReferenz,
+      abweichungProzent: round1((input.kaufpreisfaktorAktuell / kaufpreisfaktorReferenz - 1) * 100),
+      bruttomietrenditeAktuellProzent: input.bruttomietrenditeAktuellProzent,
+      bruttomietrenditeReferenzProzent: round2(100 / kaufpreisfaktorReferenz),
+      aktuellerKaufpreis: input.aktuellerKaufpreis,
+      fairerKaufpreisEuro: round2(kaufpreisfaktorReferenz * input.jahreskaltmiete),
+    });
+  }
+
   return argumente.sort((a, b) => gewicht(b) - gewicht(a));
 }
 
 function gewicht(a: Verhandlungsargument): number {
   if (a.typ === "GEWERK_RISIKO") return a.geschaetzteKostenEuro;
   if (a.typ === "INSTANDHALTUNG_UNTERDECKUNG") return a.differenzMonatlich * 12;
+  if (a.typ === "KAUFPREISFAKTOR_UEBER_REFERENZ") return Math.abs(a.aktuellerKaufpreis - a.fairerKaufpreisEuro);
   return Math.abs(a.differenzZuAktuellemKaufpreis ?? a.cashflowNachSteuerMonatlich * 12);
 }
 

@@ -144,6 +144,7 @@ export interface ReferenceDataSnapshot {
   instandhaltungssaetze: { von: number; bis: number | null; satz: number }[];
   notarProzentDefault: number;
   grundbuchProzentDefault: number;
+  kaufpreisfaktorReferenzByObjekttypLagetyp: Record<string, number>; // key: `${objekttyp}:${lagetyp}`
 }
 
 export interface KaufnebenkostenResult {

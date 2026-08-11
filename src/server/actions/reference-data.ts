@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/server/db";
+import { BUNDESLAENDER } from "@/server/calc/types";
 
 const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(100) }));
 const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0) }));
@@ -13,6 +14,8 @@ const kaufnebenkostenDefaultsSchema = z.object({
   notarProzent: z.coerce.number().min(0).max(100),
   grundbuchProzent: z.coerce.number().min(0).max(100),
 });
+const kaufpreisfaktorUpdateSchema = z.array(z.object({ id: z.string(), kaufpreisfaktorReferenz: z.coerce.number().min(0) }));
+const standardBundeslandSchema = z.enum(BUNDESLAENDER).nullable();
 
 export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
   const data = grunderwerbsteuerUpdateSchema.parse(updates);
@@ -52,4 +55,26 @@ export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof
     await prisma.referenceKaufnebenkostenDefaults.create({ data });
   }
   revalidatePath("/immobilien/referenzdaten");
+}
+
+export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kaufpreisfaktorUpdateSchema>) {
+  const data = kaufpreisfaktorUpdateSchema.parse(updates);
+  await prisma.$transaction(
+    data.map((u) =>
+      prisma.referenceKaufpreisfaktor.update({ where: { id: u.id }, data: { kaufpreisfaktorReferenz: u.kaufpreisfaktorReferenz } })
+    )
+  );
+  revalidatePath("/immobilien/referenzdaten");
+}
+
+export async function aktualisiereStandardBundesland(bundesland: z.infer<typeof standardBundeslandSchema>) {
+  const data = { standardBundesland: standardBundeslandSchema.parse(bundesland) };
+  const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+  if (bestehend) {
+    await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
+  } else {
+    await prisma.referenceKaufnebenkostenDefaults.create({ data: { notarProzent: 1.0, grundbuchProzent: 0.5, ...data } });
+  }
+  revalidatePath("/immobilien/referenzdaten");
+  revalidatePath("/immobilien/objekte/neu");
 }
