@@ -5,25 +5,26 @@ import { z } from "zod";
 import { prisma } from "@/server/db";
 import { BUNDESLAENDER, FINANZIERUNGSARTEN } from "@/server/calc/types";
 
-const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(100) }));
-const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0) }));
+const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(20) }));
+const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0).max(1000) }));
 const gewerkKostenUpdateSchema = z.array(
-  z.object({ id: z.string(), kostenProM2Min: z.coerce.number().min(0), kostenProM2Max: z.coerce.number().min(0) })
+  z.object({ id: z.string(), kostenProM2Min: z.coerce.number().min(0).max(10_000), kostenProM2Max: z.coerce.number().min(0).max(10_000) })
 );
 const kaufnebenkostenDefaultsSchema = z.object({
-  notarProzent: z.coerce.number().min(0).max(100),
-  grundbuchProzent: z.coerce.number().min(0).max(100),
+  notarProzent: z.coerce.number().min(0).max(10),
+  grundbuchProzent: z.coerce.number().min(0).max(10),
 });
-const kaufpreisfaktorUpdateSchema = z.array(z.object({ id: z.string(), kaufpreisfaktorReferenz: z.coerce.number().min(0) }));
+const kaufpreisfaktorUpdateSchema = z.array(z.object({ id: z.string(), kaufpreisfaktorReferenz: z.coerce.number().min(0).max(200) }));
+const nutzungsdauerUpdateSchema = z.array(z.object({ id: z.string(), nutzungsdauerJahre: z.coerce.number().int().min(1).max(200) }));
 const standardwerteSchema = z.object({
   standardBundesland: z.enum(BUNDESLAENDER).nullable(),
-  standardZinssatzProzent: z.coerce.number().min(0).nullable(),
-  standardTilgungProzent: z.coerce.number().min(0).nullable(),
-  standardZinsbindungJahre: z.coerce.number().int().min(1).nullable(),
+  standardZinssatzProzent: z.coerce.number().min(0).max(20).nullable(),
+  standardTilgungProzent: z.coerce.number().min(0).max(20).nullable(),
+  standardZinsbindungJahre: z.coerce.number().int().min(1).max(50).nullable(),
   standardFinanzierungsart: z.enum(FINANZIERUNGSARTEN).nullable(),
-  standardMietsteigerungProzent: z.coerce.number().nullable(),
-  standardWertsteigerungProzent: z.coerce.number().nullable(),
-  standardKostensteigerungProzent: z.coerce.number().nullable(),
+  standardMietsteigerungProzent: z.coerce.number().min(-20).max(50).nullable(),
+  standardWertsteigerungProzent: z.coerce.number().min(-20).max(50).nullable(),
+  standardKostensteigerungProzent: z.coerce.number().min(-20).max(50).nullable(),
   standardLeerstandsquoteProzent: z.coerce.number().min(0).max(100).nullable(),
 });
 
@@ -73,6 +74,14 @@ export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kauf
     data.map((u) =>
       prisma.referenceKaufpreisfaktor.update({ where: { id: u.id }, data: { kaufpreisfaktorReferenz: u.kaufpreisfaktorReferenz } })
     )
+  );
+  revalidatePath("/immobilien/referenzdaten");
+}
+
+export async function aktualisiereNutzungsdauer(updates: z.infer<typeof nutzungsdauerUpdateSchema>) {
+  const data = nutzungsdauerUpdateSchema.parse(updates);
+  await prisma.$transaction(
+    data.map((u) => prisma.referenceNutzungsdauer.update({ where: { id: u.id }, data: { nutzungsdauerJahre: u.nutzungsdauerJahre } }))
   );
   revalidatePath("/immobilien/referenzdaten");
 }

@@ -19,6 +19,7 @@ const basisKaufpreisfaktor = {
   bruttomietrenditeAktuellProzent: 6,
   jahreskaltmiete: 18000,
   kaufpreisfaktorReferenzByObjekttypLagetyp: referenceDataFixture.kaufpreisfaktorReferenzByObjekttypLagetyp,
+  nutzungsdauerJahreByGewerk: referenceDataFixture.nutzungsdauerJahreByGewerk,
 };
 
 describe("ermittleVerhandlungsargumente", () => {
@@ -158,6 +159,7 @@ describe("ermittleVerhandlungsargumente", () => {
       bruttomietrenditeAktuellProzent: 2.86,
       jahreskaltmiete: 10000,
       kaufpreisfaktorReferenzByObjekttypLagetyp: referenceDataFixture.kaufpreisfaktorReferenzByObjekttypLagetyp,
+      nutzungsdauerJahreByGewerk: referenceDataFixture.nutzungsdauerJahreByGewerk,
     });
 
     expect(argumente).toHaveLength(1);
@@ -185,8 +187,66 @@ describe("ermittleVerhandlungsargumente", () => {
       bruttomietrenditeAktuellProzent: 3.33,
       jahreskaltmiete: 10000,
       kaufpreisfaktorReferenzByObjekttypLagetyp: referenceDataFixture.kaufpreisfaktorReferenzByObjekttypLagetyp,
+      nutzungsdauerJahreByGewerk: referenceDataFixture.nutzungsdauerJahreByGewerk,
     });
 
     expect(argumente).toHaveLength(0);
+  });
+
+  it("erkennt ein Gewerk, das älter als die übliche Nutzungsdauer ist, obwohl der Zustand noch gut ist", () => {
+    const argumente = ermittleVerhandlungsargumente({
+      gewerkePosten: [
+        {
+          gewerk: "HEIZUNG",
+          zustand: 2, // gut -> löst GEWERK_RISIKO nicht aus (Schwelle ist 5)
+          eigentumsTyp: "SONDEREIGENTUM",
+          geschaetzteKostenEuro: 500,
+          istOverride: false,
+          baujahr: 1995,
+          alterJahre: 29, // Referenz-Nutzungsdauer Heizung = 20 Jahre -> 9 Jahre drüber
+        },
+      ],
+      gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
+      wohnflaeche: 80,
+      instandhaltung: basisInstandhaltung,
+      cashflowNachSteuerMonatlich: 100,
+      aktuellerKaufpreis: 300000,
+      breakevenKaufpreis: null,
+      differenzZuAktuellemKaufpreis: null,
+      ...basisKaufpreisfaktor,
+    });
+
+    expect(argumente).toHaveLength(1);
+    const arg = argumente[0];
+    if (arg.typ !== "GEWERK_ALTER") throw new Error("falscher Typ");
+    expect(arg.gewerk).toBe("HEIZUNG");
+    expect(arg.jahreUeberNutzungsdauer).toBe(9);
+  });
+
+  it("löst GEWERK_ALTER nicht aus, wenn das Gewerk bereits als GEWERK_RISIKO (schlechter Zustand) erfasst ist", () => {
+    const argumente = ermittleVerhandlungsargumente({
+      gewerkePosten: [
+        {
+          gewerk: "HEIZUNG",
+          zustand: 6,
+          eigentumsTyp: "SONDEREIGENTUM",
+          geschaetzteKostenEuro: 5000,
+          istOverride: false,
+          baujahr: 1990,
+          alterJahre: 34,
+        },
+      ],
+      gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
+      wohnflaeche: 80,
+      instandhaltung: basisInstandhaltung,
+      cashflowNachSteuerMonatlich: 100,
+      aktuellerKaufpreis: 300000,
+      breakevenKaufpreis: null,
+      differenzZuAktuellemKaufpreis: null,
+      ...basisKaufpreisfaktor,
+    });
+
+    expect(argumente).toHaveLength(1);
+    expect(argumente[0].typ).toBe("GEWERK_RISIKO");
   });
 });

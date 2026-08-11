@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useTransition } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -23,11 +24,13 @@ import {
   LAGETYPEN,
   OBJEKTTYPEN,
   SANIERUNGSMODI,
+  VERGLASUNGSARTEN,
   type CalculationResult,
   type ProfileInput,
   type ReferenceDataSnapshot,
 } from "@/server/calc/types";
 import type { PropertyFormValues } from "@/server/actions/property";
+import { propertySchema } from "@/server/actions/property-schema";
 import {
   BUNDESLAND_LABELS,
   EIGENTUMSTYP_LABELS,
@@ -36,9 +39,10 @@ import {
   LAGETYP_LABELS,
   OBJEKTTYP_LABELS,
   SANIERUNGSMODUS_LABELS,
+  VERGLASUNG_LABELS,
   ZUSTAND_LABELS,
 } from "@/lib/labels";
-import { formatEuro } from "@/lib/format";
+import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
 import { ZUSTANDSFAKTOR } from "@/server/calc/constants";
@@ -60,7 +64,14 @@ export function PropertyForm({
   showCharts?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const { register, control, handleSubmit, setValue, getValues } = useForm<PropertyFormValues>({ defaultValues });
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<PropertyFormValues>({ defaultValues, resolver: zodResolver(propertySchema) });
   const gewerkeArray = useFieldArray({ control, name: "gewerke" });
 
   const watched = useWatch({ control });
@@ -91,22 +102,36 @@ export function PropertyForm({
     });
   });
 
+  const fehlerListe = flattenErrors(errors);
+
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
       <div className="flex flex-col gap-6">
+        {fehlerListe.length > 0 && (
+          <Card className="border-red-900/50 bg-red-950/20">
+            <p className="text-sm font-medium text-red-400">Bitte folgende Angaben korrigieren:</p>
+            <ul className="mt-2 list-disc pl-5 text-sm text-red-300">
+              {fehlerListe.map((meldung, i) => (
+                <li key={i}>{meldung}</li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
         <Card>
           <CardTitle>Objekt</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Name" className="sm:col-span-2">
+            <Field label="Name" className="sm:col-span-2" error={errors.name?.message}>
               <Input {...register("name")} placeholder="z. B. Musterstraße 12, Köln" />
             </Field>
             <Field
               label="Kaufpreis (€)"
               hint={wohnflaeche > 0 ? `${formatEuro(Math.round(kaufpreis / wohnflaeche))}/m²` : undefined}
+              error={errors.kaufpreis?.message}
             >
               <Input type="number" step="any" {...register("kaufpreis", { valueAsNumber: true })} />
             </Field>
-            <Field label="Wohnfläche (m²)">
+            <Field label="Wohnfläche (m²)" error={errors.wohnflaeche?.message}>
               <Input type="number" step="any" {...register("wohnflaeche", { valueAsNumber: true })} />
             </Field>
             <Field label="Bundesland">
@@ -136,10 +161,10 @@ export function PropertyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="Baujahr">
+            <Field label="Baujahr" error={errors.baujahr?.message}>
               <Input type="number" {...register("baujahr", { valueAsNumber: true })} />
             </Field>
-            <Field label="Anzahl Einheiten">
+            <Field label="Anzahl Einheiten" error={errors.anzahlEinheiten?.message}>
               <Input type="number" {...register("anzahlEinheiten", { valueAsNumber: true })} />
             </Field>
           </div>
@@ -258,6 +283,8 @@ export function PropertyForm({
               result={result}
               referenceData={referenceData}
               wohnflaeche={wohnflaeche}
+              watched={watched}
+              errors={errors}
             />
           ) : (
             <Field
@@ -330,7 +357,13 @@ export function PropertyForm({
         <Card>
           <CardTitle>Miete &amp; Wertentwicklung</CardTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DualUnitInput control={control} name="kaltmieteMonatlich" label="Kaltmiete" wohnflaeche={wohnflaeche} />
+            <DualUnitInput
+              control={control}
+              name="kaltmieteMonatlich"
+              label="Kaltmiete"
+              wohnflaeche={wohnflaeche}
+              error={errors.kaltmieteMonatlich?.message}
+            />
             <Field
               label={
                 <>
@@ -523,7 +556,7 @@ export function PropertyForm({
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <Stat label="Bruttomietrendite" value={`${result.rendite.bruttomietrenditeProzent}%`} />
                 <Stat label="Nettomietrendite" value={`${result.rendite.nettomietrenditeProzent}%`} />
-                <Stat label="Kaufpreisfaktor" value={result.rendite.kaufpreisfaktor.toFixed(2)} />
+                <Stat label="Kaufpreisfaktor" value={formatNumber(result.rendite.kaufpreisfaktor)} />
                 <Stat label="EK-Rendite" value={`${result.rendite.eigenkapitalrenditeProzent}%`} />
                 <Stat label="Cashflow vor Steuer" value={formatEuro(result.rendite.monatlicherCashflowVorSteuer) + "/Mon."} />
                 <Stat label="Cashflow nach Steuer" value={formatEuro(result.rendite.monatlicherCashflowNachSteuer) + "/Mon."} />
@@ -594,6 +627,8 @@ function GewerkeSubform({
   result,
   referenceData,
   wohnflaeche,
+  watched,
+  errors,
 }: {
   control: any;
   register: any;
@@ -601,6 +636,8 @@ function GewerkeSubform({
   result: CalculationResult | null;
   referenceData: ReferenceDataSnapshot;
   wohnflaeche: number;
+  watched: { gewerke?: { gewerk?: string }[] };
+  errors: FieldErrors<PropertyFormValues>;
 }) {
   const { fields, append, remove } = fieldArray;
 
@@ -611,15 +648,27 @@ function GewerkeSubform({
         variant="secondary"
         size="sm"
         className="self-start"
-        onClick={() => append({ gewerk: "DACH", zustand: 3, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenOverride: null, kommentar: "" })}
+        onClick={() =>
+          append({
+            gewerk: "DACH",
+            zustand: 3,
+            eigentumsTyp: "SONDEREIGENTUM",
+            geschaetzteKostenOverride: null,
+            kommentar: "",
+            baujahr: null,
+            verglasung: null,
+          })
+        }
       >
         + Gewerk hinzufügen
       </Button>
 
       {fields.map((field, index) => {
         const posten = result?.gewerke.posten[index];
+        const istFenster = watched.gewerke?.[index]?.gewerk === "FENSTER";
+        const gewerkErrors = errors.gewerke?.[index];
         return (
-          <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1.2fr_1fr_1.2fr_1fr_auto]">
+          <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_auto]">
             <Field label="Gewerk">
               <Select {...register(`gewerke.${index}.gewerk` as const)}>
                 {GEWERKE.map((g) => (
@@ -648,14 +697,66 @@ function GewerkeSubform({
               </Select>
             </Field>
             <Field
+              label={
+                <>
+                  Baujahr / Einbaujahr <InfoTooltip text={FIELD_HILFE.gewerkBaujahr} />
+                </>
+              }
+              error={gewerkErrors?.baujahr?.message}
+            >
+              <Input
+                type="number"
+                placeholder="optional"
+                {...register(`gewerke.${index}.baujahr` as const, {
+                  setValueAs: (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v)),
+                })}
+              />
+            </Field>
+            {istFenster ? (
+              <Field
+                label={
+                  <>
+                    Verglasung <InfoTooltip text={FIELD_HILFE.gewerkVerglasung} />
+                  </>
+                }
+              >
+                <Select
+                  {...register(`gewerke.${index}.verglasung` as const, {
+                    setValueAs: (v: unknown) => (v === "" ? null : v),
+                  })}
+                >
+                  <option value="">— unbekannt —</option>
+                  {VERGLASUNGSARTEN.map((v) => (
+                    <option key={v} value={v}>
+                      {VERGLASUNG_LABELS[v]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-end">
+              <Button type="button" variant="danger" size="sm" onClick={() => remove(index)}>
+                Entfernen
+              </Button>
+            </div>
+            <Field
               label="Geschätzte Kosten"
+              className="sm:col-span-6"
+              error={gewerkErrors?.geschaetzteKostenOverride?.message}
               hint={
                 posten && !posten.istOverride
                   ? (() => {
                       const kosten = referenceData.gewerkKosten[posten.gewerk];
                       const mittelwert = round1((kosten.min + kosten.max) / 2);
                       const faktor = ZUSTANDSFAKTOR[posten.zustand] ?? ZUSTANDSFAKTOR[3];
-                      return `(${kosten.min}+${kosten.max})/2=${mittelwert}€/m² × ${wohnflaeche}m² × ${faktor * 100}% = ${formatEuro(posten.geschaetzteKostenEuro)}`;
+                      const verglasungTeil =
+                        posten.verglasungsfaktor != null
+                          ? ` × ${posten.verglasungsfaktor} Verglasungsfaktor (${VERGLASUNG_LABELS[posten.verglasung ?? "DOPPEL"]})`
+                          : "";
+                      const alterTeil = posten.alterJahre != null ? ` · Alter: ${posten.alterJahre} Jahre (Baujahr ${posten.baujahr})` : "";
+                      return `(${kosten.min}+${kosten.max})/2=${mittelwert}€/m² × ${wohnflaeche}m² × ${faktor * 100}% Zustand${verglasungTeil} = ${formatEuro(posten.geschaetzteKostenEuro)}${alterTeil}`;
                     })()
                   : posten
                     ? `Manuell: ${formatEuro(posten.geschaetzteKostenEuro)}`
@@ -671,11 +772,6 @@ function GewerkeSubform({
                 })}
               />
             </Field>
-            <div className="flex items-end">
-              <Button type="button" variant="danger" size="sm" onClick={() => remove(index)}>
-                Entfernen
-              </Button>
-            </div>
           </div>
         );
       })}
@@ -692,4 +788,21 @@ function GewerkeSubform({
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+/** Sammelt alle react-hook-form-Fehlermeldungen (auch verschachtelte Objekte/Array-Felder) in einer flachen Liste. */
+function flattenErrors(errors: FieldErrors<PropertyFormValues>): string[] {
+  const meldungen: string[] = [];
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== "object") return;
+    if ("message" in node && typeof (node as { message?: unknown }).message === "string") {
+      meldungen.push((node as { message: string }).message);
+      return;
+    }
+    for (const value of Object.values(node as Record<string, unknown>)) {
+      walk(value);
+    }
+  };
+  walk(errors);
+  return meldungen;
 }

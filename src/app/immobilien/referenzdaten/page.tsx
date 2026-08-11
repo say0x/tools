@@ -3,6 +3,7 @@ import { prisma } from "@/server/db";
 import { GrunderwerbsteuerTable } from "./GrunderwerbsteuerTable";
 import { MietpreisTable } from "./MietpreisTable";
 import { GewerkKostenTable } from "./GewerkKostenTable";
+import { NutzungsdauerTable } from "./NutzungsdauerTable";
 import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
 import { KaufpreisfaktorTable } from "./KaufpreisfaktorTable";
 import { StandardwerteCard } from "./StandardwerteCard";
@@ -11,11 +12,12 @@ import { ladeStandardwerte } from "@/server/data/reference-data";
 export const dynamic = "force-dynamic";
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuer, mietpreise, gewerkKosten, kaufnebenkostenDefaults, kaufpreisfaktoren, standardwerte] =
+  const [grunderwerbsteuer, mietpreise, gewerkKosten, nutzungsdauer, kaufnebenkostenDefaults, kaufpreisfaktoren, standardwerte] =
     await Promise.all([
       prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
       prisma.referenceMietpreis.findMany(),
       prisma.referenceGewerkKosten.findMany(),
+      prisma.referenceNutzungsdauer.findMany(),
       prisma.referenceKaufnebenkostenDefaults.findFirst(),
       prisma.referenceKaufpreisfaktor.findMany(),
       ladeStandardwerte(),
@@ -62,6 +64,15 @@ export default async function ReferenzdatenPage() {
       <Card>
         <CardTitle>Sanierungskosten je Gewerk (€/m² Wohnfläche)</CardTitle>
         <GewerkKostenTable initialRows={gewerkKosten} />
+      </Card>
+
+      <Card>
+        <CardTitle>Übliche Nutzungsdauer je Gewerk (Jahre)</CardTitle>
+        <p className="mb-4 text-xs text-slate-500">
+          Ist ein Gewerk laut Baujahr älter als hier hinterlegt, wird das unabhängig vom optischen Zustand als
+          Verhandlungsargument ausgewiesen.
+        </p>
+        <NutzungsdauerTable initialRows={nutzungsdauer} />
       </Card>
     </div>
   );

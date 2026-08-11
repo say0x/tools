@@ -82,6 +82,8 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
       zustand: g.zustand,
       eigentumsTyp: g.eigentumsTyp,
       geschaetzteKostenOverride: g.geschaetzteKostenOverride,
+      baujahr: g.baujahr,
+      verglasung: g.verglasung,
     })),
 
     exit: row.exit
@@ -147,6 +149,8 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
       eigentumsTyp: g.eigentumsTyp,
       geschaetzteKostenOverride: g.geschaetzteKostenOverride,
       kommentar: g.kommentar ?? "",
+      baujahr: g.baujahr,
+      verglasung: g.verglasung,
     })),
   };
 }

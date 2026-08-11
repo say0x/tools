@@ -1,6 +1,6 @@
 import type { Verhandlungsargument } from "@/server/calc/types";
 import { EIGENTUMSTYP_LABELS, GEWERK_LABELS, LAGETYP_LABELS, OBJEKTTYP_LABELS } from "@/lib/labels";
-import { formatEuro } from "@/lib/format";
+import { formatEuro, formatNumber } from "@/lib/format";
 
 /** Rendert ein Verhandlungsargument aus der Calc-Engine zu einem fertigen deutschen Text mit eingesetzten Zahlen. */
 export function formatiereVerhandlungsargument(arg: Verhandlungsargument): { titel: string; text: string } {
@@ -35,13 +35,24 @@ export function formatiereVerhandlungsargument(arg: Verhandlungsargument): { tit
   if (arg.typ === "KAUFPREISFAKTOR_UEBER_REFERENZ") {
     return {
       titel: "Kaufpreisfaktor über Vergleichswert",
-      text: `Der Kaufpreisfaktor liegt bei ${arg.kaufpreisfaktorAktuell.toFixed(2)} (Bruttomietrendite ${arg.bruttomietrenditeAktuellProzent}%). Für ${OBJEKTTYP_LABELS[arg.objekttyp]} in ${LAGETYP_LABELS[arg.lagetyp]}-Lage liegt der Vergleichswert in deinen Referenzdaten bei ${arg.kaufpreisfaktorReferenz.toFixed(
-        2
-      )} (${arg.bruttomietrenditeReferenzProzent}% Rendite) — das ist ${arg.abweichungProzent}% höher. Bei einem Kaufpreisfaktor von ${arg.kaufpreisfaktorReferenz.toFixed(
-        2
+      text: `Der Kaufpreisfaktor liegt bei ${formatNumber(arg.kaufpreisfaktorAktuell)} (Bruttomietrendite ${arg.bruttomietrenditeAktuellProzent}%). Für ${OBJEKTTYP_LABELS[arg.objekttyp]} in ${LAGETYP_LABELS[arg.lagetyp]}-Lage liegt der Vergleichswert in deinen Referenzdaten bei ${formatNumber(
+        arg.kaufpreisfaktorReferenz
+      )} (${arg.bruttomietrenditeReferenzProzent}% Rendite) — das ist ${arg.abweichungProzent}% höher. Bei einem Kaufpreisfaktor von ${formatNumber(
+        arg.kaufpreisfaktorReferenz
       )} läge ein fairer Kaufpreis bei rund ${formatEuro(arg.fairerKaufpreisEuro)} (aktuell: ${formatEuro(
         arg.aktuellerKaufpreis
       )}). Vergleichswert auf /immobilien/referenzdaten editierbar.`,
+    };
+  }
+
+  if (arg.typ === "GEWERK_ALTER") {
+    const eigentumshinweis =
+      arg.eigentumsTyp === "GEMEINSCHAFTSEIGENTUM"
+        ? " Da es sich um Gemeinschaftseigentum handelt, betrifft eine anstehende Erneuerung die gesamte WEG."
+        : " Das betrifft dich direkt, da es sich um Sondereigentum der Einheit handelt.";
+    return {
+      titel: `${GEWERK_LABELS[arg.gewerk]} — Baujahr ${arg.baujahr}, älter als üblich`,
+      text: `${GEWERK_LABELS[arg.gewerk]} stammt aus ${arg.baujahr} (${arg.alterJahre} Jahre alt) und ist damit ${arg.jahreUeberNutzungsdauer} Jahre älter als die für dieses Gewerk übliche Nutzungsdauer von ${arg.nutzungsdauerJahre} Jahren — unabhängig vom aktuellen optischen Zustand ist mittelfristig mit Erneuerungsbedarf zu rechnen.${eigentumshinweis}`,
     };
   }
 

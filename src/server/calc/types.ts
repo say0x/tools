@@ -53,11 +53,19 @@ export type Gewerk = (typeof GEWERKE)[number];
 export const EIGENTUMSTYPEN = ["SONDEREIGENTUM", "GEMEINSCHAFTSEIGENTUM"] as const;
 export type EigentumsTyp = (typeof EIGENTUMSTYPEN)[number];
 
+/** Nur für Gewerk "FENSTER" relevant — beeinflusst die Kostenschätzung zusätzlich zum Zustand. */
+export const VERGLASUNGSARTEN = ["EINFACH", "DOPPEL", "DREIFACH"] as const;
+export type Verglasungsart = (typeof VERGLASUNGSARTEN)[number];
+
 export interface PropertyGewerkInput {
   gewerk: Gewerk;
   zustand: number; // 1 (sehr gut) – 6 (sehr schlecht)
   eigentumsTyp: EigentumsTyp;
   geschaetzteKostenOverride?: number | null;
+  /** Baujahr/Einbaujahr dieses Gewerks — optional, für Alter-Kontext in Formel & Verhandlungsargumenten. */
+  baujahr?: number | null;
+  /** Nur bei gewerk === "FENSTER" ausgewertet. */
+  verglasung?: Verglasungsart | null;
 }
 
 export interface PropertyFinancingInput {
@@ -145,6 +153,7 @@ export interface ReferenceDataSnapshot {
   notarProzentDefault: number;
   grundbuchProzentDefault: number;
   kaufpreisfaktorReferenzByObjekttypLagetyp: Record<string, number>; // key: `${objekttyp}:${lagetyp}`
+  nutzungsdauerJahreByGewerk: Record<Gewerk, number>;
 }
 
 export interface KaufnebenkostenResult {
@@ -165,6 +174,10 @@ export interface GewerkKostenResult {
   eigentumsTyp: EigentumsTyp;
   geschaetzteKostenEuro: number;
   istOverride: boolean;
+  baujahr?: number | null;
+  alterJahre?: number | null;
+  verglasung?: Verglasungsart | null;
+  verglasungsfaktor?: number | null;
 }
 
 export interface GewerkeAuswertung {

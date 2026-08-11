@@ -29,6 +29,13 @@ export const FIELD_HILFE = {
     "Jährliche Steuer ans Finanzamt, abhängig vom Hebesatz deiner Gemeinde. Ist voll umlagefähig auf den Mieter (wirkt sich daher nicht auf deinen Cashflow aus) — bei einer ETW bekommst du meist einen eigenen Bescheid, nicht über die WEG. Keine automatische Berechnung möglich, da der Hebesatz von Gemeinde zu Gemeinde stark schwankt.",
   instandhaltungsruecklage:
     "Rücklage für Reparaturen/Sanierung — bleibt IMMER beim Eigentümer, nie umlagefähig. Wird automatisch aus Baujahr und Zustand der Gewerke geschätzt (Peters'sche Formel), kann aber manuell überschrieben werden.",
+
+  // Gewerke (granulare Sanierung)
+  gewerkBaujahr:
+    "Optionales Einbau-/Baujahr dieses konkreten Gewerks (z. B. Heizung von 1998), falls abweichend vom Baujahr des Gebäudes. Wird mit der üblichen Nutzungsdauer verglichen (siehe Referenzdaten) — ist ein Gewerk deutlich älter als üblich, taucht das unabhängig vom eingetragenen Zustand als eigenes Verhandlungsargument auf.",
+  gewerkVerglasung:
+    "Nur bei Fenstern relevant: Art der Verglasung beeinflusst die geschätzten Sanierungskosten zusätzlich zum Zustand — Einfachverglasung erhöht, Dreifachverglasung senkt den Kostenansatz gegenüber dem Standard (Doppelverglasung).",
+
   verwaltungskosten:
     "Honorar für die Hausverwaltung (WEG-Verwalter oder externe Mietverwaltung). Nicht umlagefähig auf den Mieter.",
   leerstandsquote:

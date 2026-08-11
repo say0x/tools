@@ -67,6 +67,19 @@ const gewerkKosten: Record<Gewerk, { min: number; max: number }> = {
   SONSTIGES: { min: 50, max: 100 },
 };
 
+// Übliche Nutzungsdauer je Gewerk (Jahre) — grober Richtwert, Basis für das
+// altersbasierte Verhandlungsargument (unabhängig vom optischen Zustand).
+const nutzungsdauerJahre: Record<Gewerk, number> = {
+  DACH: 35,
+  FENSTER: 30,
+  HEIZUNG: 20,
+  ELEKTRIK: 40,
+  SANITAER_BAEDER: 25,
+  MAUERWERK_FASSADE: 40,
+  BODENBELAEGE: 20,
+  SONSTIGES: 25,
+};
+
 // Vergleichs-Kaufpreisfaktor je Objekttyp/Lagetyp — grober Richtwert für die
 // Verhandlungsargumente, keine Marktdaten. Bruttomietrendite ergibt sich als
 // Kehrwert (100 / Faktor).
@@ -107,6 +120,14 @@ async function main() {
       where: { gewerk },
       update: { kostenProM2Min: min, kostenProM2Max: max },
       create: { gewerk, kostenProM2Min: min, kostenProM2Max: max },
+    });
+  }
+
+  for (const gewerk of Object.values(Gewerk)) {
+    await prisma.referenceNutzungsdauer.upsert({
+      where: { gewerk },
+      update: { nutzungsdauerJahre: nutzungsdauerJahre[gewerk] },
+      create: { gewerk, nutzungsdauerJahre: nutzungsdauerJahre[gewerk] },
     });
   }
 

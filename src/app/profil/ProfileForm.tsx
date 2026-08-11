@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -10,16 +11,26 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { OverridableField } from "@/components/forms/OverridableField";
 import { berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
-import { formatEuro } from "@/lib/format";
+import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { type ProfileFormValues, upsertProfile } from "@/server/actions/profile";
+import { profileSchema } from "@/server/actions/profile-schema";
 
 export function ProfileForm({ initialValues }: { initialValues: ProfileFormValues }) {
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const [serverFehler, setServerFehler] = useState<string | null>(null);
 
-  const { register, control, handleSubmit, watch, setValue } = useForm<ProfileFormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<ProfileFormValues>({
     defaultValues: initialValues,
+    resolver: zodResolver(profileSchema),
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "liabilities" });
@@ -34,15 +45,34 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
   const verfuegbaresBudget = (Number(netto) || 0) - (Number(fixkosten) || 0);
 
   const onSubmit = handleSubmit((values) => {
+    setServerFehler(null);
     startTransition(async () => {
-      await upsertProfile(values);
-      setGespeichert(true);
-      setTimeout(() => setGespeichert(false), 2500);
+      try {
+        await upsertProfile(values);
+        setGespeichert(true);
+        setTimeout(() => setGespeichert(false), 2500);
+      } catch (err) {
+        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
     });
   });
 
+  const fehlerListe = flattenErrors(errors);
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      {(fehlerListe.length > 0 || serverFehler) && (
+        <Card className="border-red-900/50 bg-red-950/20">
+          <p className="text-sm font-medium text-red-400">Bitte folgende Angaben korrigieren:</p>
+          <ul className="mt-2 list-disc pl-5 text-sm text-red-300">
+            {serverFehler && <li>{serverFehler}</li>}
+            {fehlerListe.map((meldung, i) => (
+              <li key={i}>{meldung}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <Card>
         <CardTitle>Einkommen &amp; Budget</CardTitle>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -53,8 +83,9 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
               </>
             }
             hint={`≈ ${formatEuro((Number(brutto) || 0) * 12)} pro Jahr`}
+            error={errors.bruttoEinkommenMonatlich?.message}
           >
-            <Input type="number" step="any" {...register("bruttoEinkommenMonatlich")} />
+            <Input type="number" step="any" min={0} {...register("bruttoEinkommenMonatlich", { valueAsNumber: true })} />
           </Field>
           <Field
             label={
@@ -62,8 +93,9 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
                 Netto-Einkommen (€/Monat) <InfoTooltip text={FIELD_HILFE.nettoEinkommen} />
               </>
             }
+            error={errors.nettoEinkommenMonatlich?.message}
           >
-            <Input type="number" step="any" {...register("nettoEinkommenMonatlich")} />
+            <Input type="number" step="any" min={0} {...register("nettoEinkommenMonatlich", { valueAsNumber: true })} />
           </Field>
           <OverridableField
             label={
@@ -84,22 +116,23 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
                 Fixkosten (€/Monat) <InfoTooltip text={FIELD_HILFE.fixkosten} />
               </>
             }
+            error={errors.fixkostenMonatlich?.message}
           >
-            <Input type="number" step="any" {...register("fixkostenMonatlich")} />
+            <Input type="number" step="any" min={0} {...register("fixkostenMonatlich", { valueAsNumber: true })} />
           </Field>
-          <Field label="Vorhandenes Eigenkapital (€)">
-            <Input type="number" step="any" {...register("vorhandenesEigenkapital")} />
+          <Field label="Vorhandenes Eigenkapital (€)" error={errors.vorhandenesEigenkapital?.message}>
+            <Input type="number" step="any" min={0} {...register("vorhandenesEigenkapital", { valueAsNumber: true })} />
           </Field>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-6 rounded-md bg-slate-950/60 p-4">
           <div>
             <div className="text-xs text-slate-500">Grenzsteuersatz (live)</div>
-            <div className="text-lg font-semibold text-slate-100">{grenzsteuersatz.toFixed(2)} %</div>
+            <div className="text-lg font-semibold text-slate-100">{formatNumber(grenzsteuersatz)} %</div>
           </div>
           <div>
             <div className="text-xs text-slate-500">Verfügbares Budget (€/Monat)</div>
-            <div className="text-lg font-semibold text-slate-100">{verfuegbaresBudget.toFixed(2)} €</div>
+            <div className="text-lg font-semibold text-slate-100">{formatEuro(verfuegbaresBudget)}</div>
           </div>
         </div>
       </Card>
@@ -116,8 +149,9 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
                 Max. Schuldendienstquote (%) <InfoTooltip text={FIELD_HILFE.maxSchuldendienstquote} />
               </>
             }
+            error={errors.maxSchuldendienstquoteProzent?.message}
           >
-            <Input type="number" step="any" {...register("maxSchuldendienstquoteProzent")} />
+            <Input type="number" step="any" min={0} max={100} {...register("maxSchuldendienstquoteProzent", { valueAsNumber: true })} />
           </Field>
           <Field
             label={
@@ -125,8 +159,9 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
                 Mindest-Liquiditätsreserve (€) <InfoTooltip text={FIELD_HILFE.mindestLiquiditaetsreserve} />
               </>
             }
+            error={errors.mindestLiquiditaetsreserveEuro?.message}
           >
-            <Input type="number" step="any" {...register("mindestLiquiditaetsreserveEuro")} />
+            <Input type="number" step="any" min={0} {...register("mindestLiquiditaetsreserveEuro", { valueAsNumber: true })} />
           </Field>
         </div>
       </Card>
@@ -149,14 +184,24 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
         <div className="flex flex-col gap-3">
           {fields.map((field, index) => (
             <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
-              <Field label="Bezeichnung">
+              <Field label="Bezeichnung" error={errors.liabilities?.[index]?.bezeichnung?.message}>
                 <Input {...register(`liabilities.${index}.bezeichnung` as const)} />
               </Field>
-              <Field label="Rate (€/Monat)">
-                <Input type="number" step="any" {...register(`liabilities.${index}.monatlicheRate` as const)} />
+              <Field label="Rate (€/Monat)" error={errors.liabilities?.[index]?.monatlicheRate?.message}>
+                <Input
+                  type="number"
+                  step="any"
+                  min={0}
+                  {...register(`liabilities.${index}.monatlicheRate` as const, { valueAsNumber: true })}
+                />
               </Field>
-              <Field label="Restschuld (€)">
-                <Input type="number" step="any" {...register(`liabilities.${index}.restschuld` as const)} />
+              <Field label="Restschuld (€)" error={errors.liabilities?.[index]?.restschuld?.message}>
+                <Input
+                  type="number"
+                  step="any"
+                  min={0}
+                  {...register(`liabilities.${index}.restschuld` as const, { valueAsNumber: true })}
+                />
               </Field>
               <div className="flex items-end">
                 <Button type="button" variant="danger" size="sm" onClick={() => remove(index)}>
@@ -176,4 +221,21 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       </div>
     </form>
   );
+}
+
+/** Sammelt alle react-hook-form-Fehlermeldungen (auch verschachtelte Array-Felder) in einer flachen Liste. */
+function flattenErrors(errors: Record<string, unknown>): string[] {
+  const meldungen: string[] = [];
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== "object") return;
+    if ("message" in node && typeof (node as { message?: unknown }).message === "string") {
+      meldungen.push((node as { message: string }).message);
+      return;
+    }
+    for (const value of Object.values(node as Record<string, unknown>)) {
+      walk(value);
+    }
+  };
+  walk(errors);
+  return meldungen;
 }

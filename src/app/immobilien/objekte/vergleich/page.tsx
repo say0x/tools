@@ -4,7 +4,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { VergleichChart } from "@/components/charts/VergleichChart";
 import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
-import { formatEuro } from "@/lib/format";
+import { formatEuro, formatNumber } from "@/lib/format";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
 import { ladeObjekteNachIds } from "@/server/data/property";
@@ -67,7 +67,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <tbody className="divide-y divide-slate-800">
                 <Row label="Bruttomietrendite" objekte={objekte} render={(r) => `${r.rendite.bruttomietrenditeProzent}%`} />
                 <Row label="Nettomietrendite" objekte={objekte} render={(r) => `${r.rendite.nettomietrenditeProzent}%`} />
-                <Row label="Kaufpreisfaktor" objekte={objekte} render={(r) => r.rendite.kaufpreisfaktor.toFixed(2)} />
+                <Row label="Kaufpreisfaktor" objekte={objekte} render={(r) => formatNumber(r.rendite.kaufpreisfaktor)} />
                 <Row
                   label="Cashflow vor Steuer"
                   objekte={objekte}
@@ -140,7 +140,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
                 data={objekte.map((o) => ({
                   name: o.name,
                   value: o.result.rendite.kaufpreisfaktor,
-                  label: o.result.rendite.kaufpreisfaktor.toFixed(2),
+                  label: formatNumber(o.result.rendite.kaufpreisfaktor),
                 }))}
               />
             </Card>

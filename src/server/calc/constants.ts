@@ -20,6 +20,19 @@ export const ZUSTANDSFAKTOR: Record<number, number> = {
   6: 1.0,
 };
 
+/**
+ * Zusatzfaktor auf die Referenzkosten für Fenster, abhängig von der
+ * Verglasungsart — unabhängig vom optisch/technisch bewerteten Zustand, da
+ * Einfachverglasung energetisch unabhängig vom äußeren Zustand ersetzt werden
+ * sollte, während Dreifachverglasung meist keinen vollständigen Austausch
+ * braucht. Nur relevant, wenn kein manueller Kosten-Override gesetzt ist.
+ */
+export const VERGLASUNG_KOSTENFAKTOR: Record<string, number> = {
+  EINFACH: 1.15,
+  DOPPEL: 1.0,
+  DREIFACH: 0.7,
+};
+
 /** Ab dieser Haltedauer (Jahre) entfällt die Spekulationssteuer auf Immobiliengewinne (§23 EStG). */
 export const SPEKULATIONSFRIST_JAHRE = 10;
 

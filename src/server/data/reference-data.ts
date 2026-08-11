@@ -5,15 +5,23 @@ import { BUNDESLAENDER, GEWERKE } from "@/server/calc/types";
 
 /** Lädt alle Referenztabellen und formt sie in das Format, das die Calc-Engine erwartet. */
 export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot> {
-  const [grunderwerbsteuer, mietpreise, gewerkKostenRows, instandhaltungssaetze, kaufnebenkostenDefaults, kaufpreisfaktoren] =
-    await Promise.all([
-      prisma.referenceGrunderwerbsteuer.findMany(),
-      prisma.referenceMietpreis.findMany(),
-      prisma.referenceGewerkKosten.findMany(),
-      prisma.referenceInstandhaltungssatz.findMany({ orderBy: { altersklasseVonJahren: "asc" } }),
-      prisma.referenceKaufnebenkostenDefaults.findFirst(),
-      prisma.referenceKaufpreisfaktor.findMany(),
-    ]);
+  const [
+    grunderwerbsteuer,
+    mietpreise,
+    gewerkKostenRows,
+    instandhaltungssaetze,
+    kaufnebenkostenDefaults,
+    kaufpreisfaktoren,
+    nutzungsdauerRows,
+  ] = await Promise.all([
+    prisma.referenceGrunderwerbsteuer.findMany(),
+    prisma.referenceMietpreis.findMany(),
+    prisma.referenceGewerkKosten.findMany(),
+    prisma.referenceInstandhaltungssatz.findMany({ orderBy: { altersklasseVonJahren: "asc" } }),
+    prisma.referenceKaufnebenkostenDefaults.findFirst(),
+    prisma.referenceKaufpreisfaktor.findMany(),
+    prisma.referenceNutzungsdauer.findMany(),
+  ]);
 
   const grunderwerbsteuerByBundesland = Object.fromEntries(
     BUNDESLAENDER.map((b) => [b, grunderwerbsteuer.find((r) => r.bundesland === b)?.satzProzent ?? 0])
@@ -36,6 +44,10 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     kaufpreisfaktorReferenzByObjekttypLagetyp[`${row.objekttyp}:${row.lagetyp}`] = row.kaufpreisfaktorReferenz;
   }
 
+  const nutzungsdauerJahreByGewerk = Object.fromEntries(
+    GEWERKE.map((g) => [g, nutzungsdauerRows.find((r) => r.gewerk === g)?.nutzungsdauerJahre ?? 30])
+  ) as ReferenceDataSnapshot["nutzungsdauerJahreByGewerk"];
+
   return {
     grunderwerbsteuerByBundesland,
     mietpreisByBundeslandLagetyp,
@@ -48,6 +60,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     notarProzentDefault: kaufnebenkostenDefaults?.notarProzent ?? 1.0,
     grundbuchProzentDefault: kaufnebenkostenDefaults?.grundbuchProzent ?? 0.5,
     kaufpreisfaktorReferenzByObjekttypLagetyp,
+    nutzungsdauerJahreByGewerk,
   };
 }
 

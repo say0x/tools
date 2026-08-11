@@ -52,6 +52,16 @@ export const referenceDataFixture: ReferenceDataSnapshot = {
     "HAUS:KLEINSTADT": 19,
     "HAUS:LAENDLICH": 15,
   },
+  nutzungsdauerJahreByGewerk: {
+    DACH: 35,
+    FENSTER: 30,
+    HEIZUNG: 20,
+    ELEKTRIK: 40,
+    SANITAER_BAEDER: 25,
+    MAUERWERK_FASSADE: 40,
+    BODENBELAEGE: 20,
+    SONSTIGES: 25,
+  },
 };
 
 export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): PropertyInput {

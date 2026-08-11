@@ -55,15 +55,27 @@ export interface VerhandlungsargumentKaufpreisfaktorUeberReferenz {
   fairerKaufpreisEuro: number;
 }
 
+export interface VerhandlungsargumentGewerkAlter {
+  typ: "GEWERK_ALTER";
+  gewerk: Gewerk;
+  eigentumsTyp: EigentumsTyp;
+  baujahr: number;
+  alterJahre: number;
+  nutzungsdauerJahre: number;
+  jahreUeberNutzungsdauer: number;
+}
+
 export type Verhandlungsargument =
   | VerhandlungsargumentGewerkRisiko
   | VerhandlungsargumentInstandhaltungUnterdeckung
   | VerhandlungsargumentCashflowNegativ
-  | VerhandlungsargumentKaufpreisfaktorUeberReferenz;
+  | VerhandlungsargumentKaufpreisfaktorUeberReferenz
+  | VerhandlungsargumentGewerkAlter;
 
 export interface VerhandlungsargumenteInput {
   gewerkePosten: GewerkKostenResult[];
   gewerkKostenReferenz: ReferenceDataSnapshot["gewerkKosten"];
+  nutzungsdauerJahreByGewerk: ReferenceDataSnapshot["nutzungsdauerJahreByGewerk"];
   wohnflaeche: number;
   instandhaltung: InstandhaltungResultForCalc;
   cashflowNachSteuerMonatlich: number;
@@ -88,26 +100,42 @@ export function ermittleVerhandlungsargumente(input: VerhandlungsargumenteInput)
   const argumente: Verhandlungsargument[] = [];
 
   for (const posten of input.gewerkePosten) {
-    if (posten.zustand < ZUSTAND_RISIKO_SCHWELLE) continue;
-    const kosten = input.gewerkKostenReferenz[posten.gewerk];
-    if (!kosten) continue;
+    if (posten.zustand >= ZUSTAND_RISIKO_SCHWELLE) {
+      const kosten = input.gewerkKostenReferenz[posten.gewerk];
+      if (kosten) {
+        const mittelwertProM2 = round1((kosten.min + kosten.max) / 2);
+        const zustandsfaktorProzent = round1((ZUSTANDSFAKTOR[posten.zustand] ?? ZUSTANDSFAKTOR[3]) * 100);
 
-    const mittelwertProM2 = round1((kosten.min + kosten.max) / 2);
-    const zustandsfaktorProzent = round1((ZUSTANDSFAKTOR[posten.zustand] ?? ZUSTANDSFAKTOR[3]) * 100);
-
-    argumente.push({
-      typ: "GEWERK_RISIKO",
-      gewerk: posten.gewerk,
-      zustand: posten.zustand,
-      eigentumsTyp: posten.eigentumsTyp,
-      istOverride: posten.istOverride,
-      geschaetzteKostenEuro: posten.geschaetzteKostenEuro,
-      kostenMinProM2: kosten.min,
-      kostenMaxProM2: kosten.max,
-      mittelwertProM2,
-      zustandsfaktorProzent,
-      wohnflaeche: input.wohnflaeche,
-    });
+        argumente.push({
+          typ: "GEWERK_RISIKO",
+          gewerk: posten.gewerk,
+          zustand: posten.zustand,
+          eigentumsTyp: posten.eigentumsTyp,
+          istOverride: posten.istOverride,
+          geschaetzteKostenEuro: posten.geschaetzteKostenEuro,
+          kostenMinProM2: kosten.min,
+          kostenMaxProM2: kosten.max,
+          mittelwertProM2,
+          zustandsfaktorProzent,
+          wohnflaeche: input.wohnflaeche,
+        });
+      }
+    } else if (posten.baujahr != null && posten.alterJahre != null) {
+      // Nur relevant, wenn der Zustand selbst noch keinen GEWERK_RISIKO-Eintrag ausgelöst hat
+      // (sonst doppelte Meldung für dasselbe Gewerk).
+      const nutzungsdauerJahre = input.nutzungsdauerJahreByGewerk[posten.gewerk];
+      if (nutzungsdauerJahre && posten.alterJahre > nutzungsdauerJahre) {
+        argumente.push({
+          typ: "GEWERK_ALTER",
+          gewerk: posten.gewerk,
+          eigentumsTyp: posten.eigentumsTyp,
+          baujahr: posten.baujahr,
+          alterJahre: posten.alterJahre,
+          nutzungsdauerJahre,
+          jahreUeberNutzungsdauer: posten.alterJahre - nutzungsdauerJahre,
+        });
+      }
+    }
   }
 
   const differenzMonatlich = round2(
@@ -160,6 +188,7 @@ function gewicht(a: Verhandlungsargument): number {
   if (a.typ === "GEWERK_RISIKO") return a.geschaetzteKostenEuro;
   if (a.typ === "INSTANDHALTUNG_UNTERDECKUNG") return a.differenzMonatlich * 12;
   if (a.typ === "KAUFPREISFAKTOR_UEBER_REFERENZ") return Math.abs(a.aktuellerKaufpreis - a.fairerKaufpreisEuro);
+  if (a.typ === "GEWERK_ALTER") return a.jahreUeberNutzungsdauer * 500; // grobe Vergleichsskala zu den €-basierten Gewichten
   return Math.abs(a.differenzZuAktuellemKaufpreis ?? a.cashflowNachSteuerMonatlich * 12);
 }
 

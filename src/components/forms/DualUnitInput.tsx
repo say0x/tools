@@ -11,19 +11,21 @@ export function DualUnitInput<T extends FieldValues>({
   label,
   wohnflaeche,
   unit = "€/Monat",
+  error,
 }: {
   control: Control<T>;
   name: Path<T>;
   label: string;
   wohnflaeche: number;
   unit?: string;
+  error?: string;
 }) {
   const { field } = useController({ control, name });
   const absolut = Number(field.value) || 0;
   const proM2 = euroZuProM2(absolut, wohnflaeche);
 
   return (
-    <Field label={label}>
+    <Field label={label} error={error}>
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
           <Input

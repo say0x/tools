@@ -31,7 +31,7 @@ export function berechneObjekt(
     : schaetzeZvEAusBrutto(profile.bruttoEinkommenMonatlich * 12);
 
   const kaufnebenkosten = berechneKaufnebenkosten(property, referenceData);
-  const gewerke = berechneGewerkeAuswertung(property.gewerke, property.wohnflaeche, referenceData);
+  const gewerke = berechneGewerkeAuswertung(property.gewerke, property.wohnflaeche, referenceData, bezugsjahr);
 
   const sofortinvestitionEuro =
     property.sanierungsmodus === "GRANULAR" ? gewerke.summeGesamtEuro : property.sofortinvestitionPauschal;
@@ -150,6 +150,7 @@ export function berechneObjekt(
   const verhandlungsargumente = ermittleVerhandlungsargumente({
     gewerkePosten: gewerke.posten,
     gewerkKostenReferenz: referenceData.gewerkKosten,
+    nutzungsdauerJahreByGewerk: referenceData.nutzungsdauerJahreByGewerk,
     wohnflaeche: property.wohnflaeche,
     instandhaltung,
     cashflowNachSteuerMonatlich: rendite.monatlicherCashflowNachSteuer,

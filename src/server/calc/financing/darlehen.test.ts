@@ -46,4 +46,15 @@ describe("berechneFinanzierung", () => {
     expect(result.darlehenssummeEuro).toBeCloseTo(gesamtinvestition * 0.8, 2);
     expect(result.eigenkapitalEinsatzEuro).toBeCloseTo(gesamtinvestition * 0.2, 2);
   });
+
+  it("MANUELL: eine (fachlich unzulässige) negative EK-Quote darf die Darlehenssumme nie über die Gesamtinvestition treiben", () => {
+    const result = berechneFinanzierung(
+      financing({ finanzierungsart: "MANUELL", eigenkapitalquoteManuellProzent: -30 }),
+      basis
+    );
+    const gesamtinvestition = berechneGesamtinvestition(basis);
+    expect(result.darlehenssummeEuro).toBeLessThanOrEqual(gesamtinvestition);
+    expect(result.darlehenssummeEuro).toBeCloseTo(gesamtinvestition, 2);
+    expect(result.eigenkapitalEinsatzEuro).toBe(0);
+  });
 });

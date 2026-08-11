@@ -220,6 +220,13 @@ enum EigentumsTyp {
   GEMEINSCHAFTSEIGENTUM
 }
 
+/// Nur für Gewerk FENSTER relevant — beeinflusst die Kostenschätzung zusätzlich zum Zustand.
+enum Verglasungsart {
+  EINFACH
+  DOPPEL
+  DREIFACH
+}
+
 model PropertyGewerk {
   id         String   @id @default(cuid())
   propertyId String
@@ -230,6 +237,10 @@ model PropertyGewerk {
   eigentumsTyp         EigentumsTyp @default(SONDEREIGENTUM)
   geschaetzteKostenOverride Float?
   kommentar            String?
+  /// Baujahr/Einbaujahr dieses Gewerks (optional) — Alter fließt in Formel-Kontext & Verhandlungsargumente ein.
+  baujahr              Int?
+  /// Nur bei gewerk = FENSTER ausgewertet.
+  verglasung           Verglasungsart?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -286,6 +297,16 @@ model ReferenceInstandhaltungssatz {
   altersklasseBisJahren Int?
   satzProM2ProJahr      Float
   aktualisiertAm        DateTime @default(now())
+}
+
+/// Typische Nutzungsdauer je Gewerk (Jahre) — grober Richtwert, keine
+/// Herstellerangabe. Dient als Vergleichsbasis für Verhandlungsargumente,
+/// wenn ein Gewerk-Baujahr erfasst wurde.
+model ReferenceNutzungsdauer {
+  id                String   @id @default(cuid())
+  gewerk            Gewerk   @unique
+  nutzungsdauerJahre Int
+  aktualisiertAm    DateTime @default(now())
 }
 
 /// Singleton (wie UserProfile) für allgemeine Standardwerte, die neue

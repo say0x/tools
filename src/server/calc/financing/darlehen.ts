@@ -40,7 +40,9 @@ export function berechneFinanzierung(
     }
   }
 
-  darlehenssummeEuro = round2(Math.max(0, darlehenssummeEuro));
+  // Darlehen kann rechnerisch nie mehr sein als die Gesamtinvestition (auch bei
+  // fehlerhafter/negativer EK-Quote), sonst würde "geliehen" mehr als benötigt.
+  darlehenssummeEuro = round2(Math.min(gesamtinvestitionEuro, Math.max(0, darlehenssummeEuro)));
   const eigenkapitalEinsatzEuro = round2(Math.max(0, gesamtinvestitionEuro - darlehenssummeEuro));
 
   return { gesamtinvestitionEuro, darlehenssummeEuro, eigenkapitalEinsatzEuro };

@@ -65,6 +65,12 @@ export const ZUSTAND_LABELS: Record<number, string> = {
   6: "6 — sehr schlecht",
 };
 
+export const VERGLASUNG_LABELS: Record<string, string> = {
+  EINFACH: "Einfachverglasung",
+  DOPPEL: "Doppelverglasung (Standard)",
+  DREIFACH: "Dreifachverglasung",
+};
+
 export const AMPEL_LABELS: Record<string, string> = {
   GRUEN: "Grün",
   GELB: "Gelb",
