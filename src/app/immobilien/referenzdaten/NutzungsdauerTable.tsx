@@ -11,8 +11,10 @@ type Row = { id: string; gewerk: Gewerk; nutzungsdauerJahre: number };
 
 export function NutzungsdauerTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState(initialRows);
+  const [savedRows, setSavedRows] = useState(initialRows);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const isDirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
 
   const update = (id: string, nutzungsdauerJahre: number) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, nutzungsdauerJahre } : r)));
@@ -21,6 +23,7 @@ export function NutzungsdauerTable({ initialRows }: { initialRows: Row[] }) {
   const save = () => {
     startTransition(async () => {
       await aktualisiereNutzungsdauer(rows.map((r) => ({ id: r.id, nutzungsdauerJahre: r.nutzungsdauerJahre })));
+      setSavedRows(rows);
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
     });
@@ -50,6 +53,7 @@ export function NutzungsdauerTable({ initialRows }: { initialRows: Row[] }) {
           {isPending ? "Speichert…" : "Speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
       </div>
     </div>
   );

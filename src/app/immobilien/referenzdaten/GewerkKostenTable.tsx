@@ -11,8 +11,10 @@ type Row = { id: string; gewerk: Gewerk; kostenProM2Min: number; kostenProM2Max:
 
 export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState(initialRows);
+  const [savedRows, setSavedRows] = useState(initialRows);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const isDirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
 
   const update = (id: string, patch: Partial<Row>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -23,6 +25,7 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
       await aktualisiereGewerkKosten(
         rows.map((r) => ({ id: r.id, kostenProM2Min: r.kostenProM2Min, kostenProM2Max: r.kostenProM2Max }))
       );
+      setSavedRows(rows);
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
     });
@@ -60,6 +63,7 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
           {isPending ? "Speichert…" : "Speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
       </div>
     </div>
   );

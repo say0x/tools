@@ -36,8 +36,10 @@ function NullableNumberField({
 
 export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwerte }) {
   const [werte, setWerte] = useState(initialWerte);
+  const [savedWerte, setSavedWerte] = useState(initialWerte);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const isDirty = JSON.stringify(werte) !== JSON.stringify(savedWerte);
 
   const save = () => {
     startTransition(async () => {
@@ -55,6 +57,7 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
         standardSondertilgungProzent: werte.sondertilgungProzent,
         standardSondertilgungMaxProzent: werte.sondertilgungMaxProzent,
       });
+      setSavedWerte(werte);
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
     });
@@ -155,6 +158,7 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
           {isPending ? "Speichert…" : "Speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
       </div>
     </div>
   );

@@ -49,11 +49,20 @@ export default async function ObjektBibliothekPage() {
         </Card>
       ) : (
         <form action="/immobilien/objekte/vergleich" method="get" className="flex flex-col gap-4">
+          <p className="text-xs text-slate-500">
+            Checkbox anhaken, um mehrere Objekte auszuwählen und unten mit &quot;Ausgewählte vergleichen&quot; gegenüberzustellen.
+          </p>
           <div className="flex flex-col gap-3">
             {objekte.map((o) => (
               <Card key={o.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
-                  <input type="checkbox" name="ids" value={o.id} className="mt-1.5 h-4 w-4 accent-blue-600" />
+                  <input
+                    type="checkbox"
+                    name="ids"
+                    value={o.id}
+                    aria-label={`${o.name} zum Vergleich auswählen`}
+                    className="mt-1.5 h-4 w-4 accent-blue-600"
+                  />
                   <div>
                     <Link href={`/immobilien/objekte/${o.id}`} className="font-medium text-slate-100 hover:underline">
                       {o.name}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PropertyForm } from "@/components/forms/PropertyForm";
 import { ladeProfil } from "@/server/actions/profile";
@@ -6,6 +7,7 @@ import { ladeObjekt } from "@/server/data/property";
 import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyFormValues } from "@/server/data/mappers";
 import { DeleteObjectButton } from "./DeleteObjectButton";
+import { DuplicateObjectButton } from "../DuplicateObjectButton";
 
 export default async function ObjektDetailPage({ params }: PageProps<"/immobilien/objekte/[id]">) {
   const { id } = await params;
@@ -24,10 +26,16 @@ export default async function ObjektDetailPage({ params }: PageProps<"/immobilie
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">{row.asset.name}</h1>
+          <Link href="/immobilien/objekte" className="text-sm text-blue-400 hover:underline">
+            ← zurück zur Bibliothek
+          </Link>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-100">{row.asset.name}</h1>
           <p className="mt-1 text-slate-400">Kennzahlen aktualisieren sich live mit jeder Änderung.</p>
         </div>
-        <DeleteObjectButton id={id} />
+        <div className="flex gap-2">
+          <DuplicateObjectButton id={id} />
+          <DeleteObjectButton id={id} />
+        </div>
       </div>
 
       <PropertyForm

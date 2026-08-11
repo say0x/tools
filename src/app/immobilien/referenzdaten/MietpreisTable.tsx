@@ -11,8 +11,10 @@ type Row = { id: string; bundesland: Bundesland; lagetyp: Lagetyp; mietpreisProM
 
 export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState(initialRows);
+  const [savedRows, setSavedRows] = useState(initialRows);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const isDirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
 
   const update = (id: string, value: number) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, mietpreisProM2: value } : r)));
@@ -21,6 +23,7 @@ export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
   const save = () => {
     startTransition(async () => {
       await aktualisiereMietpreise(rows.map((r) => ({ id: r.id, mietpreisProM2: r.mietpreisProM2 })));
+      setSavedRows(rows);
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
     });
@@ -69,6 +72,7 @@ export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
           {isPending ? "Speichert…" : "Speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
       </div>
     </div>
   );

@@ -14,12 +14,15 @@ export function KaufnebenkostenDefaultsCard({
 }) {
   const [notarProzent, setNotarProzent] = useState(initialNotarProzent);
   const [grundbuchProzent, setGrundbuchProzent] = useState(initialGrundbuchProzent);
+  const [saved, setSaved] = useState({ notarProzent: initialNotarProzent, grundbuchProzent: initialGrundbuchProzent });
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const isDirty = notarProzent !== saved.notarProzent || grundbuchProzent !== saved.grundbuchProzent;
 
   const save = () => {
     startTransition(async () => {
       await aktualisiereKaufnebenkostenDefaults({ notarProzent, grundbuchProzent });
+      setSaved({ notarProzent, grundbuchProzent });
       setGespeichert(true);
       setTimeout(() => setGespeichert(false), 2000);
     });
@@ -52,6 +55,7 @@ export function KaufnebenkostenDefaultsCard({
           {isPending ? "Speichert…" : "Speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
       </div>
     </div>
   );

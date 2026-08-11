@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
@@ -64,15 +64,27 @@ export function PropertyForm({
   showCharts?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [gespeichert, setGespeichert] = useState(false);
   const {
     register,
     control,
     handleSubmit,
     setValue,
     getValues,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<PropertyFormValues>({ defaultValues, resolver: zodResolver(propertySchema) });
   const gewerkeArray = useFieldArray({ control, name: "gewerke" });
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const watched = useWatch({ control });
 
@@ -99,13 +111,16 @@ export function PropertyForm({
   const submit = handleSubmit((values) => {
     startTransition(async () => {
       await onSubmit(values);
+      reset(values);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2500);
     });
   });
 
   const fehlerListe = flattenErrors(errors);
 
   return (
-    <form onSubmit={submit} className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+    <form onSubmit={submit} className="grid grid-cols-1 gap-6 pb-20 lg:grid-cols-[2fr_1fr]">
       <div className="flex flex-col gap-6">
         {fehlerListe.length > 0 && (
           <Card className="border-red-900/50 bg-red-950/20">
@@ -581,12 +596,21 @@ export function PropertyForm({
           </div>
         </Card>
 
-        <Button type="submit" disabled={isPending} className="self-start">
-          {isPending ? "Speichert…" : submitLabel}
-        </Button>
       </div>
 
-      <div className="flex flex-col gap-6 xl:sticky xl:top-6 xl:self-start">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-3">
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Speichert…" : submitLabel}
+          </Button>
+          {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+          {!gespeichert && isDirty && !isPending && (
+            <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6 lg:sticky lg:top-6 lg:self-start">
         {result ? (
           <>
             <Card>
