@@ -292,16 +292,56 @@ export function PropertyForm({
           </Field>
 
           {watched.sanierungsmodus === "GRANULAR" ? (
-            <GewerkeSubform
-              control={control}
-              register={register}
-              fieldArray={gewerkeArray}
-              result={result}
-              referenceData={referenceData}
-              wohnflaeche={wohnflaeche}
-              watched={watched}
-              errors={errors}
-            />
+            <>
+              {watched.gewerke?.some((g) => g?.eigentumsTyp === "GEMEINSCHAFTSEIGENTUM") && (
+                <div className="mb-4 grid grid-cols-1 gap-4 rounded-md border border-slate-800 p-3 sm:grid-cols-2">
+                  <Field
+                    label={
+                      <>
+                        Gesamtwohnfläche Gebäude/WEG (m²) <InfoTooltip text={FIELD_HILFE.gebaeudeWohnflaecheGesamt} />
+                      </>
+                    }
+                  >
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="optional"
+                      {...register("gebaeudeWohnflaecheGesamt", {
+                        setValueAs: (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v)),
+                      })}
+                    />
+                  </Field>
+                  <OverridableField
+                    label={
+                      <>
+                        Miteigentumsanteil (%) <InfoTooltip text={FIELD_HILFE.miteigentumsanteil} />
+                      </>
+                    }
+                    control={control}
+                    register={register}
+                    valueField="miteigentumsanteilProzent"
+                    overrideField="miteigentumsanteilOverride"
+                    computedValue={result?.gewerke.miteigentumsanteilProzentEffektiv ?? 100}
+                    setValue={setValue}
+                    formel={
+                      watched.gebaeudeWohnflaecheGesamt
+                        ? `Aus deiner Wohnfläche (${wohnflaeche} m²) / Gesamtwohnfläche (${watched.gebaeudeWohnflaecheGesamt} m²) hergeleitet.`
+                        : "Ohne Gesamtwohnfläche wird 100% angenommen — Gemeinschaftseigentum-Kosten laufen dann wie bisher über deine eigene Wohnfläche. Trag die Gesamtwohnfläche ein, um hier deinen tatsächlichen Anteil (z. B. aus dem Grundbuch) zu hinterlegen."
+                    }
+                  />
+                </div>
+              )}
+              <GewerkeSubform
+                control={control}
+                register={register}
+                fieldArray={gewerkeArray}
+                result={result}
+                referenceData={referenceData}
+                wohnflaeche={wohnflaeche}
+                watched={watched}
+                errors={errors}
+              />
+            </>
           ) : (
             <Field
               label="Sofortinvestition (€)"
@@ -716,7 +756,7 @@ function GewerkeSubform({
   result: CalculationResult | null;
   referenceData: ReferenceDataSnapshot;
   wohnflaeche: number;
-  watched: { gewerke?: { gewerk?: string; zustand?: number }[] };
+  watched: { gewerke?: { gewerk?: string; zustand?: number }[]; gebaeudeWohnflaecheGesamt?: number | null };
   errors: FieldErrors<PropertyFormValues>;
 }) {
   const { fields, append, remove } = fieldArray;
@@ -737,6 +777,7 @@ function GewerkeSubform({
             kommentar: "",
             baujahr: null,
             verglasung: null,
+            sofortSanieren: true,
           })
         }
       >
@@ -752,7 +793,7 @@ function GewerkeSubform({
         const zustandBeschreibung =
           gewerkWert && zustandWert ? GEWERK_ZUSTAND_BESCHREIBUNG[gewerkWert]?.[zustandWert] : undefined;
         return (
-          <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_auto]">
+          <div key={field.id} className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_1fr_auto]">
             <Field label="Gewerk">
               <Select {...register(`gewerke.${index}.gewerk` as const)}>
                 {GEWERKE.map((g) => (
@@ -802,6 +843,17 @@ function GewerkeSubform({
                 })}
               />
             </Field>
+            <Field
+              label={
+                <>
+                  Sofort sanieren <InfoTooltip text={FIELD_HILFE.gewerkSofortSanieren} />
+                </>
+              }
+            >
+              <div className="flex h-[38px] items-center">
+                <Switch {...register(`gewerke.${index}.sofortSanieren` as const)} />
+              </div>
+            </Field>
             {istFenster ? (
               <Field
                 label={
@@ -833,7 +885,7 @@ function GewerkeSubform({
             </div>
             <Field
               label="Geschätzte Kosten"
-              className="sm:col-span-6"
+              className="sm:col-span-7"
               error={gewerkErrors?.geschaetzteKostenOverride?.message}
               hint={
                 posten && !posten.istOverride
@@ -846,7 +898,13 @@ function GewerkeSubform({
                           ? ` × ${posten.verglasungsfaktor} Verglasungsfaktor (${VERGLASUNG_LABELS[posten.verglasung ?? "DOPPEL"]})`
                           : "";
                       const alterTeil = posten.alterJahre != null ? ` · Alter: ${posten.alterJahre} Jahre (Baujahr ${posten.baujahr})` : "";
-                      return `(${kosten.min}+${kosten.max})/2=${mittelwert}€/m² × ${wohnflaeche}m² × ${faktor * 100}% Zustand${verglasungTeil} = ${formatEuro(posten.geschaetzteKostenEuro)}${alterTeil}`;
+                      const istGemeinschaftseigentumMitAnteil =
+                        posten.eigentumsTyp === "GEMEINSCHAFTSEIGENTUM" && watched.gebaeudeWohnflaecheGesamt;
+                      const flaechenBasis = istGemeinschaftseigentumMitAnteil ? watched.gebaeudeWohnflaecheGesamt : wohnflaeche;
+                      const anteilTeil = istGemeinschaftseigentumMitAnteil
+                        ? ` × ${result?.gewerke.miteigentumsanteilProzentEffektiv ?? 100}% Miteigentumsanteil`
+                        : "";
+                      return `(${kosten.min}+${kosten.max})/2=${mittelwert}€/m² × ${flaechenBasis}m² (${istGemeinschaftseigentumMitAnteil ? "Gesamtwohnfläche Gebäude" : "Wohnfläche"}) × ${faktor * 100}% Zustand${verglasungTeil}${anteilTeil} = ${formatEuro(posten.geschaetzteKostenEuro)}${alterTeil}`;
                     })()
                   : posten
                     ? `Manuell: ${formatEuro(posten.geschaetzteKostenEuro)}`
@@ -867,10 +925,22 @@ function GewerkeSubform({
       })}
 
       {result && fields.length > 0 && (
-        <p className="text-sm text-slate-400">
-          Summe Sanierung: <span className="text-slate-200">{formatEuro(result.gewerke.summeGesamtEuro)}</span> · Risiko-Score:{" "}
-          <span className="text-slate-200">{result.gewerke.risikoScore.toFixed(1)}</span>
-        </p>
+        <div className="text-sm text-slate-400">
+          <p>
+            Summe Sanierung: <span className="text-slate-200">{formatEuro(result.gewerke.summeGesamtEuro)}</span> · Risiko-Score:{" "}
+            <span className="text-slate-200">{result.gewerke.risikoScore.toFixed(1)}</span>
+          </p>
+          <p className="mt-1">
+            Davon sofort fällig (Sofortinvestition): <span className="text-slate-200">{formatEuro(result.gewerke.summeSofortEuro)}</span>
+            {result.gewerke.summeSpaeterEuro > 0 && (
+              <>
+                {" "}
+                · für später eingeplant: <span className="text-slate-200">{formatEuro(result.gewerke.summeSpaeterEuro)}</span>{" "}
+                <span className="text-slate-500">(nicht in der Sofortinvestition enthalten, über die Instandhaltungsrücklage vorgesehen)</span>
+              </>
+            )}
+          </p>
+        </div>
       )}
     </div>
   );

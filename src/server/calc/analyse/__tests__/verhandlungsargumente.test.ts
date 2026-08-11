@@ -32,6 +32,7 @@ describe("ermittleVerhandlungsargumente", () => {
           eigentumsTyp: "GEMEINSCHAFTSEIGENTUM",
           geschaetzteKostenEuro: 16000,
           istOverride: false,
+          sofortSanieren: true,
         },
       ],
       gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
@@ -55,8 +56,8 @@ describe("ermittleVerhandlungsargumente", () => {
   it("ignoriert Gewerke in gutem/mittlerem Zustand (< Stufe 5)", () => {
     const argumente = ermittleVerhandlungsargumente({
       gewerkePosten: [
-        { gewerk: "DACH", zustand: 3, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 4800, istOverride: false },
-        { gewerk: "FENSTER", zustand: 4, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 5060, istOverride: false },
+        { gewerk: "DACH", zustand: 3, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 4800, istOverride: false, sofortSanieren: true },
+        { gewerk: "FENSTER", zustand: 4, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 5060, istOverride: false, sofortSanieren: true },
       ],
       gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
       wohnflaeche: 80,
@@ -123,8 +124,8 @@ describe("ermittleVerhandlungsargumente", () => {
   it("sortiert Argumente nach Gewicht absteigend (größte Kostenposition zuerst)", () => {
     const argumente = ermittleVerhandlungsargumente({
       gewerkePosten: [
-        { gewerk: "FENSTER", zustand: 5, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 5000, istOverride: false },
-        { gewerk: "DACH", zustand: 6, eigentumsTyp: "GEMEINSCHAFTSEIGENTUM", geschaetzteKostenEuro: 20000, istOverride: false },
+        { gewerk: "FENSTER", zustand: 5, eigentumsTyp: "SONDEREIGENTUM", geschaetzteKostenEuro: 5000, istOverride: false, sofortSanieren: true },
+        { gewerk: "DACH", zustand: 6, eigentumsTyp: "GEMEINSCHAFTSEIGENTUM", geschaetzteKostenEuro: 20000, istOverride: false, sofortSanieren: true },
       ],
       gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
       wohnflaeche: 80,
@@ -204,6 +205,7 @@ describe("ermittleVerhandlungsargumente", () => {
           istOverride: false,
           baujahr: 1995,
           alterJahre: 29, // Referenz-Nutzungsdauer Heizung = 20 Jahre -> 9 Jahre drüber
+          sofortSanieren: true,
         },
       ],
       gewerkKostenReferenz: referenceDataFixture.gewerkKosten,
@@ -234,6 +236,7 @@ describe("ermittleVerhandlungsargumente", () => {
           istOverride: false,
           baujahr: 1990,
           alterJahre: 34,
+          sofortSanieren: true,
         },
       ],
       gewerkKostenReferenz: referenceDataFixture.gewerkKosten,

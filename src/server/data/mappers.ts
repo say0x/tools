@@ -40,6 +40,10 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
     sanierungsmodus: row.sanierungsmodus,
     sofortinvestitionPauschal: row.sofortinvestitionPauschal,
 
+    gebaeudeWohnflaecheGesamt: row.gebaeudeWohnflaecheGesamt,
+    miteigentumsanteilProzent: row.miteigentumsanteilProzent,
+    miteigentumsanteilOverride: row.miteigentumsanteilOverride,
+
     kaltmieteMonatlich: row.kaltmieteMonatlich,
     mietsteigerungProzentJaehrlich: row.mietsteigerungProzentJaehrlich,
 
@@ -91,6 +95,7 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
       geschaetzteKostenOverride: g.geschaetzteKostenOverride,
       baujahr: g.baujahr,
       verglasung: g.verglasung,
+      sofortSanieren: g.sofortSanieren,
     })),
 
     exit: row.exit
@@ -164,6 +169,7 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
       kommentar: g.kommentar ?? "",
       baujahr: g.baujahr,
       verglasung: g.verglasung,
+      sofortSanieren: g.sofortSanieren,
     })),
   };
 }

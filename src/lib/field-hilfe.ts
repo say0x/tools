@@ -35,6 +35,12 @@ export const FIELD_HILFE = {
     "Optionales Einbau-/Baujahr dieses konkreten Gewerks (z. B. Heizung von 1998), falls abweichend vom Baujahr des Gebäudes. Wird mit der üblichen Nutzungsdauer verglichen (siehe Referenzdaten) — ist ein Gewerk deutlich älter als üblich, taucht das unabhängig vom eingetragenen Zustand als eigenes Verhandlungsargument auf.",
   gewerkVerglasung:
     "Nur bei Fenstern relevant: Art der Verglasung beeinflusst die geschätzten Sanierungskosten zusätzlich zum Zustand — Einfachverglasung erhöht, Dreifachverglasung senkt den Kostenansatz gegenüber dem Standard (Doppelverglasung).",
+  gewerkSofortSanieren:
+    "An: die geschätzten Kosten zählen zur Sofortinvestition und müssen beim Kauf direkt aus Eigenkapital gedeckt werden. Aus: nicht jedes Gewerk mit schlechtem Zustand muss sofort saniert werden — der Betrag fließt dann nicht in die Sofortinvestition ein, sondern nur informativ als \"für später eingeplant\". Der Zustand fließt trotzdem weiter in die empfohlene Instandhaltungsrücklage ein.",
+  gebaeudeWohnflaecheGesamt:
+    "Gesamtwohnfläche des ganzen Gebäudes/der WEG (nicht nur deine Wohnung) — Basis, um Gemeinschaftseigentum-Kosten (z. B. Dach, Fassade) anteilig statt komplett zu berechnen. Ohne Angabe wird deine eigene Wohnfläche als Näherung verwendet (wie bisher).",
+  miteigentumsanteil:
+    "Anteil, mit dem du an den Kosten von Gemeinschaftseigentum (z. B. Dach, Fassade) beteiligt bist. Ohne Override aus deiner Wohnfläche / Gesamtwohnfläche hergeleitet (Wohnflächenschlüssel). Falls dein tatsächlicher Miteigentumsanteil laut Grundbuch/Teilungserklärung abweicht (z. B. wegen Sondernutzungsrechten), kannst du ihn hier manuell eintragen — wirkt sich nur aus, wenn du auch die Gesamtwohnfläche einträgst.",
 
   verwaltungskosten:
     "Honorar für die Hausverwaltung (WEG-Verwalter oder externe Mietverwaltung). Nicht umlagefähig auf den Mieter.",

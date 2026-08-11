@@ -32,10 +32,14 @@ export function berechneObjekt(
     : schaetzeZvEAusBrutto(profile.bruttoEinkommenMonatlich * 12);
 
   const kaufnebenkosten = berechneKaufnebenkosten(property, referenceData);
-  const gewerke = berechneGewerkeAuswertung(property.gewerke, property.wohnflaeche, referenceData, bezugsjahr);
+  const gewerke = berechneGewerkeAuswertung(property.gewerke, property.wohnflaeche, referenceData, bezugsjahr, {
+    gebaeudeWohnflaecheGesamt: property.gebaeudeWohnflaecheGesamt,
+    miteigentumsanteilOverride: property.miteigentumsanteilOverride,
+    miteigentumsanteilProzentManuell: property.miteigentumsanteilProzent,
+  });
 
   const sofortinvestitionEuro =
-    property.sanierungsmodus === "GRANULAR" ? gewerke.summeGesamtEuro : property.sofortinvestitionPauschal;
+    property.sanierungsmodus === "GRANULAR" ? gewerke.summeSofortEuro : property.sofortinvestitionPauschal;
 
   const instandhaltungEmpfohlen = berechneEmpfohleneInstandhaltungsruecklage(
     property.baujahr,

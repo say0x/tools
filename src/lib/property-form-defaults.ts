@@ -23,6 +23,10 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     sanierungsmodus: "PAUSCHAL",
     sofortinvestitionPauschal: 0,
 
+    gebaeudeWohnflaecheGesamt: null,
+    miteigentumsanteilProzent: 100,
+    miteigentumsanteilOverride: false,
+
     kaltmieteMonatlich: 700,
     mietsteigerungProzentJaehrlich: 1.5,
 

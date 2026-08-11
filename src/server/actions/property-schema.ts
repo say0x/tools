@@ -27,6 +27,7 @@ const gewerkSchema = z.object({
     .nullable()
     .optional(),
   verglasung: z.enum(VERGLASUNGSARTEN).nullable().optional(),
+  sofortSanieren: z.boolean(),
 });
 
 const financingSchema = z.object({
@@ -98,6 +99,15 @@ export const propertySchema = z.object({
 
   sanierungsmodus: z.enum(SANIERUNGSMODI),
   sofortinvestitionPauschal: z.number({ error: "Sofortinvestition muss eine Zahl sein" }).min(0, "Sofortinvestition darf nicht negativ sein").max(10_000_000, "Sofortinvestition ist unrealistisch hoch"),
+
+  gebaeudeWohnflaecheGesamt: z.number({ error: "Gesamtwohnfläche muss eine Zahl sein" })
+    .min(1, "Gesamtwohnfläche muss mindestens 1 m² betragen")
+    .max(1_000_000, "Gesamtwohnfläche ist unrealistisch groß")
+    .nullable(),
+  miteigentumsanteilProzent: z.number({ error: "Miteigentumsanteil muss eine Zahl sein" })
+    .min(0, "Miteigentumsanteil darf nicht negativ sein")
+    .max(100, "Miteigentumsanteil darf maximal 100% betragen"),
+  miteigentumsanteilOverride: z.boolean(),
 
   kaltmieteMonatlich: z.number({ error: "Kaltmiete muss eine Zahl sein" }).min(0, "Kaltmiete darf nicht negativ sein").max(1_000_000, "Kaltmiete ist unrealistisch hoch"),
   mietsteigerungProzentJaehrlich: z.number({ error: "Mietsteigerung muss eine Zahl sein" }).min(-20, "Mietsteigerung liegt außerhalb eines realistischen Bereichs").max(50, "Mietsteigerung liegt außerhalb eines realistischen Bereichs"),

@@ -86,6 +86,10 @@ export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): Pro
     sanierungsmodus: "PAUSCHAL",
     sofortinvestitionPauschal: 0,
 
+    gebaeudeWohnflaecheGesamt: null,
+    miteigentumsanteilProzent: 100,
+    miteigentumsanteilOverride: false,
+
     kaltmieteMonatlich: 850,
     mietsteigerungProzentJaehrlich: 1.5,
 

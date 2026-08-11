@@ -153,6 +153,18 @@ model Property {
   sanierungsmodus        Sanierungsmodus @default(PAUSCHAL)
   sofortinvestitionPauschal Float @default(0)
 
+  // WEG-Miteigentumsanteil (nur relevant für Gemeinschaftseigentum-Gewerke)
+  /// Gesamtwohnfläche des Gebäudes/der WEG — Basis für die automatische
+  /// Miteigentumsanteil-Herleitung. Ohne Angabe entspricht das Ergebnis dem
+  /// bisherigen Verhalten (eigene Wohnfläche als Näherung).
+  gebaeudeWohnflaecheGesamt Float?
+  /// computed-with-override: ohne Override wird der Anteil aus
+  /// eigeneWohnflaeche/gebaeudeWohnflaecheGesamt hergeleitet (bzw. 100%, wenn
+  /// keine Gesamtwohnfläche hinterlegt ist); mit Override gilt der
+  /// tatsächliche Anteil aus Grundbuch/Teilungserklärung.
+  miteigentumsanteilProzent Float @default(100)
+  miteigentumsanteilOverride Boolean @default(false)
+
   // Miete
   kaltmieteMonatlich            Float
   mietsteigerungProzentJaehrlich Float @default(1.5)
@@ -269,6 +281,9 @@ model PropertyGewerk {
   baujahr              Int?
   /// Nur bei gewerk = FENSTER ausgewertet.
   verglasung           Verglasungsart?
+  /// Bei false zählt der Kostenbetrag nicht in die Sofortinvestition, sondern
+  /// wird nur informativ als "für später eingeplant" ausgewiesen.
+  sofortSanieren       Boolean          @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

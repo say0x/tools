@@ -66,6 +66,8 @@ export interface PropertyGewerkInput {
   baujahr?: number | null;
   /** Nur bei gewerk === "FENSTER" ausgewertet. */
   verglasung?: Verglasungsart | null;
+  /** Bei false zählt der Kostenbetrag nicht in die Sofortinvestition, sondern wird nur als "für später eingeplant" ausgewiesen. */
+  sofortSanieren: boolean;
 }
 
 export interface PropertyFinancingInput {
@@ -108,6 +110,12 @@ export interface PropertyInput {
 
   sanierungsmodus: Sanierungsmodus;
   sofortinvestitionPauschal: number;
+
+  /** Gesamtwohnfläche des Gebäudes/der WEG — Basis für die automatische Miteigentumsanteil-Herleitung. */
+  gebaeudeWohnflaecheGesamt: number | null;
+  /** computed-with-override: ohne Override aus eigeneWohnflaeche/gebaeudeWohnflaecheGesamt hergeleitet (bzw. 100% ohne Gesamtwohnfläche). */
+  miteigentumsanteilProzent: number;
+  miteigentumsanteilOverride: boolean;
 
   kaltmieteMonatlich: number;
   mietsteigerungProzentJaehrlich: number;
@@ -192,6 +200,8 @@ export interface GewerkKostenResult {
   alterJahre?: number | null;
   verglasung?: Verglasungsart | null;
   verglasungsfaktor?: number | null;
+  /** Bei false zählt der Betrag nicht in die Sofortinvestition, sondern nur informativ als "für später eingeplant". */
+  sofortSanieren: boolean;
 }
 
 export interface GewerkeAuswertung {
@@ -199,6 +209,12 @@ export interface GewerkeAuswertung {
   summeSondereigentumEuro: number;
   summeGemeinschaftseigentumEuro: number;
   summeGesamtEuro: number;
+  /** Summe der Posten mit sofortSanieren=true — fließt in die Sofortinvestition ein. */
+  summeSofortEuro: number;
+  /** Summe der Posten mit sofortSanieren=false — informativ, NICHT in der Sofortinvestition enthalten. */
+  summeSpaeterEuro: number;
+  /** Tatsächlich angesetzter Miteigentumsanteil (%) für Gemeinschaftseigentum-Kosten — aus Wohnfläche hergeleitet oder manuell überschrieben. */
+  miteigentumsanteilProzentEffektiv: number;
   risikoScore: number; // 1 (top) – 6 (kritisch), gewichtet nach Kostenanteil
 }
 
