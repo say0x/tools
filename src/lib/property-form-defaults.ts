@@ -52,6 +52,9 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     ansprechpartnerEmail: "",
     ansprechpartnerNotizen: "",
 
+    notizen: "",
+    quelleUrl: "",
+
     financing: {
       eigenkapital: 0,
       zinssatzProzent: 3.8,

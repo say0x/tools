@@ -138,6 +138,9 @@ export const propertySchema = z.object({
   ansprechpartnerEmail: z.union([z.email("E-Mail-Adresse ist ungültig"), z.literal("")]),
   ansprechpartnerNotizen: z.string().max(2000, "Notizen sind zu lang (max. 2000 Zeichen)"),
 
+  notizen: z.string().max(4000, "Notizen sind zu lang (max. 4000 Zeichen)"),
+  quelleUrl: z.union([z.url("URL ist ungültig"), z.literal("")]),
+
   financing: financingSchema,
   gewerke: z.array(gewerkSchema),
   exit: exitSchema,

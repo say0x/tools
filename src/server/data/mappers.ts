@@ -161,6 +161,8 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
     ansprechpartnerTelefon: row.ansprechpartnerTelefon,
     ansprechpartnerEmail: row.ansprechpartnerEmail,
     ansprechpartnerNotizen: row.ansprechpartnerNotizen,
+    notizen: row.notizen,
+    quelleUrl: row.quelleUrl,
     gewerke: row.gewerke.map((g) => ({
       gewerk: g.gewerk,
       zustand: g.zustand,

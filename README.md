@@ -40,6 +40,25 @@ docker compose up -d postgres
 npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/__tests__/engine.test.ts
 ```
 
+### Objekte importieren (`data/import-objekte.json`)
+
+Recherchierte Objekte (z. B. von Immobilienportalen zusammengetragen) lassen
+sich über eine JSON-Datei einspielen, statt sie einzeln im Formular
+anzulegen:
+
+```bash
+npm run import:objekte
+```
+
+Liest `data/import-objekte.json`, legt für jeden Eintrag ein neues Objekt mit
+Standardwerten (`src/lib/property-form-defaults.ts`) als Basis an. Idempotent:
+Einträge werden über `quelleUrl` (falls vorhanden) oder sonst über den Namen
+dedupliziert — ein erneuter Lauf überspringt bereits importierte Objekte statt
+Duplikate anzulegen. Jeder Eintrag sollte im `notizen`-Feld dokumentieren,
+welche Werte real aus der Quelle stammen und welche geschätzt wurden (die
+Datei ist danach kein Geheimnis — sie landet im Repo und kann jederzeit
+erweitert werden).
+
 ## Deployment im Homelab (`tools.sayox.de`)
 
 ```bash
@@ -89,3 +108,4 @@ src/app/profil/                Nutzerprofil (Einkommen, Affordability-Schwellen)
 - Das Zustand-Feld (1–6) je Gewerke-Posten hat gewerkspezifische Kurzbeschreibungen hinter einem "i"-Tooltip (z. B. bedeutet Zustand 3 bei einem Dach etwas anderes als bei einer Heizung) — reine Einschätzungshilfe, ersetzt keine fachliche Begutachtung.
 - Nicht jedes Gewerk mit schlechtem Zustand muss sofort saniert werden: Der Schalter "Sofort sanieren" je Gewerk (Default an) entscheidet, ob der geschätzte Betrag in die Sofortinvestition (sofortiger EK-Bedarf) einfließt oder nur informativ als "für später eingeplant" ausgewiesen wird. Der Risiko-Score für die Instandhaltungsrücklage berücksichtigt weiterhin beide Gruppen unverändert.
 - Gemeinschaftseigentum-Kosten (z. B. Dach, Fassade) werden ohne Angabe der Gesamtwohnfläche des Gebäudes wie bisher über die eigene Wohnfläche geschätzt (Näherung: Miteigentumsanteil ≈ Wohnflächenanteil). Trägst du zusätzlich die Gesamtwohnfläche des Gebäudes/der WEG ein, kannst du den tatsächlichen Miteigentumsanteil (z. B. aus Grundbuch/Teilungserklärung) manuell überschreiben, falls er vom reinen Wohnflächenanteil abweicht — im Default-Fall (ohne Override) ist das Ergebnis mathematisch identisch zum bisherigen Verhalten.
+- Jedes Objekt hat ein "Quelle & Notizen"-Feld (Exposé-Link + Freitext) — rein informativ, fließt nicht in die Kalkulation ein. Gedacht u. a. dafür, bei recherchierten/importierten Objekten transparent zu dokumentieren, welche Werte real aus dem Exposé stammen und welche geschätzt wurden (siehe Import-Skript oben).

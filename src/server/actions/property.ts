@@ -125,6 +125,8 @@ export async function dupliziereObjekt(id: string) {
       ansprechpartnerTelefon: original.ansprechpartnerTelefon,
       ansprechpartnerEmail: original.ansprechpartnerEmail,
       ansprechpartnerNotizen: original.ansprechpartnerNotizen,
+      notizen: original.notizen,
+      quelleUrl: original.quelleUrl,
       asset: { create: { type: "IMMOBILIE", name: `${original.asset.name} (Kopie)` } },
       financing: original.financing
         ? {

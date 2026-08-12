@@ -197,6 +197,13 @@ model Property {
   ansprechpartnerEmail    String @default("")
   ansprechpartnerNotizen  String @default("")
 
+  /// Freitext-Notizen zum Objekt selbst — z.B. welche Werte beim Anlegen
+  /// geschätzt/angenommen wurden, weil sie nicht in der Quelle standen.
+  /// Reine Metadaten, fließen nicht in die Kalkulation ein.
+  notizen   String @default("")
+  /// Link zum ursprünglichen Exposé (Kleinanzeigen, ImmoScout24, Immowelt, ...).
+  quelleUrl String @default("")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

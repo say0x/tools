@@ -187,6 +187,25 @@ export function PropertyForm({
         </Card>
 
         <Card>
+          <CardTitle>Quelle &amp; Notizen</CardTitle>
+          <p className="mb-4 text-xs text-slate-500">
+            Reine Notizfelder, fließen nicht in die Berechnung ein.
+          </p>
+          <div className="grid grid-cols-1 gap-4">
+            <Field label="Exposé-Link" error={errors.quelleUrl?.message}>
+              <Input {...register("quelleUrl")} placeholder="z. B. https://www.immobilienscout24.de/expose/..." />
+            </Field>
+            <Field
+              label="Notizen"
+              hint="Z. B. welche Werte du geschätzt/angenommen hast, weil sie nicht im Exposé standen."
+              error={errors.notizen?.message}
+            >
+              <Textarea {...register("notizen")} rows={3} placeholder="z. B. Hausgeld geschätzt (nicht im Exposé angegeben), Instandhaltungsrücklage aus Baujahr abgeleitet" />
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
           <CardTitle>Ansprechpartner / Makler</CardTitle>
           <p className="mb-4 text-xs text-slate-500">
             Reine Notizfelder, fließen nicht in die Berechnung ein.
