@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 const links = [
   { href: "/", label: "Start" },
   { href: "/immobilien/objekte", label: "Immobilien" },
+  { href: "/finanzuebersicht", label: "Finanzübersicht" },
   { href: "/profil", label: "Profil" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];

@@ -20,6 +20,8 @@ datasource db {
 
 enum AssetType {
   IMMOBILIE
+  WERTPAPIERDEPOT
+  TAGESGELD
 }
 
 /// Every tool in the suite attaches one Asset row per position it manages.
@@ -33,7 +35,9 @@ model Asset {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  property Property?
+  property           Property?
+  wertpapierposition Wertpapierposition?
+  tagesgeldkonto     Tagesgeldkonto?
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +67,14 @@ model UserProfile {
   /// EK-Einsatz, ab dem die Kapitaleffizienz-Prüfung überhaupt greift (bei
   /// kleinen EK-Beträgen, z.B. 100%-Finanzierung, ist die % sonst irreführend volatil).
   eigenkapitalPruefungAbEuro        Float @default(5000)
+
+  /// Für die Finanzübersicht: erwartete jährliche Steigerung des Brutto-Einkommens
+  /// (bruttoEinkommenMonatlich * 12), rein informativ dargestellt und als
+  /// Vorschlagswert für die Sparplan-Steigerung neuer Positionen genutzt.
+  gehaltssteigerungProzentJaehrlich Float @default(2)
+  /// Für die Finanzübersicht: angenommene Inflationsrate, mit der die
+  /// "real"-Linie im Vermögensverlauf-Chart abgezinst wird.
+  inflationProzentJaehrlich         Float @default(2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -305,6 +317,46 @@ model PropertyExit {
 
   geplant        Boolean @default(false)
   haltedauerJahre Int    @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Wertpapierdepot & Tagesgeld (Finanzübersicht) — manuell erfasste Positionen,
+// keine Live-Kursanbindung. Jede Position wächst im Vermögensverlauf mit
+// ihrer eigenen Rendite/Zins und einem optionalen monatlichen Sparplan.
+// ---------------------------------------------------------------------------
+
+model Wertpapierposition {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  /// Aktueller Depotwert (heute), keine Live-Kursanbindung.
+  betrag                   Float
+  renditeProzentJaehrlich  Float @default(7)
+  /// Zusätzlicher monatlicher Sparplan in diese Position — optional, 0 = kein Sparplan.
+  sparplanBetragMonatlich  Float @default(0)
+  /// Jährliche Steigerung des Sparplan-Betrags (z. B. analog zur Gehaltssteigerung).
+  sparplanSteigerungProzentJaehrlich Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tagesgeldkonto {
+  id      String @id @default(cuid())
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  /// Aktueller Kontostand (heute).
+  betrag                   Float
+  zinsProzentJaehrlich     Float @default(2)
+  /// Zusätzlicher monatlicher Sparplan auf dieses Konto — optional, 0 = kein Sparplan.
+  sparplanBetragMonatlich  Float @default(0)
+  /// Jährliche Steigerung des Sparplan-Betrags (z. B. analog zur Gehaltssteigerung).
+  sparplanSteigerungProzentJaehrlich Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -9,22 +9,10 @@ const tools = [
     active: true,
   },
   {
-    href: "#",
-    title: "Zinsrechner",
-    description: "Zinseszins- und Sparplan-Simulationen.",
-    active: false,
-  },
-  {
-    href: "#",
-    title: "Depot-Tracker",
-    description: "Wertpapierdepots erfassen und Performance verfolgen.",
-    active: false,
-  },
-  {
-    href: "#",
-    title: "Finanzielle Freiheit",
-    description: "Aggregierte Sicht über alle Assets — wann reicht das Vermögen?",
-    active: false,
+    href: "/finanzuebersicht",
+    title: "Finanzübersicht",
+    description: "Immobilien, Wertpapiere & Tagesgeld zusammen betrachten — wie viel Vermögen ist in wie vielen Jahren erreichbar?",
+    active: true,
   },
 ];
 

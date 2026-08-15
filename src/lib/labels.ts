@@ -76,3 +76,8 @@ export const AMPEL_LABELS: Record<string, string> = {
   GELB: "Gelb",
   ROT: "Rot",
 };
+
+export const SPARPOSITION_ART_LABELS: Record<string, string> = {
+  WERTPAPIERDEPOT: "Wertpapierdepot (Aktien/ETF)",
+  TAGESGELD: "Tagesgeld",
+};

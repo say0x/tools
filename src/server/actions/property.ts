@@ -19,8 +19,10 @@ function parsePropertyFormValues(values: PropertyFormValues): PropertyFormValues
 }
 
 function splitPropertyData(data: PropertyFormValues) {
-  const { name, financing, gewerke, exit, ...property } = data;
-  return { name, property, financing, gewerke, exit };
+  const { name, financing, gewerke, exit, kaufdatum, ...property } = data;
+  // kaufdatum kommt als "YYYY-MM-DD"-String vom HTML-Date-Input — Prisma
+  // erwartet für DateTime-Spalten ein vollständiges ISO-8601-DateTime, keinen reinen Datums-String.
+  return { name, property: { ...property, kaufdatum: new Date(kaufdatum) }, financing, gewerke, exit };
 }
 
 export async function erstelleObjekt(values: PropertyFormValues) {
@@ -86,6 +88,7 @@ export async function dupliziereObjekt(id: string) {
   const created = await prisma.property.create({
     data: {
       kaufpreis: original.kaufpreis,
+      kaufdatum: original.kaufdatum,
       wohnflaeche: original.wohnflaeche,
       bundesland: original.bundesland,
       lagetyp: original.lagetyp,

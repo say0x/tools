@@ -6,9 +6,12 @@ import type {
   PropertyExit,
   UserProfile,
   UserLiability,
+  Wertpapierposition,
+  Tagesgeldkonto,
 } from "@/generated/prisma/client";
 import type { PropertyInput, ProfileInput } from "@/server/calc/types";
 import type { PropertyFormValues } from "@/server/actions/property";
+import type { SparpositionFormValues } from "@/server/actions/finanzuebersicht";
 
 type PropertyWithRelations = Property & {
   financing: PropertyFinancing | null;
@@ -157,6 +160,7 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
   return {
     name: row.asset.name,
     ...input,
+    kaufdatum: row.kaufdatum.toISOString().slice(0, 10),
     ansprechpartnerName: row.ansprechpartnerName,
     ansprechpartnerTelefon: row.ansprechpartnerTelefon,
     ansprechpartnerEmail: row.ansprechpartnerEmail,
@@ -174,4 +178,28 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
       sofortSanieren: g.sofortSanieren,
     })),
   };
+}
+
+export function toSparpositionFormValues(
+  wertpapiere: (Wertpapierposition & { asset: Asset })[],
+  tagesgeld: (Tagesgeldkonto & { asset: Asset })[]
+): SparpositionFormValues[] {
+  return [
+    ...wertpapiere.map((w) => ({
+      art: "WERTPAPIERDEPOT" as const,
+      name: w.asset.name,
+      betrag: w.betrag,
+      renditeProzentJaehrlich: w.renditeProzentJaehrlich,
+      sparplanBetragMonatlich: w.sparplanBetragMonatlich,
+      sparplanSteigerungProzentJaehrlich: w.sparplanSteigerungProzentJaehrlich,
+    })),
+    ...tagesgeld.map((t) => ({
+      art: "TAGESGELD" as const,
+      name: t.asset.name,
+      betrag: t.betrag,
+      renditeProzentJaehrlich: t.zinsProzentJaehrlich,
+      sparplanBetragMonatlich: t.sparplanBetragMonatlich,
+      sparplanSteigerungProzentJaehrlich: t.sparplanSteigerungProzentJaehrlich,
+    })),
+  ];
 }

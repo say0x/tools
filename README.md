@@ -1,6 +1,6 @@
 # tools
 
-Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`sayox.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Weitere Tools (Zinsrechner, Depot-Tracker, "Finanzielle Freiheit"-Dashboard) sollen auf demselben `Asset`-Datenmodell aufbauen.
+Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`sayox.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Die **Finanzübersicht** aggregiert Immobilien, Wertpapierdepots und Tagesgeld auf demselben `Asset`-Datenmodell zu einem gemeinsamen Vermögensverlauf (nominal & inflationsbereinigt). Ein Zinsrechner ist als weiteres Tool denkbar.
 
 ## Tech-Stack
 
@@ -88,6 +88,7 @@ src/server/data/               Prisma-Reads + Mapper zu den Calc-Engine-Typen
 src/components/forms/          PropertyForm (Objekt-Formular inkl. Live-Kennzahlen)
 src/components/charts/         Recharts-Komponenten
 src/app/immobilien/            Objekt-Bibliothek, -Formular, -Vergleich, Referenzdaten
+src/app/finanzuebersicht/      Aggregierter Vermögensverlauf über Immobilien, Wertpapiere & Tagesgeld
 src/app/profil/                Nutzerprofil (Einkommen, Affordability-Schwellen)
 ```
 
@@ -109,3 +110,5 @@ src/app/profil/                Nutzerprofil (Einkommen, Affordability-Schwellen)
 - Nicht jedes Gewerk mit schlechtem Zustand muss sofort saniert werden: Der Schalter "Sofort sanieren" je Gewerk (Default an) entscheidet, ob der geschätzte Betrag in die Sofortinvestition (sofortiger EK-Bedarf) einfließt oder nur informativ als "für später eingeplant" ausgewiesen wird. Der Risiko-Score für die Instandhaltungsrücklage berücksichtigt weiterhin beide Gruppen unverändert.
 - Gemeinschaftseigentum-Kosten (z. B. Dach, Fassade) werden ohne Angabe der Gesamtwohnfläche des Gebäudes wie bisher über die eigene Wohnfläche geschätzt (Näherung: Miteigentumsanteil ≈ Wohnflächenanteil). Trägst du zusätzlich die Gesamtwohnfläche des Gebäudes/der WEG ein, kannst du den tatsächlichen Miteigentumsanteil (z. B. aus Grundbuch/Teilungserklärung) manuell überschreiben, falls er vom reinen Wohnflächenanteil abweicht — im Default-Fall (ohne Override) ist das Ergebnis mathematisch identisch zum bisherigen Verhalten.
 - Jedes Objekt hat ein "Quelle & Notizen"-Feld (Exposé-Link + Freitext) — rein informativ, fließt nicht in die Kalkulation ein. Gedacht u. a. dafür, bei recherchierten/importierten Objekten transparent zu dokumentieren, welche Werte real aus dem Exposé stammen und welche geschätzt wurden (siehe Import-Skript oben).
+- **Finanzübersicht** (`/finanzuebersicht`): aggregiert den Eigenkapitalanteil aller Immobilien mit manuell erfassten Wertpapier- und Tagesgeld-Positionen zu einem gemeinsamen Vermögensverlauf. Jede Wertpapier-/Tagesgeld-Position wächst jährlich (kein unterjähriger Zinseszins) mit ihrer eigenen Rendite/Zins plus einem optionalen, jährlich wachsenden Sparplan; die reale Linie rechnet mit einer frei konfigurierbaren Inflationsrate ab (kein separat modelliertes CPI). Für Immobilien wird der bereits vorhandene, auf das Kaufdatum bezogene Eigenkapitalanteil-Verlauf der Immobilien-Engine (bis zu 50 Jahre seit Kauf) auf "heute bis heute+Betrachtungszeitraum" zugeschnitten; reicht dieser Verlauf nicht bis zum Ende des gewählten Horizonts (sehr alte Immobilie + sehr langer Horizont), wird der letzte verfügbare Wert fortgeschrieben statt weiter zu simulieren. Gehalt und Gehaltssteigerung sind rein informativ (Kontext-Anzeige + Vorschlagswert für neue Sparplan-Steigerungen) und fließen nicht automatisch in die Sparraten ein — diese werden bewusst als feste €-Beträge je Position hinterlegt.
+- Das Kaufdatum einer Immobilie ist frei editierbar (Default: heute) und bestimmt in der Finanzübersicht, wie viele der bis zu 50 simulierten Jahre seit Kauf bereits vergangen sind — für den Immobilien-Rechner selbst (Kennzahlen, Tilgungsplan) spielt es keine Rolle, da dieser ausschließlich in relativen "Jahren seit Kauf" rechnet.
