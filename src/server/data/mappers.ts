@@ -161,6 +161,7 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
     name: row.asset.name,
     ...input,
     kaufdatum: row.kaufdatum.toISOString().slice(0, 10),
+    inFinanzuebersicht: row.inFinanzuebersicht,
     ansprechpartnerName: row.ansprechpartnerName,
     ansprechpartnerTelefon: row.ansprechpartnerTelefon,
     ansprechpartnerEmail: row.ansprechpartnerEmail,

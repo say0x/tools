@@ -9,13 +9,14 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { Switch } from "@/components/ui/Switch";
 import { FinanzuebersichtChart } from "@/components/charts/FinanzuebersichtChart";
 import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
 import { formatEuro } from "@/lib/format";
 import { SPARPOSITION_ART_LABELS } from "@/lib/labels";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import {
-  berechneImmobilienEigenkapitalverlauf,
+  berechneImmobilienCashflowverlauf,
   berechnePortfolioverlauf,
   berechneSparpositionsverlauf,
   type PortfolioPositionVerlauf,
@@ -25,13 +26,18 @@ import {
   type FinanzuebersichtFormValues,
 } from "@/server/actions/finanzuebersicht";
 import { finanzuebersichtSchema, SPARPOSITION_ARTEN } from "@/server/actions/finanzuebersicht-schema";
+import { setImmobilieInFinanzuebersicht } from "@/server/actions/property";
 
 export interface ImmobilienPosition {
   id: string;
   name: string;
+  inFinanzuebersicht: boolean;
+  /** Jahre seit Kauf, ab heute — negativ bei einem geplanten (zukünftigen) Kauf. */
   jahreSeitKauf: number;
-  eigenkapitalBeiKauf: number;
-  eigenkapitalanteilProJahrSeitKauf: number[];
+  eigenkapitalEinsatzBeiKauf: number;
+  cashflowNachSteuerProJahrSeitKauf: number[];
+  /** Reiner Referenzwert (heutiger Eigenkapitalanteil) — fließt NICHT in die Summe ein. */
+  eigenkapitalanteilHeuteReferenz: number;
 }
 
 function leereSparposition(sparplanSteigerungVorschlag: number) {
@@ -43,6 +49,12 @@ function leereSparposition(sparplanSteigerungVorschlag: number) {
     sparplanBetragMonatlich: 0,
     sparplanSteigerungProzentJaehrlich: sparplanSteigerungVorschlag,
   };
+}
+
+function aktuellerJahresCashflow(imm: ImmobilienPosition): number | null {
+  if (imm.jahreSeitKauf < 0) return null;
+  const index = Math.min(Math.max(imm.jahreSeitKauf, 1), imm.cashflowNachSteuerProJahrSeitKauf.length) - 1;
+  return imm.cashflowNachSteuerProJahrSeitKauf[index] ?? null;
 }
 
 export function FinanzuebersichtClient({
@@ -66,6 +78,9 @@ export function FinanzuebersichtClient({
   const [gespeichert, setGespeichert] = useState(false);
   const [serverFehler, setServerFehler] = useState<string | null>(null);
   const [horizontJahre, setHorizontJahre] = useState(30);
+  const [ausgewaehlt, setAusgewaehlt] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(immobilien.map((imm) => [imm.id, imm.inFinanzuebersicht]))
+  );
 
   const {
     register,
@@ -92,6 +107,13 @@ export function FinanzuebersichtClient({
   const horizontEffektiv = Math.min(horizontJahre, maxHorizontJahre);
   const presets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahr) => jahr <= maxHorizontJahre);
 
+  const toggleImmobilie = (id: string, value: boolean) => {
+    setAusgewaehlt((prev) => ({ ...prev, [id]: value }));
+    startTransition(async () => {
+      await setImmobilieInFinanzuebersicht(id, value);
+    });
+  };
+
   const { positionen, portfolioverlauf } = useMemo(() => {
     const sparpositionenWatched = watched.sparpositionen ?? [];
 
@@ -109,16 +131,20 @@ export function FinanzuebersichtClient({
       ),
     }));
 
-    const immobilienPositionen: PortfolioPositionVerlauf[] = immobilien.map((imm) => ({
-      id: imm.id,
-      name: imm.name,
-      verlauf: berechneImmobilienEigenkapitalverlauf(
-        imm.eigenkapitalanteilProJahrSeitKauf,
-        imm.jahreSeitKauf,
-        imm.eigenkapitalBeiKauf,
-        horizontEffektiv
-      ),
-    }));
+    const immobilienPositionen: PortfolioPositionVerlauf[] = immobilien
+      .filter((imm) => ausgewaehlt[imm.id])
+      .map((imm) => ({
+        id: imm.id,
+        name: imm.name,
+        verlauf: berechneImmobilienCashflowverlauf(
+          {
+            cashflowNachSteuerProJahrSeitKauf: imm.cashflowNachSteuerProJahrSeitKauf,
+            jahreSeitKauf: imm.jahreSeitKauf,
+            eigenkapitalEinsatzBeiKauf: imm.eigenkapitalEinsatzBeiKauf,
+          },
+          horizontEffektiv
+        ),
+      }));
 
     const alle = [...immobilienPositionen, ...wertpapierPositionen];
 
@@ -126,10 +152,11 @@ export function FinanzuebersichtClient({
       positionen: alle,
       portfolioverlauf: berechnePortfolioverlauf(alle, horizontEffektiv, inflationProzentJaehrlich, startjahr),
     };
-  }, [watched.sparpositionen, fields, immobilien, horizontEffektiv, inflationProzentJaehrlich, startjahr]);
+  }, [watched.sparpositionen, fields, immobilien, ausgewaehlt, horizontEffektiv, inflationProzentJaehrlich, startjahr]);
 
   const heute = portfolioverlauf[0];
   const amEnde = portfolioverlauf[portfolioverlauf.length - 1];
+  const ausgewaehlteAnzahl = immobilien.filter((imm) => ausgewaehlt[imm.id]).length;
 
   const submit = handleSubmit((values) => {
     setServerFehler(null);
@@ -149,8 +176,9 @@ export function FinanzuebersichtClient({
       <div>
         <h1 className="text-2xl font-semibold text-slate-100">Finanzübersicht</h1>
         <p className="mt-1 text-slate-400">
-          Aggregierte Sicht über Immobilien, Wertpapiere und Tagesgeld — wie viel Vermögen ist in wie vielen Jahren
-          erreichbar?
+          Wie viel Geld hast du in wie vielen Jahren tatsächlich zur Verfügung — Wertpapiere, Tagesgeld und der
+          Cashflow deiner ausgewählten Immobilien. Immobilienwerte selbst sind nur eine Referenz und zählen nicht mit,
+          da das Geld im Objekt steckt und nicht verfügbar ist.
         </p>
       </div>
 
@@ -190,36 +218,60 @@ export function FinanzuebersichtClient({
         </Card>
 
         <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <CardTitle className="mb-0">Immobilien im Portfolio</CardTitle>
+          <div className="mb-1 flex items-center justify-between">
+            <CardTitle className="mb-0">Immobilien</CardTitle>
             <Link href="/immobilien/objekte" className="text-sm text-blue-400 hover:underline">
               Objekte verwalten →
             </Link>
           </div>
+          <p className="mb-4 text-xs text-slate-500">
+            {ausgewaehlteAnzahl} von {immobilien.length} Objekt(en) ausgewählt. Nur ausgewählte Objekte zählen mit
+            ihrem Cashflow nach Steuer in die Finanzübersicht — der Immobilienwert selbst ist nur eine Referenz.
+          </p>
           {immobilien.length === 0 ? (
             <p className="text-sm text-slate-500">
               Noch keine Immobilien erfasst. <Link href="/immobilien/objekte/neu" className="text-blue-400 hover:underline">Jetzt anlegen</Link>.
             </p>
           ) : (
             <div className="flex flex-col gap-2">
-              {immobilien.map((imm) => (
-                <div
-                  key={imm.id}
-                  className="flex flex-col gap-1 rounded-md border border-slate-800 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <Link href={`/immobilien/objekte/${imm.id}`} className="font-medium text-slate-100 hover:underline">
-                      {imm.name}
-                    </Link>
-                    <div className="text-xs text-slate-500">
-                      {imm.jahreSeitKauf === 0 ? "Kauf in diesem Jahr" : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
+              {immobilien.map((imm) => {
+                const cashflowJaehrlich = aktuellerJahresCashflow(imm);
+                return (
+                  <div
+                    key={imm.id}
+                    className={`flex flex-col gap-2 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
+                      ausgewaehlt[imm.id] ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-70"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Switch checked={!!ausgewaehlt[imm.id]} onChange={(e) => toggleImmobilie(imm.id, e.target.checked)} />
+                      <div>
+                        <Link href={`/immobilien/objekte/${imm.id}`} className="font-medium text-slate-100 hover:underline">
+                          {imm.name}
+                        </Link>
+                        <div className="text-xs text-slate-500">
+                          {imm.jahreSeitKauf < 0
+                            ? `Kauf geplant in ${Math.abs(imm.jahreSeitKauf)} Jahr(en)`
+                            : imm.jahreSeitKauf === 0
+                              ? "Kauf in diesem Jahr"
+                              : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-start gap-0.5 text-sm sm:items-end">
+                      <div>
+                        Cashflow n. Steuer:{" "}
+                        <span className="font-medium text-slate-100">
+                          {cashflowJaehrlich === null ? "—" : `${formatEuro(cashflowJaehrlich / 12)}/Monat`}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Referenz — EK-Anteil heute: {formatEuro(imm.eigenkapitalanteilHeuteReferenz)}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-slate-300">
-                    Heutiger EK-Anteil: <span className="font-medium text-slate-100">{formatEuro(imm.eigenkapitalanteilProJahrSeitKauf[Math.max(0, imm.jahreSeitKauf - 1)] ?? imm.eigenkapitalBeiKauf)}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
@@ -301,7 +353,7 @@ export function FinanzuebersichtClient({
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="mb-0">Vermögensverlauf</CardTitle>
+          <CardTitle className="mb-0">Verfügbares Geld</CardTitle>
           <Field label="Betrachtungszeitraum" className="w-40">
             <Select value={horizontJahre} onChange={(e) => setHorizontJahre(Number(e.target.value))}>
               {presets.map((jahr) => (
@@ -314,21 +366,21 @@ export function FinanzuebersichtClient({
         </div>
 
         <div className="mb-4 flex flex-wrap gap-6 rounded-md bg-slate-950/60 p-4">
-          <Stat label="Vermögen heute" value={formatEuro(heute?.gesamtNominal ?? 0)} />
+          <Stat label="Verfügbares Geld heute" value={formatEuro(heute?.gesamtNominal ?? 0)} />
           <Stat
-            label={`Vermögen in ${horizontEffektiv} Jahren (nominal)`}
+            label={`Verfügbares Geld in ${horizontEffektiv} Jahren (nominal)`}
             value={formatEuro(amEnde?.gesamtNominal ?? 0)}
           />
           <Stat
-            label={`Vermögen in ${horizontEffektiv} Jahren (real, heutige Kaufkraft)`}
+            label={`Verfügbares Geld in ${horizontEffektiv} Jahren (real, heutige Kaufkraft)`}
             value={formatEuro(amEnde?.gesamtReal ?? 0)}
           />
         </div>
 
         {positionen.length === 0 ? (
           <p className="text-sm text-slate-500">
-            Noch keine Positionen erfasst — Immobilien, Wertpapiere oder Tagesgeld hinzufügen, um den Vermögensverlauf
-            zu sehen.
+            Noch keine Positionen erfasst — Wertpapiere, Tagesgeld hinzufügen oder eine Immobilie oben auswählen, um
+            den Verlauf zu sehen.
           </p>
         ) : (
           <FinanzuebersichtChart data={portfolioverlauf} />
@@ -338,6 +390,9 @@ export function FinanzuebersichtClient({
       {positionen.length > 1 && (
         <Card>
           <CardTitle>Positionen im Vergleich (nominal)</CardTitle>
+          <p className="mb-4 text-xs text-slate-500">
+            Bei Immobilien: akkumulierter Cashflow nach Steuer ab heute — nicht der Immobilienwert.
+          </p>
           <VergleichVermoegensChart
             objekte={positionen.map((p) => ({ id: p.id, name: p.name, eigenkapitalanteilProJahr: p.verlauf.slice(1) }))}
             jahre={horizontEffektiv}

@@ -79,6 +79,12 @@ export async function loescheObjekt(id: string) {
   revalidatePath("/immobilien/objekte");
 }
 
+/** Schneller Toggle für die Objekt-Auswahl in der Finanzübersicht — bewusst getrennt von aktualisiereObjekt, damit ein Klick keine komplette Formular-Validierung durchläuft. */
+export async function setImmobilieInFinanzuebersicht(id: string, inFinanzuebersicht: boolean) {
+  await prisma.property.update({ where: { id }, data: { inFinanzuebersicht } });
+  revalidatePath("/finanzuebersicht");
+}
+
 export async function dupliziereObjekt(id: string) {
   const original = await prisma.property.findUniqueOrThrow({
     where: { id },
@@ -89,6 +95,7 @@ export async function dupliziereObjekt(id: string) {
     data: {
       kaufpreis: original.kaufpreis,
       kaufdatum: original.kaufdatum,
+      inFinanzuebersicht: original.inFinanzuebersicht,
       wohnflaeche: original.wohnflaeche,
       bundesland: original.bundesland,
       lagetyp: original.lagetyp,

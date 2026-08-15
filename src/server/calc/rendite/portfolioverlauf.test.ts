@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  berechneImmobilienCashflowverlauf,
   berechneImmobilienEigenkapitalverlauf,
   berechnePortfolioverlauf,
   berechneSparpositionsverlauf,
@@ -65,6 +66,51 @@ describe("berechneImmobilienEigenkapitalverlauf", () => {
     const reihe = berechneImmobilienEigenkapitalverlauf(eigenkapitalanteilProJahrSeitKauf, 5, 5000, 5);
     // Jahr 5 seit Kauf = 18000 (letzter Eintrag), alles danach (Jahr 6+) bleibt auf 18000.
     expect(reihe).toEqual([18000, 18000, 18000, 18000, 18000, 18000]);
+  });
+});
+
+describe("berechneImmobilienCashflowverlauf", () => {
+  const cashflowNachSteuerProJahrSeitKauf = [1200, 1250, 1300, 1350, 1400]; // Jahr 1..5 seit Kauf
+
+  it("startet bei 0 (heute) und akkumuliert für ein bereits laufendes Objekt den Cashflow ab dem nächsten Jahr", () => {
+    const reihe = berechneImmobilienCashflowverlauf(
+      { cashflowNachSteuerProJahrSeitKauf, jahreSeitKauf: 2, eigenkapitalEinsatzBeiKauf: 30000 },
+      3
+    );
+    expect(reihe[0]).toBe(0); // heute: noch kein Cashflow gezählt
+    expect(reihe[1]).toBe(1300); // Jahr 3 seit Kauf
+    expect(reihe[2]).toBe(1300 + 1350);
+    expect(reihe[3]).toBe(1300 + 1350 + 1400);
+  });
+
+  it("zieht bei bereits laufenden Objekten den ursprünglichen EK-Einsatz NICHT nochmal ab (bereits vor heute abgeflossen)", () => {
+    const reihe = berechneImmobilienCashflowverlauf(
+      { cashflowNachSteuerProJahrSeitKauf, jahreSeitKauf: 0, eigenkapitalEinsatzBeiKauf: 30000 },
+      1
+    );
+    expect(reihe[1]).toBe(1200); // nur der Jahr-1-Cashflow, kein EK-Abzug
+  });
+
+  it("simuliert bei einem geplanten (zukünftigen) Kauf den EK-Abfluss genau im Kaufjahr und akkumuliert danach den Cashflow", () => {
+    // Kauf in 2 Jahren.
+    const reihe = berechneImmobilienCashflowverlauf(
+      { cashflowNachSteuerProJahrSeitKauf, jahreSeitKauf: -2, eigenkapitalEinsatzBeiKauf: 30000 },
+      4
+    );
+    expect(reihe[0]).toBe(0);
+    expect(reihe[1]).toBe(0); // noch nicht gekauft
+    expect(reihe[2]).toBe(-30000); // Kaufjahr: EK-Abfluss
+    expect(reihe[3]).toBe(-30000 + 1200); // erstes volles Jahr Cashflow
+    expect(reihe[4]).toBe(-30000 + 1200 + 1250);
+  });
+
+  it("schreibt den letzten verfügbaren Jahres-Cashflow fort, wenn der Horizont über die vorhandene Verlaufsreihe hinausgeht", () => {
+    const reihe = berechneImmobilienCashflowverlauf(
+      { cashflowNachSteuerProJahrSeitKauf, jahreSeitKauf: 5, eigenkapitalEinsatzBeiKauf: 30000 },
+      2
+    );
+    // Ab Jahr 6 seit Kauf wird der letzte bekannte Jahres-Cashflow (Jahr 5 = 1400) fortgeschrieben.
+    expect(reihe).toEqual([0, 1400, 2800]);
   });
 });
 

@@ -11,7 +11,7 @@ const tools = [
   {
     href: "/finanzuebersicht",
     title: "Finanzübersicht",
-    description: "Immobilien, Wertpapiere & Tagesgeld zusammen betrachten — wie viel Vermögen ist in wie vielen Jahren erreichbar?",
+    description: "Wertpapiere, Tagesgeld & Immobilien-Cashflow zusammen betrachten — wie viel Geld hast du in wie vielen Jahren wirklich zur Verfügung?",
     active: true,
   },
 ];

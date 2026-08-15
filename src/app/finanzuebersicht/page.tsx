@@ -23,12 +23,20 @@ export default async function FinanzuebersichtPage() {
 
   const immobilien: ImmobilienPosition[] = propertyRows.map((row) => {
     const result = berechneObjekt(toPropertyInput(row), profile, referenceData);
+    // Negativ = Kaufdatum liegt in der Zukunft (geplanter Kauf).
+    const jahreSeitKauf = differenceInCalendarYears(heute, row.kaufdatum);
     return {
       id: row.id,
       name: row.asset.name,
-      jahreSeitKauf: Math.max(0, differenceInCalendarYears(heute, row.kaufdatum)),
-      eigenkapitalBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
-      eigenkapitalanteilProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.eigenkapitalanteil),
+      inFinanzuebersicht: row.inFinanzuebersicht,
+      jahreSeitKauf,
+      eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
+      cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
+      // Referenzwert für die Anzeige (heutiger Eigenkapitalanteil) — fließt NICHT in die Cashflow-Summe ein.
+      eigenkapitalanteilHeuteReferenz:
+        jahreSeitKauf >= 1
+          ? (result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1]?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro)
+          : result.finanzierung.eigenkapitalEinsatzEuro,
     };
   });
 

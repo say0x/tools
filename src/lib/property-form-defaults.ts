@@ -5,6 +5,7 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     name: "",
     kaufpreis: 250000,
     kaufdatum: new Date().toISOString().slice(0, 10),
+    inFinanzuebersicht: false,
     wohnflaeche: 70,
     bundesland: "NORDRHEIN_WESTFALEN",
     lagetyp: "GROSSSTADT",
