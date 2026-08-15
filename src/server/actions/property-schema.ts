@@ -75,6 +75,8 @@ export const propertySchema = z.object({
     .min(1, "Name fehlt")
     .max(200, "Name ist zu lang (max. 200 Zeichen)"),
   kaufpreis: z.number({ error: "Kaufpreis muss eine Zahl sein" }).min(1, "Kaufpreis muss größer als 0 sein").max(100_000_000, "Kaufpreis ist unrealistisch hoch"),
+  // Datum als "YYYY-MM-DD"-String (HTML-Date-Input) — dient v. a. der Finanzübersicht, um die seit dem Kauf vergangenen Jahre zu bestimmen.
+  kaufdatum: z.iso.date({ error: "Kaufdatum ist ungültig" }),
   wohnflaeche: z.number({ error: "Wohnfläche muss eine Zahl sein" }).min(1, "Wohnfläche muss mindestens 1 m² betragen").max(100_000, "Wohnfläche ist unrealistisch groß"),
   bundesland: z.enum(BUNDESLAENDER),
   lagetyp: z.enum(LAGETYPEN),

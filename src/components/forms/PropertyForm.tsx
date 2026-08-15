@@ -150,6 +150,13 @@ export function PropertyForm({
             <Field label="Wohnfläche (m²)" error={errors.wohnflaeche?.message}>
               <Input type="number" step="any" {...register("wohnflaeche", { valueAsNumber: true })} />
             </Field>
+            <Field
+              label="Kaufdatum"
+              hint="Für die Finanzübersicht: bestimmt, wie viele Jahre seit dem Kauf bereits vergangen sind."
+              error={errors.kaufdatum?.message}
+            >
+              <Input type="date" {...register("kaufdatum")} />
+            </Field>
             <Field label="Bundesland">
               <Select {...register("bundesland")}>
                 {BUNDESLAENDER.map((b) => (

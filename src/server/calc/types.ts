@@ -266,6 +266,17 @@ export interface VermoegensverlaufJahr {
   kumulierterCashflowNachSteuer: number;
 }
 
+export interface PortfolioJahr {
+  /** Jahre ab heute (0 = heute). */
+  jahr: number;
+  kalenderjahr: number;
+  gesamtNominal: number;
+  /** Inflationsbereinigt (heutige Kaufkraft). */
+  gesamtReal: number;
+  /** Nominaler Wert je Position, Key = Asset-/Objekt-ID. */
+  proPosition: Record<string, number>;
+}
+
 export interface Meilensteine {
   zinsbindungEndeJahr: number;
   volltilgungJahr: number | null;
