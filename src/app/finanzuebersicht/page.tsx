@@ -25,18 +25,20 @@ export default async function FinanzuebersichtPage() {
     const result = berechneObjekt(toPropertyInput(row), profile, referenceData);
     // Negativ = Kaufdatum liegt in der Zukunft (geplanter Kauf).
     const jahreSeitKauf = differenceInCalendarYears(heute, row.kaufdatum);
+    // Heutiger Stand im vorhandenen Vermögensverlauf der Objekt-Engine (Jahr 1..50 seit Kauf) nachschlagen —
+    // reine Referenzwerte für die Anzeige, fließen NICHT in die Cashflow-Summe ein.
+    const heutigerVermoegensverlaufEintrag =
+      jahreSeitKauf >= 1 ? result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1] : undefined;
     return {
       id: row.id,
       name: row.asset.name,
       inFinanzuebersicht: row.inFinanzuebersicht,
       jahreSeitKauf,
+      kaufpreis: row.kaufpreis,
       eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
       cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
-      // Referenzwert für die Anzeige (heutiger Eigenkapitalanteil) — fließt NICHT in die Cashflow-Summe ein.
-      eigenkapitalanteilHeuteReferenz:
-        jahreSeitKauf >= 1
-          ? (result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1]?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro)
-          : result.finanzierung.eigenkapitalEinsatzEuro,
+      eigenkapitalanteilHeuteReferenz: heutigerVermoegensverlaufEintrag?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro,
+      immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis,
     };
   });
 
