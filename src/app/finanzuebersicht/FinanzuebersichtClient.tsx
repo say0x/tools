@@ -34,10 +34,12 @@ export interface ImmobilienPosition {
   inFinanzuebersicht: boolean;
   /** Jahre seit Kauf, ab heute — negativ bei einem geplanten (zukünftigen) Kauf. */
   jahreSeitKauf: number;
+  kaufpreis: number;
   eigenkapitalEinsatzBeiKauf: number;
   cashflowNachSteuerProJahrSeitKauf: number[];
-  /** Reiner Referenzwert (heutiger Eigenkapitalanteil) — fließt NICHT in die Summe ein. */
+  /** Reine Referenzwerte (heutiger Stand) — fließen NICHT in die Summe ein, nur der Cashflow zählt. */
   eigenkapitalanteilHeuteReferenz: number;
+  immobilienwertHeuteReferenz: number;
 }
 
 function leereSparposition(sparplanSteigerungVorschlag: number) {
@@ -202,7 +204,7 @@ export function FinanzuebersichtClient({
             </Field>
             <Field
               label="Gehaltssteigerung (%/Jahr)"
-              hint="Rein informativ — Vorschlagswert für die Sparplan-Steigerung neuer Positionen."
+              hint='Wird NICHT automatisch verrechnet — nur ein Vorschlagswert, der beim Klick auf "+ Position hinzufügen" in die Sparplan-Steigerung der neuen Position übernommen wird.'
               error={errors.gehaltssteigerungProzentJaehrlich?.message}
             >
               <Input type="number" step="any" min={0} {...register("gehaltssteigerungProzentJaehrlich", { valueAsNumber: true })} />
@@ -239,36 +241,63 @@ export function FinanzuebersichtClient({
                 return (
                   <div
                     key={imm.id}
-                    className={`flex flex-col gap-2 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
+                    className={`flex items-start gap-3 rounded-md border px-4 py-3 ${
                       ausgewaehlt[imm.id] ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-70"
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="pt-1">
                       <Switch checked={!!ausgewaehlt[imm.id]} onChange={(e) => toggleImmobilie(imm.id, e.target.checked)} />
-                      <div>
-                        <Link href={`/immobilien/objekte/${imm.id}`} className="font-medium text-slate-100 hover:underline">
-                          {imm.name}
-                        </Link>
-                        <div className="text-xs text-slate-500">
-                          {imm.jahreSeitKauf < 0
-                            ? `Kauf geplant in ${Math.abs(imm.jahreSeitKauf)} Jahr(en)`
-                            : imm.jahreSeitKauf === 0
-                              ? "Kauf in diesem Jahr"
-                              : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
+                    </div>
+                    <details className="group flex-1">
+                      <summary className="flex cursor-pointer list-none flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <Link
+                            href={`/immobilien/objekte/${imm.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-medium text-slate-100 hover:underline"
+                          >
+                            {imm.name}
+                          </Link>
+                          <div className="text-xs text-slate-500">
+                            {imm.jahreSeitKauf < 0
+                              ? `Kauf geplant in ${Math.abs(imm.jahreSeitKauf)} Jahr(en)`
+                              : imm.jahreSeitKauf === 0
+                                ? "Kauf in diesem Jahr"
+                                : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
+                          </div>
                         </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="text-left sm:text-right">
+                            Cashflow n. Steuer:{" "}
+                            <span className="font-medium text-slate-100">
+                              {cashflowJaehrlich === null ? "—" : `${formatEuro(cashflowJaehrlich / 12)}/Monat`}
+                            </span>
+                          </div>
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </summary>
+                      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-sm sm:grid-cols-4">
+                        <DetailStat label="Kaufpreis" value={formatEuro(imm.kaufpreis)} />
+                        <DetailStat label="Marktwert heute (Referenz)" value={formatEuro(imm.immobilienwertHeuteReferenz)} />
+                        <DetailStat label="EK-Anteil heute (Referenz)" value={formatEuro(imm.eigenkapitalanteilHeuteReferenz)} />
+                        <DetailStat
+                          label="Cashflow n. Steuer/Jahr"
+                          value={cashflowJaehrlich === null ? "—" : formatEuro(cashflowJaehrlich)}
+                        />
                       </div>
-                    </div>
-                    <div className="flex flex-col items-start gap-0.5 text-sm sm:items-end">
-                      <div>
-                        Cashflow n. Steuer:{" "}
-                        <span className="font-medium text-slate-100">
-                          {cashflowJaehrlich === null ? "—" : `${formatEuro(cashflowJaehrlich / 12)}/Monat`}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        Referenz — EK-Anteil heute: {formatEuro(imm.eigenkapitalanteilHeuteReferenz)}
-                      </div>
-                    </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Kaufpreis, Marktwert und EK-Anteil sind reine Referenzwerte — sie stecken im Objekt und zählen
+                        nicht in die Finanzübersicht-Summe. Nur der Cashflow nach Steuer fließt ein.
+                      </p>
+                    </details>
                   </div>
                 );
               })}
@@ -288,6 +317,10 @@ export function FinanzuebersichtClient({
               + Position hinzufügen
             </Button>
           </div>
+          <p className="mb-4 text-xs text-slate-500">
+            Jede Position verzinst sich automatisch jährlich mit ihrer eigenen Rendite/Zins (Zinseszins) — plus dem
+            optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten Steigerung wächst.
+          </p>
 
           {fields.length === 0 && (
             <p className="text-sm text-slate-500">
@@ -408,6 +441,15 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div>
       <div className="text-xs text-slate-500">{label}</div>
       <div className="text-lg font-semibold text-slate-100">{value}</div>
+    </div>
+  );
+}
+
+function DetailStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="font-medium text-slate-200">{value}</div>
     </div>
   );
 }
