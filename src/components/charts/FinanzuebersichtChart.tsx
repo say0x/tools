@@ -23,11 +23,11 @@ export function FinanzuebersichtChart({ data }: { data: PortfolioJahr[] }) {
           formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
         />
         <Legend />
-        <Area type="monotone" dataKey="gesamtNominal" name="Gesamtvermögen (nominal)" stroke="#3b82f6" fill="url(#vermoegen-nominal)" />
+        <Area type="monotone" dataKey="gesamtNominal" name="Verfügbares Geld (nominal)" stroke="#3b82f6" fill="url(#vermoegen-nominal)" />
         <Line
           type="monotone"
           dataKey="gesamtReal"
-          name="Gesamtvermögen (real, inflationsbereinigt)"
+          name="Verfügbares Geld (real, inflationsbereinigt)"
           stroke="#10b981"
           strokeDasharray="4 4"
           strokeWidth={2}

@@ -266,6 +266,11 @@ export interface VermoegensverlaufJahr {
   kumulierterCashflowNachSteuer: number;
 }
 
+/**
+ * Verfügbares (liquides) Geld über die Zeit — Wertpapier-/Tagesgeld-Salden
+ * plus, bei Immobilien, der akkumulierte Cashflow ab heute (nicht der
+ * Immobilienwert oder Eigenkapitalanteil, der steckt im Objekt).
+ */
 export interface PortfolioJahr {
   /** Jahre ab heute (0 = heute). */
   jahr: number;

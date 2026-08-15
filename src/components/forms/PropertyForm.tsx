@@ -152,10 +152,18 @@ export function PropertyForm({
             </Field>
             <Field
               label="Kaufdatum"
-              hint="Für die Finanzübersicht: bestimmt, wie viele Jahre seit dem Kauf bereits vergangen sind."
+              hint="Für die Finanzübersicht: bestimmt, wie viele Jahre seit dem Kauf bereits vergangen sind (auch in der Zukunft möglich, für geplante Käufe)."
               error={errors.kaufdatum?.message}
             >
               <Input type="date" {...register("kaufdatum")} />
+            </Field>
+            <Field
+              label="In Finanzübersicht berücksichtigen"
+              hint="Nur ausgewählte Objekte fließen mit ihrem Cashflow in die Finanzübersicht ein — z. B. nicht ankreuzen bei rein hypothetischen Objekten."
+            >
+              <div className="flex h-[38px] items-center">
+                <Switch {...register("inFinanzuebersicht")} />
+              </div>
             </Field>
             <Field label="Bundesland">
               <Select {...register("bundesland")}>

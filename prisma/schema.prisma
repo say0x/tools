@@ -151,6 +151,13 @@ model Property {
   baujahr         Int
   anzahlEinheiten Int @default(1)
 
+  /// Steuert, ob dieses Objekt in der Finanzübersicht mitgerechnet wird — Default
+  /// aus (false), damit rein hypothetische/geprüfte Objekte in der Bibliothek nicht
+  /// automatisch als "besitze ich" in den Vermögensverlauf einfließen. kaufdatum
+  /// darf dabei auch in der Zukunft liegen (geplanter Kauf) — die Finanzübersicht
+  /// simuliert den EK-Abfluss dann erst ab dem Kaufjahr.
+  inFinanzuebersicht Boolean @default(false)
+
   // Kaufnebenkosten — computed-with-override
   grunderwerbsteuerProzent Float   @default(0)
   grunderwerbsteuerOverride Boolean @default(false)

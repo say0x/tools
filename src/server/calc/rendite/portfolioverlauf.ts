@@ -57,6 +57,50 @@ export function berechneImmobilienEigenkapitalverlauf(
   return Array.from({ length: horizontJahre + 1 }, (_, n) => round2(wertBeiOffsetSeitKauf(jahreSeitKaufHeute + n)));
 }
 
+export interface ImmobilienCashflowVerlaufInput {
+  /** Cashflow nach Steuer je Jahr seit Kauf (Index 0 = Jahr 1 seit Kauf), aus `vermoegensverlauf[].cashflowNachSteuerJahr`. */
+  cashflowNachSteuerProJahrSeitKauf: number[];
+  /** Jahre seit Kauf, ab heute gerechnet — negativ, wenn der Kauf noch in der Zukunft liegt (geplanter Kauf). */
+  jahreSeitKauf: number;
+  /** Eigenkapital-Einsatz beim Kauf — nur relevant, wenn `jahreSeitKauf` negativ ist (siehe unten). */
+  eigenkapitalEinsatzBeiKauf: number;
+}
+
+/**
+ * Jahresreihe des tatsächlich verfügbaren (liquiden) Geldes, das eine
+ * Immobilie ab heute beisteuert — NICHT ihr Wert oder Eigenkapitalanteil,
+ * die stecken im Objekt und sind nicht "Geld, das ich habe". Startet bei 0
+ * (Index 0 = heute) und akkumuliert ab dem nächsten Jahr den Cashflow nach
+ * Steuer aus dem bereits vorhandenen Vermögensverlauf der Objekt-Engine.
+ * Bereits laufende Objekte (jahreSeitKauf >= 0): der beim Kauf eingesetzte
+ * Eigenkapitalbetrag ist Vergangenheit (vor "heute" bereits abgeflossen) und
+ * wird hier NICHT nochmal abgezogen — nur der Cashflow ab heute zählt.
+ * Geplante/zukünftige Käufe (jahreSeitKauf < 0): im Kaufjahr wird der
+ * Eigenkapital-Einsatz einmalig als Abfluss simuliert, danach läuft der
+ * Cashflow wie gewohnt weiter. Reicht der 50-Jahres-Verlauf der Objekt-Engine
+ * nicht bis zum Ende des Horizonts, wird der letzte verfügbare Jahres-Cashflow
+ * fortgeschrieben (gleiche Vereinfachung wie beim Eigenkapitalanteil-Verlauf).
+ */
+export function berechneImmobilienCashflowverlauf(input: ImmobilienCashflowVerlaufInput, horizontJahre: number): number[] {
+  const reihe: number[] = [0];
+  let kumuliert = 0;
+
+  for (let n = 1; n <= horizontJahre; n++) {
+    const offsetSeitKauf = input.jahreSeitKauf + n;
+
+    if (input.jahreSeitKauf < 0 && offsetSeitKauf === 0) {
+      kumuliert -= input.eigenkapitalEinsatzBeiKauf;
+    } else if (offsetSeitKauf >= 1 && input.cashflowNachSteuerProJahrSeitKauf.length > 0) {
+      const index = Math.min(offsetSeitKauf, input.cashflowNachSteuerProJahrSeitKauf.length) - 1;
+      kumuliert += input.cashflowNachSteuerProJahrSeitKauf[index];
+    }
+
+    reihe.push(round2(kumuliert));
+  }
+
+  return reihe;
+}
+
 export interface PortfolioPositionVerlauf {
   id: string;
   name: string;
