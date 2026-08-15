@@ -32,10 +32,15 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules ./node_modules
-# prisma/seed.ts importiert den generierten Client aus src/generated/prisma per
-# Relativpfad und wird von tsx zur Laufzeit (nicht vom Next-Build) ausgeführt,
-# braucht die Datei also zusätzlich hier.
-COPY --from=builder /app/src/generated ./src/generated
+# prisma/seed.ts und scripts/import-objekte.ts werden von tsx zur Laufzeit
+# (nicht vom Next-Build) ausgeführt und importieren u.a. aus src/generated,
+# src/server und src/lib per @/-Alias — brauchen daher den kompletten
+# Source-Tree + tsconfig.json (für die Alias-Auflösung) zusätzlich zum
+# Next-Standalone-Output, der nur die für die Web-App getracten Dateien enthält.
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/data ./data
 
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
