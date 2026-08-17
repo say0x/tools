@@ -24,14 +24,35 @@ enum AssetType {
   TAGESGELD
 }
 
+/// Verwendungszweck eines Assets — steuert, ob es automatisch im Vermögen
+/// (Finanzübersicht) mitgezählt wird, oder nur für Szenarien/Kalkulationen
+/// zur Verfügung steht. Bewusst auf Asset-Ebene (nicht pro Detailtabelle),
+/// damit jeder heutige und künftige Asset-Typ (Immobilie, Wertpapier,
+/// Fahrzeug, Kredit, ...) denselben Status ohne Zusatzcode bekommt.
+enum Besitzstatus {
+  /// Gehört tatsächlich zum aktuellen Vermögen — zählt automatisch in der Finanzübersicht mit.
+  BESITZE_ICH
+  /// Noch nicht gekauft/eingerichtet — nur für "Was wäre wenn"-Szenarien, zählt NICHT im aktuellen Vermögen.
+  POTENZIELLE_ANSCHAFFUNG
+  /// Rein hypothetische Kalkulation ("lohnt sich das überhaupt?"), kein konkreter Kaufplan.
+  SPEKULATION
+  /// Ehemals besessen, mittlerweile veräußert — bleibt für Historie/Auswertung erhalten.
+  VERKAUFT
+  /// Nicht mehr aktiv relevant, aber nicht gelöscht (z. B. alte Kalkulation).
+  ARCHIVIERT
+}
+
 /// Every tool in the suite attaches one Asset row per position it manages.
-/// Future tools (Depot, Sparplan, ...) add their own AssetType + detail table
-/// and a shared "Finanzielle Freiheit" view can aggregate over Asset without
-/// needing to know about Immobilie-specific columns.
+/// Future tools (Fahrzeuge, Kredite, ...) add their own AssetType + detail
+/// table and a shared "Finanzielle Freiheit" view can aggregate over Asset
+/// without needing to know about typ-spezifische Spalten.
 model Asset {
   id        String    @id @default(cuid())
   type      AssetType
   name      String
+  /// Default: POTENZIELLE_ANSCHAFFUNG — ein neu angelegtes Asset zählt erst nach
+  /// bewusster Bestätigung ("das besitze ich wirklich") im Vermögen mit.
+  besitzstatus Besitzstatus @default(POTENZIELLE_ANSCHAFFUNG)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -151,12 +172,10 @@ model Property {
   baujahr         Int
   anzahlEinheiten Int @default(1)
 
-  /// Steuert, ob dieses Objekt in der Finanzübersicht mitgerechnet wird — Default
-  /// aus (false), damit rein hypothetische/geprüfte Objekte in der Bibliothek nicht
-  /// automatisch als "besitze ich" in den Vermögensverlauf einfließen. kaufdatum
-  /// darf dabei auch in der Zukunft liegen (geplanter Kauf) — die Finanzübersicht
-  /// simuliert den EK-Abfluss dann erst ab dem Kaufjahr.
-  inFinanzuebersicht Boolean @default(false)
+  // kaufdatum darf auch in der Zukunft liegen (geplanter Kauf) — die
+  // Finanzübersicht simuliert den EK-Abfluss dann erst ab dem Kaufjahr.
+  // Ob das Objekt im Vermögen mitgezählt wird, steuert asset.besitzstatus
+  // (gilt einheitlich für alle Asset-Typen, nicht nur Immobilien).
 
   // Kaufnebenkosten — computed-with-override
   grunderwerbsteuerProzent Float   @default(0)

@@ -52,7 +52,7 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
             renditeProzentJaehrlich: position.renditeProzentJaehrlich,
             sparplanBetragMonatlich: position.sparplanBetragMonatlich,
             sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-            asset: { create: { type: "WERTPAPIERDEPOT", name: position.name } },
+            asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
           },
         });
       } else {
@@ -62,7 +62,7 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
             zinsProzentJaehrlich: position.renditeProzentJaehrlich,
             sparplanBetragMonatlich: position.sparplanBetragMonatlich,
             sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-            asset: { create: { type: "TAGESGELD", name: position.name } },
+            asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
           },
         });
       }

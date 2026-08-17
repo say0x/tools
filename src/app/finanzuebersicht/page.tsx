@@ -31,8 +31,9 @@ export default async function FinanzuebersichtPage() {
       jahreSeitKauf >= 1 ? result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1] : undefined;
     return {
       id: row.id,
+      assetId: row.assetId,
       name: row.asset.name,
-      inFinanzuebersicht: row.inFinanzuebersicht,
+      besitzstatus: row.asset.besitzstatus,
       jahreSeitKauf,
       kaufpreis: row.kaufpreis,
       eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,

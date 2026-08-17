@@ -9,6 +9,7 @@ import {
   SANIERUNGSMODI,
   VERGLASUNGSARTEN,
 } from "@/server/calc/types";
+import { BESITZSTAENDE } from "@/lib/asset";
 
 const gewerkSchema = z.object({
   gewerk: z.enum(GEWERKE),
@@ -77,8 +78,8 @@ export const propertySchema = z.object({
   kaufpreis: z.number({ error: "Kaufpreis muss eine Zahl sein" }).min(1, "Kaufpreis muss größer als 0 sein").max(100_000_000, "Kaufpreis ist unrealistisch hoch"),
   // Datum als "YYYY-MM-DD"-String (HTML-Date-Input) — dient v. a. der Finanzübersicht, um die seit dem Kauf vergangenen Jahre zu bestimmen. Darf in der Zukunft liegen (geplanter Kauf).
   kaufdatum: z.iso.date({ error: "Kaufdatum ist ungültig" }),
-  // Steuert, ob dieses Objekt in der Finanzübersicht mitgerechnet wird (siehe Prisma-Kommentar am Feld).
-  inFinanzuebersicht: z.boolean(),
+  // Steuert, ob dieses Objekt automatisch im Vermögen (Finanzübersicht) mitgezählt wird — gilt einheitlich für alle Asset-Typen (siehe src/lib/asset.ts).
+  besitzstatus: z.enum(BESITZSTAENDE),
   wohnflaeche: z.number({ error: "Wohnfläche muss eine Zahl sein" }).min(1, "Wohnfläche muss mindestens 1 m² betragen").max(100_000, "Wohnfläche ist unrealistisch groß"),
   bundesland: z.enum(BUNDESLAENDER),
   lagetyp: z.enum(LAGETYPEN),
