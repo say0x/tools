@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BESITZSTAENDE } from "@/lib/asset";
 
 /// Deckt beide manuell erfassten Positionsarten der Finanzübersicht ab —
 /// Wertpapierdepot (Aktien/ETF) und Tagesgeld. Beide teilen sich dieselbe
@@ -10,6 +11,9 @@ export type SparpositionArt = (typeof SPARPOSITION_ARTEN)[number];
 const sparpositionSchema = z.object({
   art: z.enum(SPARPOSITION_ARTEN),
   name: z.string().trim().min(1, "Bezeichnung fehlt").max(200, "Bezeichnung ist zu lang (max. 200 Zeichen)"),
+  // Default BESITZE_ICH beim Anlegen einer neuen Position (anders als bei Immobilien) —
+  // wer hier einen Betrag einträgt, meint damit i. d. R. echten Besitz, siehe src/lib/asset.ts.
+  besitzstatus: z.enum(BESITZSTAENDE),
   betrag: z.number({ error: "Betrag muss eine Zahl sein" }).min(0, "Betrag darf nicht negativ sein").max(100_000_000, "Betrag ist unrealistisch hoch"),
   renditeProzentJaehrlich: z
     .number({ error: "Rendite/Zins muss eine Zahl sein" })

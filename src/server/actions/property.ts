@@ -19,20 +19,21 @@ function parsePropertyFormValues(values: PropertyFormValues): PropertyFormValues
 }
 
 function splitPropertyData(data: PropertyFormValues) {
-  const { name, financing, gewerke, exit, kaufdatum, ...property } = data;
+  const { name, besitzstatus, financing, gewerke, exit, kaufdatum, ...property } = data;
   // kaufdatum kommt als "YYYY-MM-DD"-String vom HTML-Date-Input — Prisma
   // erwartet für DateTime-Spalten ein vollständiges ISO-8601-DateTime, keinen reinen Datums-String.
-  return { name, property: { ...property, kaufdatum: new Date(kaufdatum) }, financing, gewerke, exit };
+  // besitzstatus liegt auf der gemeinsamen Asset-Tabelle, nicht auf Property.
+  return { name, besitzstatus, property: { ...property, kaufdatum: new Date(kaufdatum) }, financing, gewerke, exit };
 }
 
 export async function erstelleObjekt(values: PropertyFormValues) {
   const data = parsePropertyFormValues(values);
-  const { name, property, financing, gewerke, exit } = splitPropertyData(data);
+  const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
 
   const created = await prisma.property.create({
     data: {
       ...property,
-      asset: { create: { type: "IMMOBILIE", name } },
+      asset: { create: { type: "IMMOBILIE", name, besitzstatus } },
       financing: { create: financing },
       exit: { create: exit },
       gewerke: { createMany: { data: gewerke } },
@@ -45,12 +46,12 @@ export async function erstelleObjekt(values: PropertyFormValues) {
 
 export async function aktualisiereObjekt(id: string, values: PropertyFormValues) {
   const data = parsePropertyFormValues(values);
-  const { name, property, financing, gewerke, exit } = splitPropertyData(data);
+  const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
 
   await prisma.$transaction(async (tx) => {
     const existing = await tx.property.findUniqueOrThrow({ where: { id } });
 
-    await tx.asset.update({ where: { id: existing.assetId }, data: { name } });
+    await tx.asset.update({ where: { id: existing.assetId }, data: { name, besitzstatus } });
     await tx.property.update({ where: { id }, data: property });
     await tx.propertyFinancing.upsert({
       where: { propertyId: id },
@@ -79,12 +80,6 @@ export async function loescheObjekt(id: string) {
   revalidatePath("/immobilien/objekte");
 }
 
-/** Schneller Toggle für die Objekt-Auswahl in der Finanzübersicht — bewusst getrennt von aktualisiereObjekt, damit ein Klick keine komplette Formular-Validierung durchläuft. */
-export async function setImmobilieInFinanzuebersicht(id: string, inFinanzuebersicht: boolean) {
-  await prisma.property.update({ where: { id }, data: { inFinanzuebersicht } });
-  revalidatePath("/finanzuebersicht");
-}
-
 export async function dupliziereObjekt(id: string) {
   const original = await prisma.property.findUniqueOrThrow({
     where: { id },
@@ -95,7 +90,6 @@ export async function dupliziereObjekt(id: string) {
     data: {
       kaufpreis: original.kaufpreis,
       kaufdatum: original.kaufdatum,
-      inFinanzuebersicht: original.inFinanzuebersicht,
       wohnflaeche: original.wohnflaeche,
       bundesland: original.bundesland,
       lagetyp: original.lagetyp,
@@ -137,7 +131,7 @@ export async function dupliziereObjekt(id: string) {
       ansprechpartnerNotizen: original.ansprechpartnerNotizen,
       notizen: original.notizen,
       quelleUrl: original.quelleUrl,
-      asset: { create: { type: "IMMOBILIE", name: `${original.asset.name} (Kopie)` } },
+      asset: { create: { type: "IMMOBILIE", name: `${original.asset.name} (Kopie)`, besitzstatus: original.asset.besitzstatus } },
       financing: original.financing
         ? {
             create: {

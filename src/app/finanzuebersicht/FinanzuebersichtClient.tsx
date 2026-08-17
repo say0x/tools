@@ -9,11 +9,13 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Switch } from "@/components/ui/Switch";
+import { BesitzstatusBadge } from "@/components/ui/Badge";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { FinanzuebersichtChart } from "@/components/charts/FinanzuebersichtChart";
 import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
 import { formatEuro } from "@/lib/format";
 import { SPARPOSITION_ART_LABELS } from "@/lib/labels";
+import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS, type Besitzstatus } from "@/lib/asset";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import {
   berechneImmobilienCashflowverlauf,
@@ -26,12 +28,13 @@ import {
   type FinanzuebersichtFormValues,
 } from "@/server/actions/finanzuebersicht";
 import { finanzuebersichtSchema, SPARPOSITION_ARTEN } from "@/server/actions/finanzuebersicht-schema";
-import { setImmobilieInFinanzuebersicht } from "@/server/actions/property";
+import { setAssetBesitzstatus } from "@/server/actions/asset";
 
 export interface ImmobilienPosition {
   id: string;
+  assetId: string;
   name: string;
-  inFinanzuebersicht: boolean;
+  besitzstatus: Besitzstatus;
   /** Jahre seit Kauf, ab heute — negativ bei einem geplanten (zukünftigen) Kauf. */
   jahreSeitKauf: number;
   kaufpreis: number;
@@ -42,10 +45,13 @@ export interface ImmobilienPosition {
   immobilienwertHeuteReferenz: number;
 }
 
+const ZAEHLT_IM_VERMOEGEN: Besitzstatus = "BESITZE_ICH";
+
 function leereSparposition(sparplanSteigerungVorschlag: number) {
   return {
     art: "WERTPAPIERDEPOT" as const,
     name: "",
+    besitzstatus: ZAEHLT_IM_VERMOEGEN,
     betrag: 0,
     renditeProzentJaehrlich: 7,
     sparplanBetragMonatlich: 0,
@@ -80,8 +86,8 @@ export function FinanzuebersichtClient({
   const [gespeichert, setGespeichert] = useState(false);
   const [serverFehler, setServerFehler] = useState<string | null>(null);
   const [horizontJahre, setHorizontJahre] = useState(30);
-  const [ausgewaehlt, setAusgewaehlt] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(immobilien.map((imm) => [imm.id, imm.inFinanzuebersicht]))
+  const [immobilienStatus, setImmobilienStatus] = useState<Record<string, Besitzstatus>>(() =>
+    Object.fromEntries(immobilien.map((imm) => [imm.id, imm.besitzstatus]))
   );
 
   const {
@@ -109,32 +115,34 @@ export function FinanzuebersichtClient({
   const horizontEffektiv = Math.min(horizontJahre, maxHorizontJahre);
   const presets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahr) => jahr <= maxHorizontJahre);
 
-  const toggleImmobilie = (id: string, value: boolean) => {
-    setAusgewaehlt((prev) => ({ ...prev, [id]: value }));
+  const aendereImmobilienStatus = (imm: ImmobilienPosition, status: Besitzstatus) => {
+    setImmobilienStatus((prev) => ({ ...prev, [imm.id]: status }));
     startTransition(async () => {
-      await setImmobilieInFinanzuebersicht(id, value);
+      await setAssetBesitzstatus(imm.assetId, status);
     });
   };
 
   const { positionen, portfolioverlauf } = useMemo(() => {
     const sparpositionenWatched = watched.sparpositionen ?? [];
 
-    const wertpapierPositionen: PortfolioPositionVerlauf[] = sparpositionenWatched.map((p, i) => ({
-      id: fields[i]?.id ?? `position-${i}`,
-      name: p?.name?.trim() || SPARPOSITION_ART_LABELS[p?.art ?? "WERTPAPIERDEPOT"],
-      verlauf: berechneSparpositionsverlauf(
-        {
-          betrag: Number(p?.betrag) || 0,
-          renditeProzentJaehrlich: Number(p?.renditeProzentJaehrlich) || 0,
-          sparplanBetragMonatlich: Number(p?.sparplanBetragMonatlich) || 0,
-          sparplanSteigerungProzentJaehrlich: Number(p?.sparplanSteigerungProzentJaehrlich) || 0,
-        },
-        horizontEffektiv
-      ),
-    }));
+    const wertpapierPositionen: PortfolioPositionVerlauf[] = sparpositionenWatched
+      .filter((p) => p?.besitzstatus === ZAEHLT_IM_VERMOEGEN)
+      .map((p, i) => ({
+        id: fields[i]?.id ?? `position-${i}`,
+        name: p?.name?.trim() || SPARPOSITION_ART_LABELS[p?.art ?? "WERTPAPIERDEPOT"],
+        verlauf: berechneSparpositionsverlauf(
+          {
+            betrag: Number(p?.betrag) || 0,
+            renditeProzentJaehrlich: Number(p?.renditeProzentJaehrlich) || 0,
+            sparplanBetragMonatlich: Number(p?.sparplanBetragMonatlich) || 0,
+            sparplanSteigerungProzentJaehrlich: Number(p?.sparplanSteigerungProzentJaehrlich) || 0,
+          },
+          horizontEffektiv
+        ),
+      }));
 
     const immobilienPositionen: PortfolioPositionVerlauf[] = immobilien
-      .filter((imm) => ausgewaehlt[imm.id])
+      .filter((imm) => immobilienStatus[imm.id] === ZAEHLT_IM_VERMOEGEN)
       .map((imm) => ({
         id: imm.id,
         name: imm.name,
@@ -154,11 +162,11 @@ export function FinanzuebersichtClient({
       positionen: alle,
       portfolioverlauf: berechnePortfolioverlauf(alle, horizontEffektiv, inflationProzentJaehrlich, startjahr),
     };
-  }, [watched.sparpositionen, fields, immobilien, ausgewaehlt, horizontEffektiv, inflationProzentJaehrlich, startjahr]);
+  }, [watched.sparpositionen, fields, immobilien, immobilienStatus, horizontEffektiv, inflationProzentJaehrlich, startjahr]);
 
   const heute = portfolioverlauf[0];
   const amEnde = portfolioverlauf[portfolioverlauf.length - 1];
-  const ausgewaehlteAnzahl = immobilien.filter((imm) => ausgewaehlt[imm.id]).length;
+  const ausgewaehlteAnzahl = immobilien.filter((imm) => immobilienStatus[imm.id] === ZAEHLT_IM_VERMOEGEN).length;
 
   const submit = handleSubmit((values) => {
     setServerFehler(null);
@@ -179,8 +187,8 @@ export function FinanzuebersichtClient({
         <h1 className="text-2xl font-semibold text-slate-100">Finanzübersicht</h1>
         <p className="mt-1 text-slate-400">
           Wie viel Geld hast du in wie vielen Jahren tatsächlich zur Verfügung — Wertpapiere, Tagesgeld und der
-          Cashflow deiner ausgewählten Immobilien. Immobilienwerte selbst sind nur eine Referenz und zählen nicht mit,
-          da das Geld im Objekt steckt und nicht verfügbar ist.
+          Cashflow deiner Immobilien mit Status „Besitze ich&quot;. Immobilienwerte selbst sind nur eine Referenz und
+          zählen nicht mit, da das Geld im Objekt steckt und nicht verfügbar ist.
         </p>
       </div>
 
@@ -227,7 +235,7 @@ export function FinanzuebersichtClient({
             </Link>
           </div>
           <p className="mb-4 text-xs text-slate-500">
-            {ausgewaehlteAnzahl} von {immobilien.length} Objekt(en) ausgewählt. Nur ausgewählte Objekte zählen mit
+            {ausgewaehlteAnzahl} von {immobilien.length} Objekt(en) mit Status „Besitze ich&quot;. Nur diese zählen mit
             ihrem Cashflow nach Steuer in die Finanzübersicht — der Immobilienwert selbst ist nur eine Referenz.
           </p>
           {immobilien.length === 0 ? (
@@ -238,16 +246,14 @@ export function FinanzuebersichtClient({
             <div className="flex flex-col gap-2">
               {immobilien.map((imm) => {
                 const cashflowJaehrlich = aktuellerJahresCashflow(imm);
+                const status = immobilienStatus[imm.id] ?? imm.besitzstatus;
                 return (
                   <div
                     key={imm.id}
                     className={`flex items-start gap-3 rounded-md border px-4 py-3 ${
-                      ausgewaehlt[imm.id] ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-70"
+                      status === ZAEHLT_IM_VERMOEGEN ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-80"
                     }`}
                   >
-                    <div className="pt-1">
-                      <Switch checked={!!ausgewaehlt[imm.id]} onChange={(e) => toggleImmobilie(imm.id, e.target.checked)} />
-                    </div>
                     <details className="group flex-1">
                       <summary className="flex cursor-pointer list-none flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -266,7 +272,8 @@ export function FinanzuebersichtClient({
                                 : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-3 text-sm">
+                          <BesitzstatusBadge status={status} />
                           <div className="text-left sm:text-right">
                             Cashflow n. Steuer:{" "}
                             <span className="font-medium text-slate-100">
@@ -284,6 +291,24 @@ export function FinanzuebersichtClient({
                           </svg>
                         </div>
                       </summary>
+                      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-slate-800 pt-3">
+                        <label className="flex items-center gap-2 text-sm text-slate-400" onClick={(e) => e.stopPropagation()}>
+                          Status ändern
+                          <Select
+                            value={status}
+                            onChange={(e) => aendereImmobilienStatus(imm, e.target.value as Besitzstatus)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-auto"
+                          >
+                            {BESITZSTAENDE.map((s) => (
+                              <option key={s} value={s}>
+                                {BESITZSTATUS_LABELS[s]}
+                              </option>
+                            ))}
+                          </Select>
+                          <InfoTooltip text={BESITZSTATUS_HILFE[status]} />
+                        </label>
+                      </div>
                       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-sm sm:grid-cols-4">
                         <DetailStat label="Kaufpreis" value={formatEuro(imm.kaufpreis)} />
                         <DetailStat label="Marktwert heute (Referenz)" value={formatEuro(imm.immobilienwertHeuteReferenz)} />
@@ -295,7 +320,8 @@ export function FinanzuebersichtClient({
                       </div>
                       <p className="mt-2 text-xs text-slate-500">
                         Kaufpreis, Marktwert und EK-Anteil sind reine Referenzwerte — sie stecken im Objekt und zählen
-                        nicht in die Finanzübersicht-Summe. Nur der Cashflow nach Steuer fließt ein.
+                        nicht in die Finanzübersicht-Summe. Nur der Cashflow nach Steuer fließt ein, und nur bei Status
+                        „Besitze ich&quot;.
                       </p>
                     </details>
                   </div>
@@ -319,7 +345,8 @@ export function FinanzuebersichtClient({
           </div>
           <p className="mb-4 text-xs text-slate-500">
             Jede Position verzinst sich automatisch jährlich mit ihrer eigenen Rendite/Zins (Zinseszins) — plus dem
-            optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten Steigerung wächst.
+            optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten Steigerung wächst. Nur
+            Positionen mit Status „Besitze ich&quot; zählen in die Finanzübersicht-Summe.
           </p>
 
           {fields.length === 0 && (
@@ -330,47 +357,55 @@ export function FinanzuebersichtClient({
 
           <div className="flex flex-col gap-3">
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="grid grid-cols-1 gap-3 rounded-md border border-slate-800 p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto]"
-              >
-                <Field label="Art">
-                  <Select {...register(`sparpositionen.${index}.art` as const)}>
-                    {SPARPOSITION_ARTEN.map((art) => (
-                      <option key={art} value={art}>
-                        {SPARPOSITION_ART_LABELS[art]}
+              <div key={field.id} className="flex flex-col gap-3 rounded-md border border-slate-800 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto]">
+                  <Field label="Art">
+                    <Select {...register(`sparpositionen.${index}.art` as const)}>
+                      {SPARPOSITION_ARTEN.map((art) => (
+                        <option key={art} value={art}>
+                          {SPARPOSITION_ART_LABELS[art]}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Bezeichnung" error={errors.sparpositionen?.[index]?.name?.message}>
+                    <Input {...register(`sparpositionen.${index}.name` as const)} placeholder="z. B. ETF-Weltportfolio" />
+                  </Field>
+                  <Field label="Betrag heute (€)" error={errors.sparpositionen?.[index]?.betrag?.message}>
+                    <Input type="number" step="any" min={0} {...register(`sparpositionen.${index}.betrag` as const, { valueAsNumber: true })} />
+                  </Field>
+                  <Field label="Rendite/Zins (%/Jahr)" error={errors.sparpositionen?.[index]?.renditeProzentJaehrlich?.message}>
+                    <Input type="number" step="any" {...register(`sparpositionen.${index}.renditeProzentJaehrlich` as const, { valueAsNumber: true })} />
+                  </Field>
+                  <Field label="Sparplan (€/Monat)" error={errors.sparpositionen?.[index]?.sparplanBetragMonatlich?.message}>
+                    <Input type="number" step="any" min={0} {...register(`sparpositionen.${index}.sparplanBetragMonatlich` as const, { valueAsNumber: true })} />
+                  </Field>
+                  <Field
+                    label="Sparplan-Steigerung (%/Jahr)"
+                    error={errors.sparpositionen?.[index]?.sparplanSteigerungProzentJaehrlich?.message}
+                  >
+                    <Input
+                      type="number"
+                      step="any"
+                      min={0}
+                      {...register(`sparpositionen.${index}.sparplanSteigerungProzentJaehrlich` as const, { valueAsNumber: true })}
+                    />
+                  </Field>
+                  <div className="flex items-end">
+                    <Button type="button" variant="danger" size="sm" onClick={() => remove(index)}>
+                      Entfernen
+                    </Button>
+                  </div>
+                </div>
+                <Field label="Status">
+                  <Select {...register(`sparpositionen.${index}.besitzstatus` as const)} className="max-w-xs">
+                    {BESITZSTAENDE.map((status) => (
+                      <option key={status} value={status}>
+                        {BESITZSTATUS_LABELS[status]}
                       </option>
                     ))}
                   </Select>
                 </Field>
-                <Field label="Bezeichnung" error={errors.sparpositionen?.[index]?.name?.message}>
-                  <Input {...register(`sparpositionen.${index}.name` as const)} placeholder="z. B. ETF-Weltportfolio" />
-                </Field>
-                <Field label="Betrag heute (€)" error={errors.sparpositionen?.[index]?.betrag?.message}>
-                  <Input type="number" step="any" min={0} {...register(`sparpositionen.${index}.betrag` as const, { valueAsNumber: true })} />
-                </Field>
-                <Field label="Rendite/Zins (%/Jahr)" error={errors.sparpositionen?.[index]?.renditeProzentJaehrlich?.message}>
-                  <Input type="number" step="any" {...register(`sparpositionen.${index}.renditeProzentJaehrlich` as const, { valueAsNumber: true })} />
-                </Field>
-                <Field label="Sparplan (€/Monat)" error={errors.sparpositionen?.[index]?.sparplanBetragMonatlich?.message}>
-                  <Input type="number" step="any" min={0} {...register(`sparpositionen.${index}.sparplanBetragMonatlich` as const, { valueAsNumber: true })} />
-                </Field>
-                <Field
-                  label="Sparplan-Steigerung (%/Jahr)"
-                  error={errors.sparpositionen?.[index]?.sparplanSteigerungProzentJaehrlich?.message}
-                >
-                  <Input
-                    type="number"
-                    step="any"
-                    min={0}
-                    {...register(`sparpositionen.${index}.sparplanSteigerungProzentJaehrlich` as const, { valueAsNumber: true })}
-                  />
-                </Field>
-                <div className="flex items-end">
-                  <Button type="button" variant="danger" size="sm" onClick={() => remove(index)}>
-                    Entfernen
-                  </Button>
-                </div>
               </div>
             ))}
           </div>
@@ -412,8 +447,8 @@ export function FinanzuebersichtClient({
 
         {positionen.length === 0 ? (
           <p className="text-sm text-slate-500">
-            Noch keine Positionen erfasst — Wertpapiere, Tagesgeld hinzufügen oder eine Immobilie oben auswählen, um
-            den Verlauf zu sehen.
+            Noch keine Positionen mit Status „Besitze ich&quot; — Wertpapiere/Tagesgeld hinzufügen oder eine Immobilie oben
+            entsprechend markieren, um den Verlauf zu sehen.
           </p>
         ) : (
           <FinanzuebersichtChart data={portfolioverlauf} />

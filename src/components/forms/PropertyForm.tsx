@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
-import { AmpelBadge } from "@/components/ui/Badge";
+import { AmpelBadge, BesitzstatusBadge } from "@/components/ui/Badge";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS } from "@/lib/asset";
 import { DualUnitInput } from "@/components/forms/DualUnitInput";
 import { OverridableField } from "@/components/forms/OverridableField";
 import { ObjektChartsPanel } from "@/components/charts/ObjektChartsPanel";
@@ -158,11 +159,22 @@ export function PropertyForm({
               <Input type="date" {...register("kaufdatum")} />
             </Field>
             <Field
-              label="In Finanzübersicht berücksichtigen"
-              hint="Nur ausgewählte Objekte fließen mit ihrem Cashflow in die Finanzübersicht ein — z. B. nicht ankreuzen bei rein hypothetischen Objekten."
+              label={
+                <>
+                  Status <InfoTooltip text={BESITZSTATUS_HILFE[(watched.besitzstatus as (typeof BESITZSTAENDE)[number]) ?? "POTENZIELLE_ANSCHAFFUNG"]} />
+                </>
+              }
+              className="sm:col-span-2"
             >
-              <div className="flex h-[38px] items-center">
-                <Switch {...register("inFinanzuebersicht")} />
+              <div className="flex flex-wrap items-center gap-3">
+                <Select {...register("besitzstatus")} className="max-w-xs">
+                  {BESITZSTAENDE.map((status) => (
+                    <option key={status} value={status}>
+                      {BESITZSTATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </Select>
+                <BesitzstatusBadge status={(watched.besitzstatus as (typeof BESITZSTAENDE)[number]) ?? "POTENZIELLE_ANSCHAFFUNG"} />
               </div>
             </Field>
             <Field label="Bundesland">

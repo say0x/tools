@@ -161,7 +161,7 @@ export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues
     name: row.asset.name,
     ...input,
     kaufdatum: row.kaufdatum.toISOString().slice(0, 10),
-    inFinanzuebersicht: row.inFinanzuebersicht,
+    besitzstatus: row.asset.besitzstatus,
     ansprechpartnerName: row.ansprechpartnerName,
     ansprechpartnerTelefon: row.ansprechpartnerTelefon,
     ansprechpartnerEmail: row.ansprechpartnerEmail,
@@ -189,6 +189,7 @@ export function toSparpositionFormValues(
     ...wertpapiere.map((w) => ({
       art: "WERTPAPIERDEPOT" as const,
       name: w.asset.name,
+      besitzstatus: w.asset.besitzstatus,
       betrag: w.betrag,
       renditeProzentJaehrlich: w.renditeProzentJaehrlich,
       sparplanBetragMonatlich: w.sparplanBetragMonatlich,
@@ -197,6 +198,7 @@ export function toSparpositionFormValues(
     ...tagesgeld.map((t) => ({
       art: "TAGESGELD" as const,
       name: t.asset.name,
+      besitzstatus: t.asset.besitzstatus,
       betrag: t.betrag,
       renditeProzentJaehrlich: t.zinsProzentJaehrlich,
       sparplanBetragMonatlich: t.sparplanBetragMonatlich,
