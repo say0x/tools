@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  berechneEinmaligeAnschaffungVerlauf,
   berechneImmobilienCashflowverlauf,
   berechneImmobilienEigenkapitalverlauf,
   berechnePortfolioverlauf,
   berechneSparpositionsverlauf,
+  wendeImmobilienverkaufAn,
 } from "./portfolioverlauf";
 
 describe("berechneSparpositionsverlauf", () => {
@@ -41,6 +43,27 @@ describe("berechneSparpositionsverlauf", () => {
       0
     );
     expect(reihe).toEqual([5000]);
+  });
+
+  it("springt bei einer Szenario-Sparraten-Änderung ab dem angegebenen Jahr auf die neue Rate", () => {
+    const reihe = berechneSparpositionsverlauf(
+      { betrag: 0, renditeProzentJaehrlich: 0, sparplanBetragMonatlich: 500, sparplanSteigerungProzentJaehrlich: 0 },
+      3,
+      { abJahr: 2, neueSparrateMonatlich: 800 }
+    );
+    // Jahr 1: alte Rate (500*12=6000). Jahr 2+: neue Rate (800*12=9600).
+    expect(reihe).toEqual([0, 6000, 15600, 25200]);
+  });
+
+  it("lässt die Sparplan-Steigerung ab dem Änderungsjahr auf Basis der neuen Rate weiterlaufen", () => {
+    const reihe = berechneSparpositionsverlauf(
+      { betrag: 0, renditeProzentJaehrlich: 0, sparplanBetragMonatlich: 500, sparplanSteigerungProzentJaehrlich: 10 },
+      3,
+      { abJahr: 1, neueSparrateMonatlich: 1000 }
+    );
+    // Jahr 1: neue Rate sofort (12000), danach +10%/Jahr auf Basis der neuen Rate.
+    expect(reihe[1]).toBe(12000);
+    expect(reihe[2]).toBe(12000 + 13200);
   });
 });
 
@@ -111,6 +134,39 @@ describe("berechneImmobilienCashflowverlauf", () => {
     );
     // Ab Jahr 6 seit Kauf wird der letzte bekannte Jahres-Cashflow (Jahr 5 = 1400) fortgeschrieben.
     expect(reihe).toEqual([0, 1400, 2800]);
+  });
+});
+
+describe("wendeImmobilienverkaufAn", () => {
+  const verlauf = [0, 1000, 2000, 3000, 4000]; // Cashflow-Verlauf einer besessenen Immobilie, Jahr 0..4 ab heute
+
+  it("übernimmt den Verlauf unverändert bis vor dem Verkaufsjahr", () => {
+    const ergebnis = wendeImmobilienverkaufAn(verlauf, 3, 150000);
+    expect(ergebnis[0]).toBe(0);
+    expect(ergebnis[1]).toBe(1000);
+    expect(ergebnis[2]).toBe(2000);
+  });
+
+  it("friert den Cashflow ab dem Verkaufsjahr ein und addiert den Verkaufserlös einmalig", () => {
+    const ergebnis = wendeImmobilienverkaufAn(verlauf, 3, 150000);
+    expect(ergebnis[3]).toBe(3000 + 150000);
+    expect(ergebnis[4]).toBe(3000 + 150000); // kein weiterer Cashflow nach dem Verkauf
+  });
+
+  it("gibt einen leeren Verlauf unverändert zurück, statt einen Fehler zu werfen", () => {
+    expect(wendeImmobilienverkaufAn([], 2, 100000)).toEqual([]);
+  });
+});
+
+describe("berechneEinmaligeAnschaffungVerlauf", () => {
+  it("bleibt bei 0, bis das Anschaffungsjahr erreicht ist", () => {
+    const reihe = berechneEinmaligeAnschaffungVerlauf({ betrag: 30000, jahrAbHeute: 2 }, 4);
+    expect(reihe).toEqual([0, 0, -30000, -30000, -30000]);
+  });
+
+  it("zieht den vollen Betrag sofort ab, wenn die Anschaffung heute (Jahr 0) stattfindet", () => {
+    const reihe = berechneEinmaligeAnschaffungVerlauf({ betrag: 30000, jahrAbHeute: 0 }, 2);
+    expect(reihe).toEqual([-30000, -30000, -30000]);
   });
 });
 

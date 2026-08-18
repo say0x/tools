@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "Start" },
   { href: "/immobilien/objekte", label: "Immobilien" },
   { href: "/finanzuebersicht", label: "Finanzübersicht" },
+  { href: "/szenarien", label: "Szenarien" },
   { href: "/profil", label: "Profil" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];

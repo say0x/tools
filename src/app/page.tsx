@@ -14,6 +14,12 @@ const tools = [
     description: "Wertpapiere, Tagesgeld & Immobilien-Cashflow zusammen betrachten — wie viel Geld hast du in wie vielen Jahren wirklich zur Verfügung?",
     active: true,
   },
+  {
+    href: "/szenarien",
+    title: "Szenarien",
+    description: "„Was wäre, wenn…“ — Käufe, Verkäufe, Sparraten & Anschaffungen durchspielen, ohne deine echten Daten zu verändern.",
+    active: true,
+  },
 ];
 
 export default function Home() {

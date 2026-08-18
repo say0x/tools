@@ -9,18 +9,34 @@ export interface SparpositionVerlaufInput {
   sparplanSteigerungProzentJaehrlich: number;
 }
 
+/** Für das Szenario-System: springt die monatliche Sparrate ab einem bestimmten Jahr auf einen neuen Betrag. */
+export interface SparratenAenderung {
+  /** Jahre ab heute (1-basiert, wie die Jahresreihe), ab dem die neue Rate gilt. */
+  abJahr: number;
+  neueSparrateMonatlich: number;
+}
+
 /**
  * Jahresreihe für eine einzelne Wertpapier-/Tagesgeld-Position, ab heute
  * (Index 0 = aktueller Betrag). Vereinfachung: Sparplanraten werden jährlich
  * am Jahresanfang gutgeschrieben und wachsen dann mit der Position mit
- * (keine unterjährige/monatliche Verzinsung).
+ * (keine unterjährige/monatliche Verzinsung). Optional lässt sich (fürs
+ * Szenario-System) ein einmaliger Sprung der Sparrate ab einem Jahr angeben —
+ * die reguläre jährliche Steigerung läuft ab dann auf Basis der neuen Rate weiter.
  */
-export function berechneSparpositionsverlauf(input: SparpositionVerlaufInput, horizontJahre: number): number[] {
+export function berechneSparpositionsverlauf(
+  input: SparpositionVerlaufInput,
+  horizontJahre: number,
+  sparratenAenderung?: SparratenAenderung
+): number[] {
   const reihe: number[] = [round2(input.betrag)];
   let saldo = input.betrag;
   let sparrateJaehrlich = input.sparplanBetragMonatlich * 12;
 
   for (let jahr = 1; jahr <= horizontJahre; jahr++) {
+    if (sparratenAenderung && jahr === sparratenAenderung.abJahr) {
+      sparrateJaehrlich = sparratenAenderung.neueSparrateMonatlich * 12;
+    }
     saldo = saldo * (1 + input.renditeProzentJaehrlich / 100) + sparrateJaehrlich;
     reihe.push(round2(saldo));
     sparrateJaehrlich = sparrateJaehrlich * (1 + input.sparplanSteigerungProzentJaehrlich / 100);
@@ -99,6 +115,45 @@ export function berechneImmobilienCashflowverlauf(input: ImmobilienCashflowVerla
   }
 
   return reihe;
+}
+
+/**
+ * Szenario-Baustein "Immobilie verkaufen": friert den Cashflow-Verlauf einer
+ * bereits besessenen Immobilie ab dem Verkaufsjahr auf dem dann erreichten
+ * Stand ein (kein weiterer Cashflow danach — sie gehört ja nicht mehr) und
+ * addiert einmalig den Verkaufserlös. Vereinfachung: der Verkaufserlös wird
+ * danach nicht weiter verzinst/reinvestiert, er bleibt als fester Betrag
+ * stehen — und ignoriert Restschuld-Ablösung/Steuern beim Verkauf, da diese
+ * Kalkulation dafür bewusst nicht in den Verkaufserlös (Marktwert-Referenz)
+ * eingerechnet ist.
+ */
+export function wendeImmobilienverkaufAn(
+  verlauf: number[],
+  verkaufsjahrAbHeute: number,
+  verkaufserloes: number
+): number[] {
+  if (verlauf.length === 0) return verlauf;
+  const indexBeiVerkauf = Math.min(Math.max(verkaufsjahrAbHeute, 0), verlauf.length - 1);
+  const standBeiVerkauf = verlauf[indexBeiVerkauf];
+
+  return verlauf.map((wert, n) => (n < verkaufsjahrAbHeute ? wert : round2(standBeiVerkauf + verkaufserloes)));
+}
+
+export interface EinmaligeAnschaffungInput {
+  betrag: number;
+  /** Jahre ab heute (0 = heute), in dem die Ausgabe anfällt. */
+  jahrAbHeute: number;
+}
+
+/**
+ * Szenario-Baustein "Einmalige Anschaffung" (z. B. Autokauf): reduziert das
+ * verfügbare Geld einmalig im gewählten Jahr um den Betrag und bleibt danach
+ * konstant auf diesem (negativen) Niveau — das ausgegebene Geld ist weg,
+ * der angeschaffte Gegenstand selbst ist bewusst kein eigenes Asset mit
+ * Wertverlauf (kein eigenes Fahrzeug-/Sachwert-Tool nötig für diesen Zweck).
+ */
+export function berechneEinmaligeAnschaffungVerlauf(input: EinmaligeAnschaffungInput, horizontJahre: number): number[] {
+  return Array.from({ length: horizontJahre + 1 }, (_, n) => (n < input.jahrAbHeute ? 0 : -input.betrag));
 }
 
 export interface PortfolioPositionVerlauf {
