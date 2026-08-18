@@ -59,6 +59,7 @@ model Asset {
   property           Property?
   wertpapierposition Wertpapierposition?
   tagesgeldkonto     Tagesgeldkonto?
+  szenarioAenderungen SzenarioAenderung[]
 }
 
 // ---------------------------------------------------------------------------
@@ -475,4 +476,65 @@ model ReferenceKaufpreisfaktor {
   aktualisiertAm          DateTime @default(now())
 
   @@unique([objekttyp, lagetyp])
+}
+
+// ---------------------------------------------------------------------------
+// Szenarien ("Was wäre wenn?") — verändern NIE die echten Asset-Daten. Ein
+// Szenario ist Basiszustand (die vorhandenen BESITZE_ICH-Assets, unverändert)
+// + eine Liste von Änderungen, die nur zur Laufzeit in der Calc-Engine auf
+// eine Kopie der Inputs angewendet werden (siehe src/server/calc/rendite/
+// portfolioverlauf.ts). Löschen/Ändern eines Szenarios hat keinerlei
+// Rückwirkung auf Property/Wertpapierposition/Tagesgeldkonto.
+// ---------------------------------------------------------------------------
+
+enum SzenarioAenderungTyp {
+  /// Eine vorhandene Immobilie (Status "Potenzielle Anschaffung"/"Spekulation") wird im Szenario ab ihrem Kaufdatum so behandelt, als wäre sie "Besitze ich".
+  IMMOBILIE_AUFNEHMEN
+  /// Eine vorhandene, tatsächlich besessene Immobilie wird im Szenario ab einem gewählten Jahr verkauft (Cashflow endet, Marktwert-Referenz fließt einmalig als Verkaufserlös zu).
+  IMMOBILIE_VERKAUFEN
+  /// Ändert ab dem Szenario-Startjahr die monatliche Sparrate einer vorhandenen Wertpapier-/Tagesgeld-Position.
+  SPARRATE_AENDERN
+  /// Frei benannte einmalige Ausgabe zu einem gewählten Jahr (z. B. Autokauf) — reduziert das verfügbare Geld einmalig, ohne dass dafür ein eigenes Asset/Tool nötig ist.
+  EINMALIGE_ANSCHAFFUNG
+}
+
+model Szenario {
+  id        String   @id @default(cuid())
+  name      String
+  /// Jahr, ab dem die Änderungen dieses Szenarios wirken (z. B. 2028) — einzelne Änderungen können eigene Zeitpunkte haben (Kaufdatum der Immobilie, Anschaffungsjahr), die Sparraten-Änderung greift ab diesem Startjahr.
+  startjahr Int
+  notizen   String   @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  aenderungen SzenarioAenderung[]
+}
+
+model SzenarioAenderung {
+  id         String   @id @default(cuid())
+  szenarioId String
+  szenario   Szenario @relation(fields: [szenarioId], references: [id], onDelete: Cascade)
+
+  typ SzenarioAenderungTyp
+
+  /// Bei IMMOBILIE_AUFNEHMEN / IMMOBILIE_VERKAUFEN / SPARRATE_AENDERN: das referenzierte Asset. Wird das Asset gelöscht, verliert die Änderung ihren Bezug und wird mitgelöscht.
+  assetId String?
+  asset   Asset?  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  /// SPARRATE_AENDERN: neue monatliche Sparrate ab dem Szenario-Startjahr.
+  neueSparrateMonatlich Float?
+
+  /// IMMOBILIE_VERKAUFEN: Jahre ab heute, in dem der Verkauf stattfindet.
+  /// EINMALIGE_ANSCHAFFUNG: Jahre ab heute, in dem die Ausgabe anfällt.
+  jahrAbHeute Int?
+
+  /// EINMALIGE_ANSCHAFFUNG: Bezeichnung (z. B. "Auto") und Betrag.
+  bezeichnung String?
+  betrag      Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([szenarioId])
 }

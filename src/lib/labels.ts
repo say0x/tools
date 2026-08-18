@@ -81,3 +81,20 @@ export const SPARPOSITION_ART_LABELS: Record<string, string> = {
   WERTPAPIERDEPOT: "Wertpapierdepot (Aktien/ETF)",
   TAGESGELD: "Tagesgeld",
 };
+
+export const SZENARIO_AENDERUNG_TYP_LABELS: Record<string, string> = {
+  IMMOBILIE_AUFNEHMEN: "Immobilie kaufen",
+  IMMOBILIE_VERKAUFEN: "Immobilie verkaufen",
+  SPARRATE_AENDERN: "Sparrate ändern",
+  EINMALIGE_ANSCHAFFUNG: "Einmalige Anschaffung",
+};
+
+export const SZENARIO_AENDERUNG_TYP_HILFE: Record<string, string> = {
+  IMMOBILIE_AUFNEHMEN:
+    "Eine vorhandene Immobilie mit Status „Potenzielle Anschaffung“ oder „Spekulation“ wird in diesem Szenario ab ihrem Kaufdatum so behandelt, als hättest du sie gekauft.",
+  IMMOBILIE_VERKAUFEN:
+    "Eine Immobilie, die du tatsächlich besitzt, wird in diesem Szenario zu einem gewählten Jahr verkauft — ihr Cashflow endet, der heutige Marktwert (Referenz) fließt einmalig als Verkaufserlös zu.",
+  SPARRATE_AENDERN: "Die monatliche Sparrate einer vorhandenen Wertpapier-/Tagesgeld-Position ändert sich ab dem Startjahr des Szenarios.",
+  EINMALIGE_ANSCHAFFUNG:
+    "Eine frei benannte einmalige Ausgabe (z. B. ein Auto) zu einem gewählten Jahr — reduziert das verfügbare Geld einmalig, ohne dass dafür ein eigenes Objekt angelegt werden muss.",
+};

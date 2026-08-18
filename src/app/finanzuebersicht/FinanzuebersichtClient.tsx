@@ -29,21 +29,9 @@ import {
 } from "@/server/actions/finanzuebersicht";
 import { finanzuebersichtSchema, SPARPOSITION_ARTEN } from "@/server/actions/finanzuebersicht-schema";
 import { setAssetBesitzstatus } from "@/server/actions/asset";
+import type { ImmobilienPosition } from "@/server/data/vermoegen";
 
-export interface ImmobilienPosition {
-  id: string;
-  assetId: string;
-  name: string;
-  besitzstatus: Besitzstatus;
-  /** Jahre seit Kauf, ab heute — negativ bei einem geplanten (zukünftigen) Kauf. */
-  jahreSeitKauf: number;
-  kaufpreis: number;
-  eigenkapitalEinsatzBeiKauf: number;
-  cashflowNachSteuerProJahrSeitKauf: number[];
-  /** Reine Referenzwerte (heutiger Stand) — fließen NICHT in die Summe ein, nur der Cashflow zählt. */
-  eigenkapitalanteilHeuteReferenz: number;
-  immobilienwertHeuteReferenz: number;
-}
+export type { ImmobilienPosition } from "@/server/data/vermoegen";
 
 const ZAEHLT_IM_VERMOEGEN: Besitzstatus = "BESITZE_ICH";
 

@@ -19,7 +19,7 @@ type PropertyWithRelations = Property & {
   exit: PropertyExit | null;
 };
 
-type PropertyWithAsset = PropertyWithRelations & { asset: Asset };
+export type PropertyWithAsset = PropertyWithRelations & { asset: Asset };
 
 export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
   return {
