@@ -80,6 +80,13 @@ export async function loescheObjekt(id: string) {
   revalidatePath("/immobilien/objekte");
 }
 
+/** Mehrfachlöschen für die Objekt-Bibliothek (Mehrfachauswahl-Checkboxen). */
+export async function loescheObjekte(ids: string[]) {
+  const properties = await prisma.property.findMany({ where: { id: { in: ids } }, select: { assetId: true } });
+  await prisma.asset.deleteMany({ where: { id: { in: properties.map((p) => p.assetId) } } }); // cascade löscht Property + Relationen
+  revalidatePath("/immobilien/objekte");
+}
+
 export async function dupliziereObjekt(id: string) {
   const original = await prisma.property.findUniqueOrThrow({
     where: { id },

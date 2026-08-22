@@ -56,7 +56,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="text-left text-slate-500">
-                  <th className="pb-3 pr-4 font-medium">Kennzahl</th>
+                  <th className="sticky left-0 z-10 bg-slate-900 pb-3 pr-4 font-medium">Kennzahl</th>
                   {objekte.map((o) => (
                     <th key={o.id} className="pb-3 pr-4 font-medium text-slate-200">
                       <Link href={`/immobilien/objekte/${o.id}`} className="hover:underline">
@@ -100,6 +100,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Bruttomietrendite im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.rendite.bruttomietrenditeProzent,
                   label: `${o.result.rendite.bruttomietrenditeProzent}%`,
@@ -110,6 +111,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Nettomietrendite im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.rendite.nettomietrenditeProzent,
                   label: `${o.result.rendite.nettomietrenditeProzent}%`,
@@ -120,6 +122,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Cashflow nach Steuer im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.rendite.monatlicherCashflowNachSteuer,
                   label: `${formatEuro(o.result.rendite.monatlicherCashflowNachSteuer)}/Mon.`,
@@ -130,6 +133,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Eigenkapitalrendite im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.rendite.eigenkapitalrenditeProzent,
                   label: `${o.result.rendite.eigenkapitalrenditeProzent}%`,
@@ -140,6 +144,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Kaufpreisfaktor im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.rendite.kaufpreisfaktor,
                   label: formatNumber(o.result.rendite.kaufpreisfaktor),
@@ -150,6 +155,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
               <CardTitle>Kaufnebenkosten im Vergleich</CardTitle>
               <VergleichChart
                 data={objekte.map((o) => ({
+                  id: o.id,
                   name: o.name,
                   value: o.result.kaufnebenkosten.summeEuro,
                   label: formatEuro(o.result.kaufnebenkosten.summeEuro),
@@ -185,7 +191,7 @@ function Row({
 }) {
   return (
     <tr>
-      <td className="py-2 pr-4 text-slate-400">{label}</td>
+      <td className="sticky left-0 z-10 bg-slate-900 py-2 pr-4 text-slate-400">{label}</td>
       {objekte.map((o) => (
         <td key={o.id} className="py-2 pr-4 text-slate-100">
           {render(o.result)}

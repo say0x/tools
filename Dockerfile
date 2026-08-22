@@ -1,17 +1,28 @@
+# syntax=docker/dockerfile:1
+# Cache-Mounts (siehe unten) brauchen die BuildKit-Dockerfile-Syntax explizit.
+
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 # --ignore-scripts: der postinstall-Hook (`prisma generate`) braucht prisma/schema.prisma,
 # das hier noch nicht kopiert ist. Generiert wird stattdessen explizit in der builder-Stage,
 # nachdem der volle Source-Tree kopiert wurde.
-RUN npm ci --ignore-scripts
+# Cache-Mount für npms globalen Cache: übersteht `docker builder prune`/`docker system prune`
+# nicht als Layer, sondern als eigener BuildKit-Cache — beschleunigt npm ci spürbar, wenn
+# package-lock.json sich ändert (Layer-Cache allein greift dann nicht mehr).
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
 
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-RUN npm run build
+# Next.js' eigener Build-Cache (.next/cache: Turbopack/Webpack-Kompilat, nicht der
+# App-Output) bleibt normalerweise nicht zwischen Image-Builds erhalten, da jede Stage
+# in einem frischen Container läuft — der Cache-Mount reicht ihn über Builds hinweg
+# weiter und macht wiederholte "docker compose up -d --build" nach Code-Änderungen
+# spürbar schneller (inkrementeller statt kompletter Rebuild).
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

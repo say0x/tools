@@ -2,8 +2,7 @@
 
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatEuro } from "@/lib/format";
-
-const FARBEN = ["#3b82f6", "#f97316", "#10b981", "#a855f7", "#ec4899", "#eab308"];
+import { farbeFuerIndex } from "@/lib/chart-colors";
 
 export function VergleichVermoegensChart({
   objekte,
@@ -39,7 +38,7 @@ export function VergleichVermoegensChart({
             type="monotone"
             dataKey={o.id}
             name={o.id}
-            stroke={FARBEN[i % FARBEN.length]}
+            stroke={farbeFuerIndex(i)}
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 5 }}

@@ -67,6 +67,8 @@ docker compose up -d --build
 
 Das startet Postgres + die App (`Dockerfile`, Next.js `output: 'standalone'`). Der Container führt beim Start automatisch `prisma migrate deploy` aus (`docker-entrypoint.sh`), bevor der Server hochfährt.
 
+Das `Dockerfile` nutzt BuildKit-Cache-Mounts für `npm ci` (`/root/.npm`) und für Next.js' eigenen Build-Cache (`/app/.next/cache`) — dadurch bleiben npm- und Turbopack-Zwischenstände über mehrere `docker compose up -d --build`-Läufe hinweg erhalten (auch wenn sich `package-lock.json` ändert oder ein `docker system prune` den Layer-Cache gelöscht hat), was wiederholte Rebuilds nach einem `git pull` spürbar beschleunigt. Erfordert BuildKit (Standard bei aktuellem Docker Compose).
+
 **Einmalig nach dem ersten Deploy** die Referenzdaten befüllen:
 
 ```bash
@@ -98,6 +100,7 @@ src/server/data/vermoegen.ts   Geteilte Asset-Aufbereitung (Immobilien-Cashflow,
 
 ## Bekannte Vereinfachungen
 
+- **Objekt-Bibliothek** (`/immobilien/objekte`): Namenssuche kombinierbar mit Besitzstatus-/Ampel-Filtern (UND-Verknüpfung, "Alle" setzt den jeweiligen Filter zurück), "Alle sichtbaren auswählen" wirkt nur auf die aktuell gefilterten Objekte. Die Mehrfachauswahl-Checkboxen speisen sowohl das Vergleichs-Formular (natives GET-Formular) als auch einen "Ausgewählte löschen"-Button (`loescheObjekte`-Server-Action, ein `deleteMany` statt N Einzel-Requests). Der Objektvergleich (`/immobilien/objekte/vergleich`) hat eine sticky erste Spalte ("Kennzahl") für die Lesbarkeit bei vielen verglichenen Objekten, und die Vergleichs-Diagramme (Balken- wie Liniendiagramm) weisen jedem Objekt über `src/lib/chart-colors.ts` eine garantiert eindeutige Farbe zu (kuratierte Palette für die ersten 12, danach Goldener-Winkel-Verteilung) statt eine kurze Palette zyklisch zu wiederholen, die ab dem 7. Objekt sonst Farben doppelt vergeben hätte.
 - Tilgungsplan simuliert nach Ablauf der Zinsbindung EINMALIG eine Anschlussfinanzierung (neuer Zins = bisheriger Zins + frei definierbarer Aufschlag in Prozentpunkten, Default 1 Prozentpunkt; Annuität wird mit gleichem Tilgungssatz auf die dann aktuelle Restschuld neu berechnet) — keine wiederkehrende Anschlussfinanzierung bei mehrfachem Zinsbindungsablauf innerhalb des Betrachtungszeitraums. Zusätzlich lässt sich eine jährliche Sondertilgung hinterlegen (% der ursprünglichen Darlehenssumme, gedeckelt auf eine ebenfalls frei definierbare vertragliche Max-Grenze, Default 5%) — sie beschleunigt Restschuld-Tilgung und Volltilgungszeitpunkt, wirkt sich aber bewusst nicht auf die laufende Cashflow-/Schuldendienst-Berechnung aus (wie eine zusätzliche Kapitaleinlage behandelt, nicht wie eine laufende Kostenposition).
 - Steuerliche Berechnungen (Grenzsteuersatz nach §32a EStG, AfA, Spekulationssteuer) sind Näherungen für die Investitionsentscheidung, keine Steuerberatung — Zonenwerte in `src/server/calc/tax/estg-zonen.ts` vor wichtigen Entscheidungen gegen die aktuelle BMF-Veröffentlichung prüfen.
 - Referenzdaten (Grunderwerbsteuer, Mietpreise, Sanierungskosten, Instandhaltungssätze, Notar-/Grundbuch-Standardsätze) sind Startwerte ohne Live-Anbindung, aber auf `/immobilien/referenzdaten` frei editierbar.
