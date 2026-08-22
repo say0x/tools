@@ -13,6 +13,7 @@ import { berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { flattenFormErrors } from "@/lib/form-errors";
 import { type ProfileFormValues, upsertProfile } from "@/server/actions/profile";
 import { profileSchema } from "@/server/actions/profile-schema";
 
@@ -58,7 +59,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
     });
   });
 
-  const fehlerListe = flattenErrors(errors);
+  const fehlerListe = flattenFormErrors(errors);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
@@ -262,21 +263,4 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       </div>
     </form>
   );
-}
-
-/** Sammelt alle react-hook-form-Fehlermeldungen (auch verschachtelte Array-Felder) in einer flachen Liste. */
-function flattenErrors(errors: Record<string, unknown>): string[] {
-  const meldungen: string[] = [];
-  const walk = (node: unknown) => {
-    if (!node || typeof node !== "object") return;
-    if ("message" in node && typeof (node as { message?: unknown }).message === "string") {
-      meldungen.push((node as { message: string }).message);
-      return;
-    }
-    for (const value of Object.values(node as Record<string, unknown>)) {
-      walk(value);
-    }
-  };
-  walk(errors);
-  return meldungen;
 }
