@@ -94,7 +94,7 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
               max={MAX_JAHRE}
               value={betrachtungszeitraum}
               onChange={(e) => setZeitraum(Number(e.target.value) || 1)}
-              className="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100 focus:border-blue-500 focus:outline-none"
+              className="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               aria-label="Betrachtungszeitraum in Jahren (max. 50)"
             />
           </div>
