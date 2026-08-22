@@ -2,6 +2,8 @@
 // Prisma — these are plain string-literal unions whose values match the
 // Prisma enum names 1:1, so Property/UserProfile rows can be passed in
 // directly without an import from the generated client.
+//
+// Feldweise Referenz-Tabellen für diese Typen: docs/immobilien-rechner.md
 
 import type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
 export type { Verhandlungsargument } from "./analyse/verhandlungsargumente";

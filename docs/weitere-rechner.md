@@ -1,0 +1,55 @@
+# Weitere Rechner — Referenz
+
+Referenz für die freistehenden Zusatz-Tools sowie Dashboard und Daten-Backup. Alle Rechner auf dieser Seite sind reine UI-Kompositionen aus bereits vorhandenen, getesteten Calc-Engine-Funktionen (siehe [`immobilien-rechner.md`](immobilien-rechner.md) und [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md)) — keine eigene Berechnungslogik, keine Datenbank-Schema-Änderungen dafür nötig.
+
+## Sparziel-Rechner (`/sparziel`)
+
+- Reiner Client-Rechner ohne Datenbank-Anbindung.
+- Nutzt direkt `berechneSparpositionsverlauf` (`src/server/calc/rendite/portfolioverlauf.ts`) — dieselbe Formel wie in Finanzübersicht/Szenarien, nur ohne Persistenz.
+- Gibt Kapital nach 10/20 Jahren sowie das erste Jahr aus, in dem ein frei wählbarer Zielbetrag erreicht wird (`findeJahrBisZielbetrag`, `src/server/calc/rendite/sparziel.ts`).
+- Horizont ist auf 40 Jahre begrenzt, danach heißt es "nicht in 40 Jahren" statt zu extrapolieren.
+- Gleiche Vereinfachung wie die Sparpositionen in der Finanzübersicht: Sparrate wird jährlich am Jahresanfang gutgeschrieben (kein unterjähriger Zinseszins), Rendite bleibt über den gesamten Zeitraum konstant.
+
+## Steuerrechner (`/steuerrechner`)
+
+- Reiner Client-Rechner, nutzt dieselben Tarif-Funktionen wie das Profil (`berechneEinkommensteuer`, `berechneGrenzsteuersatz` aus `src/server/calc/tax/grenzsteuersatz.ts`, `schaetzeZvEAusBrutto` aus `tax/zve-schaetzung.ts`) — unabhängig vom dort hinterlegten Wert, für schnelle Was-wäre-wenn-Einkommensfragen.
+- Zeigt zvE, Einkommensteuer, Grenz- und Durchschnittssteuersatz sowie eine Kurve des Grenzsteuersatzes über zvE von 0 bis 300.000€ mit einem Marker beim eigenen zvE.
+- Bildet nur die Einkommensteuer nach §32a EStG ab — Solidaritätszuschlag, Kirchensteuer und Sozialabgaben sind nicht modelliert.
+- **Recharts-Stolperstein**: die `ReferenceDot`-Markierung im Chart rendert nur mit explizitem `type="number"` auf der `XAxis` — sonst behandelt Recharts die Achse als Kategorie-Skala und die Markierung verschwindet lautlos (kein Konsolenfehler). Beim nächsten Chart mit `ReferenceDot`/`ReferenceLine` auf einer numerischen Achse daran denken.
+
+## Kreditvergleich (`/kreditvergleich`)
+
+- Zwei frei konfigurierbare Kredite nebeneinander, nutzt direkt `berechneTilgungsplan` (`src/server/calc/financing/tilgungsplan.ts`) — dieselbe Funktion wie im Immobilien-Rechner, hier aber ohne dass ein Objekt existieren muss.
+- Zeigt monatliche Rate (Jahr 1, aus Zins + Tilgung des ersten Jahres), Zinskosten gesamt über den Betrachtungszeitraum, Restschuld nach 30 Jahren und das Volltilgungsjahr, dazu einen Restschuld-Verlauf-Chart.
+- Farbzuweisung im Chart über `farbeFuerIndex` (`src/lib/chart-colors.ts`, siehe unten) statt fester Palette.
+
+## Kaufen oder Anlegen? (`/kaufen-oder-anlegen`)
+
+- Wählt ein Objekt aus der Bibliothek und vergleicht dessen Vermögensverlauf (Eigenkapitalanteil + aufgelaufener Cashflow nach Steuer, aus `berechneObjekt`) gegen eine Einmalanlage derselben Eigenkapitalsumme zu einer frei wählbaren Rendite (`berechneSparpositionsverlauf`, ohne Sparplan).
+- Bewusst als Lump-Sum-Vergleich, **nicht** als klassischer "Miete vs. Eigennutzung"-Rechner: die Objekte in diesem Tool sind grundsätzlich als vermietete Kapitalanlage modelliert (Kaltmiete-Feld, Cashflow-Berechnung setzt einen Mieter voraus), nicht als selbstgenutzte Immobilie — ein Miete-vs-Kauf-Vergleich im klassischen Sinn (Wohnkosten mieten vs. Wohnkosten Eigentum) würde ein eigenes Datenmodell für Wohnkosten brauchen, das es hier nicht gibt.
+
+## Daten-Backup (`/profil`, unterer Bereich)
+
+- `exportiereAlleDaten` (`src/server/actions/export.ts`) lädt einen JSON-Snapshot aller selbst eingegebenen Daten herunter (Objekte, Sparpositionen, Profil, Szenarien, Referenzdaten).
+- Reine Sicherungskopie ohne Wiedereinspiel-Mechanismus — für Immobilien gibt es dafür den separaten Import-Weg über `data/import-objekte.json` + `npm run import:objekte` (siehe Haupt-README).
+- Sinnvoll, weil es kein App-Login und keine Cloud-Synchronisation gibt (Docker-Volume ist die einzige Persistenz).
+
+## Dashboard (`/`, Startseite)
+
+Aggregiert Kennzahlen über alle Tools aus denselben Server-Loadern/Engine-Funktionen wie die Einzeltools — keine eigene Berechnungslogik.
+
+- **Kennzahlen-Kacheln**: Anzahl Immobilien im Besitz, Summe aus Wertpapier-/Tagesgeld-Positionen mit Status `BESITZE_ICH`, deren monatlicher Immobilien-Cashflow (netto, alle besessenen Objekte), Anzahl gespeicherter Szenarien.
+- **Rot-Ampel-Hinweis**: erscheint, falls mindestens ein besessenes Objekt auf Ampel Rot steht.
+- **Vermögensverteilung** (`VermoegensverteilungChart.tsx`): horizontaler Balken, Immobilien-Eigenkapitalanteil vs. Bargeld & Depots (via `berechneImmobilienPositionen`). Der Immobilien-Eigenkapitalanteil zählt hier bewusst NUR zur Verteilungsansicht mit (Frage: "wo steckt mein Vermögen?") — anders als in der Finanzübersicht, die ihn wegen ihrer Cashflow-only-Philosophie explizit ausklammert (siehe [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md)).
+- **Ampel-Verteilung**: reiner CSS-Balken (keine Chart-Bibliothek nötig) über alle besessenen Objekte.
+- **Vier weitere Kennzahlen**:
+  - Notgroschen-Reichweite: Tagesgeld ÷ Fixkosten/Monat aus dem Profil, in Monaten — bewusst nur Tagesgeld (nicht Wertpapierdepots, die erst verkauft werden müssten und im Kurs schwanken). Warnfarbe unter 3 Monaten.
+  - Ø Bruttorendite über alle besessenen Objekte.
+  - Größte Sparposition.
+  - Grobe Näherung des Gesamtvermögens (Immobilien-EK-Referenz + Bargeld & Depots).
+
+## Geteilte UI-Bausteine für Diagramme
+
+- `src/lib/chart-colors.ts` (`farbeFuerIndex`): kuratierte Palette für die ersten 12 Objekte, danach Goldener-Winkel-Verteilung (137,508°) statt eine kurze Palette zyklisch zu wiederholen — verhindert, dass sich ab dem 7. verglichenen Objekt Farben doppeln (Objektvergleich, Kreditvergleich). React-Keys in den betroffenen Charts nutzen die Objekt-/Kredit-ID statt des Namens, da Namen nicht garantiert eindeutig sind (z. B. nach Duplizieren).
+- `src/components/ui/Skeleton.tsx`: Platzhalter-Baustein für `loading.tsx`-Dateien (Next.js App-Router-Konvention) — die meisten Datenrouten haben eins, in der ungefähren Form der echten Seite.
+- Diagramm-lastige Stellen (Objektvergleich, Objekt-Formular, Finanzübersicht, Szenario-Detail, Dashboard) laden ihre Recharts-Komponenten per `next/dynamic` erst bei Bedarf nach, statt sie fest ins jeweilige Seiten-Bundle zu backen. In Server Components ist `ssr:false` dabei nicht erlaubt (Next.js-Einschränkung) — dort reicht der dynamische Import allein für den separaten Chunk.

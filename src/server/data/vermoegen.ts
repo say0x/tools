@@ -6,6 +6,8 @@ import type { Besitzstatus } from "@/lib/asset";
 import type { SparpositionArt } from "@/server/actions/finanzuebersicht-schema";
 import { toPropertyInput, type PropertyWithAsset } from "./mappers";
 
+// Referenz (Cashflow-only-Philosophie, geteilte Bausteine, Besitzstatus-System): docs/finanzuebersicht-und-szenarien.md
+
 export interface ImmobilienPosition {
   id: string;
   assetId: string;

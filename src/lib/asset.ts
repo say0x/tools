@@ -3,6 +3,8 @@
 // einzelnes Tool. Deliberately decoupled from Prisma (plain string-literal
 // union, Werte matchen den Prisma-Enum-Namen 1:1), analog zu den
 // domain-spezifischen Unions in server/calc/types.ts.
+//
+// Referenz: docs/finanzuebersicht-und-szenarien.md ("Besitzstatus-System")
 
 export const BESITZSTAENDE = ["BESITZE_ICH", "POTENZIELLE_ANSCHAFFUNG", "SPEKULATION", "VERKAUFT", "ARCHIVIERT"] as const;
 export type Besitzstatus = (typeof BESITZSTAENDE)[number];

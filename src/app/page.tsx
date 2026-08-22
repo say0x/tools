@@ -1,3 +1,5 @@
+// Referenz (Dashboard-Kennzahlen, Notgroschen-Reichweite): docs/weitere-rechner.md
+
 import Link from "next/link";
 import dynamicImport from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";

@@ -1,3 +1,5 @@
+// Referenz: docs/weitere-rechner.md ("Geteilte UI-Bausteine für Diagramme")
+//
 // Kuratierte Palette für die ersten Einträge (bewusst gewählte, gut unterscheidbare
 // Farben) — darüber hinaus (mehr Objekte im Vergleich als Palette-Einträge) wird per
 // Goldenem Winkel (137.508°) eine neue, von den vorherigen Farbtönen weit entfernte

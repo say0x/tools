@@ -1,5 +1,7 @@
 "use client";
 
+// Referenz (Änderungsarten, Immobilienwert-Referenzlinie): docs/finanzuebersicht-und-szenarien.md
+
 import { useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useFieldArray, useForm, useWatch, type FieldPath } from "react-hook-form";
