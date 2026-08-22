@@ -6,8 +6,10 @@ services:
       POSTGRES_USER: tools
       POSTGRES_PASSWORD: tools
       POSTGRES_DB: tools
-    ports:
-      - "5432:5432"
+    # Kein Host-Port-Mapping: der App-Container erreicht Postgres über das Docker-Netz
+    # (Service-Name "postgres" in DATABASE_URL). Ein "5432:5432"-Mapping würde die DB mit
+    # trivialen Zugangsdaten auf dem Host-Netz exponieren, ohne dass die App das braucht.
+    # Für ad-hoc psql-Zugriff: `docker compose exec postgres psql -U tools`.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

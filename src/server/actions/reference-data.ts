@@ -31,8 +31,18 @@ const standardwerteSchema = z.object({
   standardSondertilgungMaxProzent: z.coerce.number().min(0).max(100).nullable(),
 });
 
+/** Wirft eine lesbare, deutschsprachige Fehlermeldung statt einer rohen ZodError-Exception. */
+function parseOrThrow<T>(schema: z.ZodType<T>, values: unknown): T {
+  const result = schema.safeParse(values);
+  if (!result.success) {
+    const meldung = result.error.issues.map((issue) => issue.message).join(" · ");
+    throw new Error(`Ungültige Eingabe: ${meldung}`);
+  }
+  return result.data;
+}
+
 export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
-  const data = grunderwerbsteuerUpdateSchema.parse(updates);
+  const data = parseOrThrow(grunderwerbsteuerUpdateSchema, updates);
   await prisma.$transaction(
     data.map((u) => prisma.referenceGrunderwerbsteuer.update({ where: { id: u.id }, data: { satzProzent: u.satzProzent } }))
   );
@@ -40,7 +50,7 @@ export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grun
 }
 
 export async function aktualisiereMietpreise(updates: z.infer<typeof mietpreisUpdateSchema>) {
-  const data = mietpreisUpdateSchema.parse(updates);
+  const data = parseOrThrow(mietpreisUpdateSchema, updates);
   await prisma.$transaction(
     data.map((u) => prisma.referenceMietpreis.update({ where: { id: u.id }, data: { mietpreisProM2: u.mietpreisProM2 } }))
   );
@@ -48,7 +58,7 @@ export async function aktualisiereMietpreise(updates: z.infer<typeof mietpreisUp
 }
 
 export async function aktualisiereGewerkKosten(updates: z.infer<typeof gewerkKostenUpdateSchema>) {
-  const data = gewerkKostenUpdateSchema.parse(updates);
+  const data = parseOrThrow(gewerkKostenUpdateSchema, updates);
   await prisma.$transaction(
     data.map((u) =>
       prisma.referenceGewerkKosten.update({
@@ -61,7 +71,7 @@ export async function aktualisiereGewerkKosten(updates: z.infer<typeof gewerkKos
 }
 
 export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof kaufnebenkostenDefaultsSchema>) {
-  const data = kaufnebenkostenDefaultsSchema.parse(values);
+  const data = parseOrThrow(kaufnebenkostenDefaultsSchema, values);
   const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
   if (bestehend) {
     await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
@@ -72,7 +82,7 @@ export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof
 }
 
 export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kaufpreisfaktorUpdateSchema>) {
-  const data = kaufpreisfaktorUpdateSchema.parse(updates);
+  const data = parseOrThrow(kaufpreisfaktorUpdateSchema, updates);
   await prisma.$transaction(
     data.map((u) =>
       prisma.referenceKaufpreisfaktor.update({ where: { id: u.id }, data: { kaufpreisfaktorReferenz: u.kaufpreisfaktorReferenz } })
@@ -82,7 +92,7 @@ export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kauf
 }
 
 export async function aktualisiereNutzungsdauer(updates: z.infer<typeof nutzungsdauerUpdateSchema>) {
-  const data = nutzungsdauerUpdateSchema.parse(updates);
+  const data = parseOrThrow(nutzungsdauerUpdateSchema, updates);
   await prisma.$transaction(
     data.map((u) => prisma.referenceNutzungsdauer.update({ where: { id: u.id }, data: { nutzungsdauerJahre: u.nutzungsdauerJahre } }))
   );
@@ -90,7 +100,7 @@ export async function aktualisiereNutzungsdauer(updates: z.infer<typeof nutzungs
 }
 
 export async function aktualisiereStandardwerte(values: z.infer<typeof standardwerteSchema>) {
-  const data = standardwerteSchema.parse(values);
+  const data = parseOrThrow(standardwerteSchema, values);
   const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
   if (bestehend) {
     await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });

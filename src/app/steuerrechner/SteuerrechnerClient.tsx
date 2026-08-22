@@ -7,6 +7,7 @@ import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, 
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { berechneEinkommensteuer, berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
 import { formatEuro, formatNumber } from "@/lib/format";
@@ -62,14 +63,12 @@ export function SteuerrechnerClient() {
                 onChange={(e) => setZvEManuell(Number(e.target.value) || 0)}
               />
               <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-400">
-                <input
-                  type="checkbox"
+                <Switch
                   checked={zvEOverride}
                   onChange={(e) => {
                     if (e.target.checked) setZvEManuell(Math.round(zvEGeschaetzt));
                     setZvEOverride(e.target.checked);
                   }}
-                  className="h-4 w-4 accent-blue-600"
                 />
                 manuell
               </label>
