@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -11,8 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { BesitzstatusBadge } from "@/components/ui/Badge";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { FinanzuebersichtChart } from "@/components/charts/FinanzuebersichtChart";
-import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro } from "@/lib/format";
 import { SPARPOSITION_ART_LABELS } from "@/lib/labels";
 import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS, type Besitzstatus } from "@/lib/asset";
@@ -32,6 +32,15 @@ import { setAssetBesitzstatus } from "@/server/actions/asset";
 import type { ImmobilienPosition } from "@/server/data/vermoegen";
 
 export type { ImmobilienPosition } from "@/server/data/vermoegen";
+
+const FinanzuebersichtChart = dynamic(
+  () => import("@/components/charts/FinanzuebersichtChart").then((m) => m.FinanzuebersichtChart),
+  { ssr: false, loading: () => <Skeleton className="h-[280px] w-full" /> }
+);
+const VergleichVermoegensChart = dynamic(
+  () => import("@/components/charts/VergleichVermoegensChart").then((m) => m.VergleichVermoegensChart),
+  { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> }
+);
 
 const ZAEHLT_IM_VERMOEGEN: Besitzstatus = "BESITZE_ICH";
 

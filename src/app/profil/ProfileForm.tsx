@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -25,7 +25,6 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
     register,
     control,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<ProfileFormValues>({
@@ -35,10 +34,12 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
 
   const { fields, append, remove } = useFieldArray({ control, name: "liabilities" });
 
-  const brutto = watch("bruttoEinkommenMonatlich");
-  const zvE = watch("zuVersteuerndesEinkommenJaehrlich");
-  const netto = watch("nettoEinkommenMonatlich");
-  const fixkosten = watch("fixkostenMonatlich");
+  // useWatch statt form.watch(): Letzteres liefert eine nicht memoizierbare Funktion zurück
+  // und lässt den React Compiler die Memoization für die ganze Komponente überspringen.
+  const brutto = useWatch({ control, name: "bruttoEinkommenMonatlich" });
+  const zvE = useWatch({ control, name: "zuVersteuerndesEinkommenJaehrlich" });
+  const netto = useWatch({ control, name: "nettoEinkommenMonatlich" });
+  const fixkosten = useWatch({ control, name: "fixkostenMonatlich" });
 
   const zvESchaetzung = useMemo(() => schaetzeZvEAusBrutto((Number(brutto) || 0) * 12), [brutto]);
   const grenzsteuersatz = useMemo(() => berechneGrenzsteuersatz(Number(zvE) || 0, new Date().getFullYear()), [zvE]);
@@ -140,7 +141,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       <Card>
         <CardTitle>Affordability-Schwellen</CardTitle>
         <p className="mb-4 text-sm text-slate-400">
-          Diese Werte steuern die Ampel bei jeder Objekt-Berechnung ("kann ich mir das leisten?").
+          Diese Werte steuern die Ampel bei jeder Objekt-Berechnung (&quot;kann ich mir das leisten?&quot;).
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field

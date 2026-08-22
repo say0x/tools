@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { useFieldArray, useForm, useWatch, type FieldPath } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { SzenarioVergleichChart } from "@/components/charts/SzenarioVergleichChart";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro } from "@/lib/format";
 import { SZENARIO_AENDERUNG_TYP_HILFE, SZENARIO_AENDERUNG_TYP_LABELS } from "@/lib/labels";
 import { leereSzenarioAenderung } from "@/lib/szenario-form-defaults";
@@ -25,6 +26,11 @@ import {
 import type { SzenarioFormValues } from "@/server/actions/szenario";
 import { szenarioSchema, SZENARIO_AENDERUNG_TYPEN } from "@/server/actions/szenario-schema";
 import type { ImmobilienPosition, SparpositionPosition } from "@/server/data/vermoegen";
+
+const SzenarioVergleichChart = dynamic(
+  () => import("@/components/charts/SzenarioVergleichChart").then((m) => m.SzenarioVergleichChart),
+  { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> }
+);
 
 export function SzenarioClient({
   onSubmit,

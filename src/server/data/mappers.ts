@@ -155,6 +155,20 @@ export const PROPERTY_INCLUDE = {
   exit: true,
 } as const;
 
+/**
+ * Zerlegt validierte PropertyFormValues in die Prisma-Create/Update-Form.
+ * Geteilt zwischen den Server Actions (erstelleObjekt/aktualisiereObjekt) und
+ * scripts/import-objekte.ts — Server Actions dürfen aus einer "use server"-Datei
+ * nur async Funktionen exportieren, daher lebt dieser synchrone Helper hier statt dort.
+ */
+export function splitPropertyData(data: PropertyFormValues) {
+  const { name, besitzstatus, financing, gewerke, exit, kaufdatum, ...property } = data;
+  // kaufdatum kommt als "YYYY-MM-DD"-String vom HTML-Date-Input — Prisma
+  // erwartet für DateTime-Spalten ein vollständiges ISO-8601-DateTime, keinen reinen Datums-String.
+  // besitzstatus liegt auf der gemeinsamen Asset-Tabelle, nicht auf Property.
+  return { name, besitzstatus, property: { ...property, kaufdatum: new Date(kaufdatum) }, financing, gewerke, exit };
+}
+
 export function toPropertyFormValues(row: PropertyWithAsset): PropertyFormValues {
   const input = toPropertyInput(row);
   return {

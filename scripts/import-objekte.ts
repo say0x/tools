@@ -13,6 +13,7 @@ import path from "node:path";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { propertySchema } from "../src/server/actions/property-schema";
 import { defaultPropertyFormValues } from "../src/lib/property-form-defaults";
+import { splitPropertyData } from "../src/server/data/mappers";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -55,11 +56,11 @@ async function main() {
       continue;
     }
 
-    const { name: assetName, financing, gewerke, exit, ...property } = ergebnis.data;
+    const { name: assetName, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(ergebnis.data);
     await prisma.property.create({
       data: {
         ...property,
-        asset: { create: { type: "IMMOBILIE", name: assetName } },
+        asset: { create: { type: "IMMOBILIE", name: assetName, besitzstatus } },
         financing: { create: financing },
         exit: { create: exit },
         gewerke: { createMany: { data: gewerke } },
