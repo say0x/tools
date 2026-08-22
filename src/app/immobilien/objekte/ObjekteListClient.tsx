@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -9,6 +10,7 @@ import { AmpelBadge, BesitzstatusBadge } from "@/components/ui/Badge";
 import { formatEuro } from "@/lib/format";
 import { AMPEL_LABELS } from "@/lib/labels";
 import { BESITZSTAENDE, BESITZSTATUS_LABELS, type Besitzstatus } from "@/lib/asset";
+import { loescheObjekte } from "@/server/actions/property";
 import { DeleteObjectButton } from "./[id]/DeleteObjectButton";
 import { DuplicateObjectButton } from "./DuplicateObjectButton";
 
@@ -41,6 +43,8 @@ function FilterButton({
 }
 
 export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
+  const router = useRouter();
+  const [isDeleting, startDeleteTransition] = useTransition();
   const [suche, setSuche] = useState("");
   const [activeBesitzstatus, setActiveBesitzstatus] = useState<Set<Besitzstatus>>(new Set());
   const [activeAmpel, setActiveAmpel] = useState<Set<(typeof AMPEL_OPTIONS)[number]>>(new Set());
@@ -76,6 +80,18 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
         gefiltert.forEach((o) => next.add(o.id));
       }
       return next;
+    });
+  };
+
+  const handleBulkDelete = () => {
+    const ids = Array.from(selectedIds);
+    const bestaetigung =
+      ids.length === 1 ? "Ausgewähltes Objekt wirklich löschen?" : `${ids.length} ausgewählte Objekte wirklich löschen?`;
+    if (!confirm(bestaetigung)) return;
+    startDeleteTransition(async () => {
+      await loescheObjekte(ids);
+      setSelectedIds(new Set());
+      router.refresh();
     });
   };
 
@@ -187,9 +203,19 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
         </div>
       )}
 
-      <Button type="submit" variant="secondary" className="self-start" disabled={selectedIds.size === 0}>
-        Ausgewählte vergleichen{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" variant="secondary" disabled={selectedIds.size === 0}>
+          Ausgewählte vergleichen{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+        </Button>
+        <Button
+          type="button"
+          variant="danger"
+          disabled={selectedIds.size === 0 || isDeleting}
+          onClick={handleBulkDelete}
+        >
+          {isDeleting ? "Löscht…" : `Ausgewählte löschen${selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}`}
+        </Button>
+      </div>
     </form>
   );
 }
