@@ -6,7 +6,11 @@
 // Feldweise Referenz-Tabellen für diese Typen: docs/immobilien-rechner.md
 
 import type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
+import type { AnnahmenWarnung } from "./analyse/annahmen-warnungen";
+import type { ExitSzenarioResult } from "./exit/exit-szenario";
 export type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
+export type { AnnahmenWarnung } from "./analyse/annahmen-warnungen";
+export type { ExitSzenarioResult } from "./exit/exit-szenario";
 
 export const BUNDESLAENDER = [
   "BADEN_WUERTTEMBERG",
@@ -334,4 +338,6 @@ export interface CalculationResult {
   kapitaleffizienz: KapitaleffizienzResult;
   dealBreaker: { rechnetSich: boolean; meldung: string };
   verhandlungsargumente: Verhandlungsargument[];
+  annahmenWarnungen: AnnahmenWarnung[];
+  exitSzenario: ExitSzenarioResult | null;
 }

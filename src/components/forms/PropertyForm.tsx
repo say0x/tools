@@ -48,7 +48,8 @@ import { GEWERK_ZUSTAND_BESCHREIBUNG } from "@/lib/gewerk-zustand-beschreibungen
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
-import { ZUSTANDSFAKTOR } from "@/server/calc/constants";
+import { formatiereAnnahmenWarnung } from "@/lib/annahmen-warnungstexte";
+import { SPEKULATIONSFRIST_JAHRE, ZUSTANDSFAKTOR } from "@/server/calc/constants";
 import { MAKLERPROVISION_DEFAULT_PROZENT } from "@/server/calc/costs/kaufnebenkosten";
 
 // Dynamisch importiert: bündelt 5 Recharts-Diagramme, die erst unterhalb des Formulars
@@ -701,6 +702,27 @@ export function PropertyForm({
               />
             </Field>
           </div>
+          {watched.exit?.geplant && result?.exitSzenario && (
+            <div className="mt-4 grid grid-cols-2 gap-3 rounded-md bg-slate-950/60 p-4 text-sm sm:grid-cols-3">
+              <Stat label="Verkaufspreis" value={formatEuro(result.exitSzenario.verkaufspreisEuro)} />
+              <Stat label="Restschuld" value={formatEuro(result.exitSzenario.restschuldEuro)} />
+              <Stat label="Erlös vor Steuer" value={formatEuro(result.exitSzenario.erloesVorSteuerEuro)} />
+              <Stat
+                label="Spekulationssteuer (§23 EStG)"
+                value={
+                  result.exitSzenario.spekulationssteuer.pflichtig
+                    ? formatEuro(result.exitSzenario.spekulationssteuer.steuerEuro)
+                    : "entfällt"
+                }
+                subValue={
+                  result.exitSzenario.spekulationssteuer.pflichtig
+                    ? `Verkauf < ${SPEKULATIONSFRIST_JAHRE} Jahre nach Kauf, Gewinn ${formatEuro(result.exitSzenario.spekulationssteuer.veraeusserungsgewinnEuro)}`
+                    : `Verkauf ≥ ${SPEKULATIONSFRIST_JAHRE} Jahre nach Kauf, steuerfrei`
+                }
+              />
+              <Stat label="Erlös nach Steuer" value={formatEuro(result.exitSzenario.erloesNachSteuerEuro)} />
+            </div>
+          )}
         </Card>
 
       </div>
@@ -758,6 +780,27 @@ export function PropertyForm({
                 </p>
               ))}
             </Card>
+
+            {result.annahmenWarnungen.length > 0 && (
+              <Card className="border-amber-900/50 bg-amber-950/10">
+                <CardTitle>Diese Annahmen schönen das Ergebnis</CardTitle>
+                <p className="mb-3 text-xs text-slate-500">
+                  Technisch gültige, aber unrealistisch günstige Eingaben — kein Fehler, aber ein Grund, das
+                  Ergebnis mit Vorsicht zu lesen.
+                </p>
+                <div className="flex flex-col gap-3">
+                  {result.annahmenWarnungen.map((warnung, i) => {
+                    const { titel, text } = formatiereAnnahmenWarnung(warnung);
+                    return (
+                      <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                        <p className="text-sm font-medium text-amber-300">{titel}</p>
+                        <p className="mt-1 text-sm text-slate-300">{text}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
 
             {result.verhandlungsargumente.length > 0 && (
               <Card>

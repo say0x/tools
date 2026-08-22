@@ -1,6 +1,8 @@
 import { berechneAffordability } from "./affordability/check";
+import { ermittleAnnahmenWarnungen } from "./analyse/annahmen-warnungen";
 import { ermittleVerhandlungsargumente } from "./analyse/verhandlungsargumente";
 import { berechneGewerkeAuswertung } from "./costs/gewerke";
+import { berechneExitSzenario } from "./exit/exit-szenario";
 import { berechneEmpfohleneInstandhaltungsruecklage } from "./costs/instandhaltungsruecklage";
 import { berechneKaufnebenkosten } from "./costs/kaufnebenkosten";
 import { berechneFinanzierung, berechneGesamtinvestition } from "./financing/darlehen";
@@ -185,6 +187,21 @@ export function berechneObjekt(
     kaufpreisfaktorReferenzByObjekttypLagetyp: referenceData.kaufpreisfaktorReferenzByObjekttypLagetyp,
   });
 
+  const annahmenWarnungen = ermittleAnnahmenWarnungen({
+    leerstandsquoteProzent: property.leerstandsquoteProzent,
+    wertsteigerungProzentJaehrlich: property.wertsteigerungProzentJaehrlich,
+    mietsteigerungProzentJaehrlich: property.mietsteigerungProzentJaehrlich,
+  });
+
+  const exitSzenario = berechneExitSzenario({
+    geplant: property.exit.geplant,
+    haltedauerJahre: property.exit.haltedauerJahre,
+    vermoegensverlauf,
+    anschaffungskostenEuro: finanzierung.gesamtinvestitionEuro,
+    afaJaehrlich: rendite.afaJaehrlich,
+    grenzsteuersatzProzent: rendite.grenzsteuersatzProzent,
+  });
+
   return {
     kaufnebenkosten,
     gewerke,
@@ -199,6 +216,8 @@ export function berechneObjekt(
     kapitaleffizienz,
     dealBreaker: { rechnetSich, meldung },
     verhandlungsargumente,
+    annahmenWarnungen,
+    exitSzenario,
   };
 }
 
