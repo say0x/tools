@@ -52,7 +52,7 @@ npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/_
 
 ### CI
 
-`.github/workflows/ci.yml` läuft bei jedem Push nach `main` und bei jedem Pull Request: Typecheck, Lint, Tests, Produktions-Build — dieselben vier Schritte, die vor jedem Merge in dieser Session ohnehin manuell durchlaufen wurden, jetzt automatisch statt auf Disziplin angewiesen. Kein Postgres-Service nötig (`prisma generate` liest nur das Schema, keine Datenroute wird zur Build-Zeit statisch gerendert).
+`.github/workflows/ci.yml` läuft bei jedem Push nach `main` und bei jedem Pull Request: Lint, Tests, Produktions-Build (der Build-Schritt führt den TypeScript-Check gleich mit aus — ein separater `tsc`-Schritt davor scheitert auf einem frischen Checkout, da `next-env.d.ts` auf `.next/types/*` verweist, das erst der Build selbst erzeugt). Dieselben Prüfungen, die vor jedem Merge in dieser Session ohnehin manuell durchlaufen wurden, jetzt automatisch statt auf Disziplin angewiesen. Kein Postgres-Service nötig (`prisma generate` liest nur das Schema, keine Datenroute wird zur Build-Zeit statisch gerendert).
 
 ### Objekte importieren (`data/import-objekte.json`)
 

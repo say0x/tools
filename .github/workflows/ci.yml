@@ -24,14 +24,18 @@ jobs:
 
       - run: npm ci
 
-      - name: Type Check
-        run: npx tsc --noEmit
-
       - name: Lint
         run: npm run lint
 
       - name: Test
         run: npm run test
 
-      - name: Build
+      # Kein separater "npx tsc --noEmit"-Schritt: next build führt den
+      # TypeScript-Check bereits selbst durch ("Running TypeScript ..." in der
+      # Build-Ausgabe) — ein eigenständiger tsc-Lauf davor schlägt auf einem
+      # frischen Checkout sogar fehl, da next-env.d.ts auf .next/types/*
+      # verweist, das erst durch diesen Build-Schritt entsteht (per echtem
+      # CI-Lauf gefunden: PR #19, Run 32602553946 — lokal unbemerkt, weil das
+      # eigene .next/ von vorherigen "npm run dev/build"-Läufen schon existierte).
+      - name: Build (inkl. TypeScript-Check)
         run: npm run build
