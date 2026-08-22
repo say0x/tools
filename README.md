@@ -50,6 +50,10 @@ docker compose up -d postgres
 npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/__tests__/engine.test.ts
 ```
 
+### CI
+
+`.github/workflows/ci.yml` läuft bei jedem Push nach `main` und bei jedem Pull Request: Typecheck, Lint, Tests, Produktions-Build — dieselben vier Schritte, die vor jedem Merge in dieser Session ohnehin manuell durchlaufen wurden, jetzt automatisch statt auf Disziplin angewiesen. Kein Postgres-Service nötig (`prisma generate` liest nur das Schema, keine Datenroute wird zur Build-Zeit statisch gerendert).
+
 ### Objekte importieren (`data/import-objekte.json`)
 
 Recherchierte Objekte (z. B. von Immobilienportalen zusammengetragen) lassen

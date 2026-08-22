@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Kein Postgres-Service nötig: prisma generate liest nur das Schema (keine
+    # Verbindung), next build rendert die Datenrouten dynamisch statt zur
+    # Build-Zeit (export const dynamic = "force-dynamic") — lokal verifiziert,
+    # dass "npm run build" bei gestopptem Postgres erfolgreich durchläuft.
+    env:
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
