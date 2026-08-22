@@ -19,6 +19,8 @@ export interface ImmobilienPosition {
   /** Reine Referenzwerte (heutiger Stand) — fließen NICHT in die Summe ein, nur der Cashflow zählt. */
   eigenkapitalanteilHeuteReferenz: number;
   immobilienwertHeuteReferenz: number;
+  /** EK-Anteil je Jahr seit Kauf (Index 0 = Jahr 1) — Referenzverlauf für Anzeige, z. B. im Szenario-Vergleich. */
+  eigenkapitalanteilProJahrSeitKauf: number[];
 }
 
 /**
@@ -53,6 +55,7 @@ export function berechneImmobilienPositionen(
       cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
       eigenkapitalanteilHeuteReferenz: heutigerVermoegensverlaufEintrag?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro,
       immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis,
+      eigenkapitalanteilProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.eigenkapitalanteil),
     };
   });
 }

@@ -18,6 +18,7 @@ import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import {
   berechneEinmaligeAnschaffungVerlauf,
   berechneImmobilienCashflowverlauf,
+  berechneImmobilienEigenkapitalverlauf,
   berechnePortfolioverlauf,
   berechneSparpositionsverlauf,
   wendeImmobilienverkaufAn,
@@ -85,7 +86,7 @@ export function SzenarioClient({
   const immobilienZumVerkaufen = immobilien.filter((imm) => imm.besitzstatus === "BESITZE_ICH");
   const sparpositionenBesessen = sparpositionen.filter((sp) => sp.besitzstatus === "BESITZE_ICH");
 
-  const { verlaufOhneSzenario, verlaufMitSzenario, mehrfachBetroffeneNamen } = useMemo(() => {
+  const { verlaufOhneSzenario, verlaufMitSzenario, mehrfachBetroffeneNamen, immobilienwertVerlauf, immobilienImSzenarioAnzahl } = useMemo(() => {
     const startjahrWatched = Number(watched.startjahr) || aktuellesJahr;
     const aenderungenWatched = watched.aenderungen ?? [];
 
@@ -190,10 +191,48 @@ export function SzenarioClient({
       .map((id) => immobilien.find((i) => i.assetId === id)?.name ?? sparpositionen.find((s) => s.assetId === id)?.name)
       .filter((name): name is string => !!name);
 
+    // Immobilienwert-Referenzverlauf (EK-Anteil, summiert über alle im "mit Szenario"-Zustand
+    // vorhandenen Immobilien) — reine Zusatzinfo neben dem Cashflow-Vergleich oben, zeigt wie
+    // viel Vermögen zusätzlich im Objekt selbst steckt (fließt NICHT in gesamtNominal ein,
+    // exakt wie in der Finanzübersicht). Nach einem Verkauf im Szenario zählt der Wert des
+    // verkauften Objekts nicht mehr mit (der Erlös steckt stattdessen schon im Cashflow oben).
+    const verkaufsjahrNachAssetId = new Map<string, number>();
+    aenderungenWatched.forEach((a) => {
+      if (a?.typ === "IMMOBILIE_VERKAUFEN" && a.assetId && a.jahrAbHeute != null) {
+        verkaufsjahrNachAssetId.set(a.assetId, a.jahrAbHeute - aktuellesJahr);
+      }
+    });
+    const immobilienImSzenario = new Map<string, ImmobilienPosition>();
+    for (const imm of immobilien) {
+      if (imm.besitzstatus === "BESITZE_ICH") immobilienImSzenario.set(imm.assetId, imm);
+    }
+    aenderungenWatched.forEach((a) => {
+      if (a?.typ === "IMMOBILIE_AUFNEHMEN" && a.assetId) {
+        const imm = immobilien.find((i) => i.assetId === a.assetId);
+        if (imm) immobilienImSzenario.set(imm.assetId, imm);
+      }
+    });
+    const immobilienwertVerlauf = Array.from({ length: horizontEffektiv + 1 }, () => 0);
+    for (const [assetId, imm] of immobilienImSzenario) {
+      const ekVerlauf = berechneImmobilienEigenkapitalverlauf(
+        imm.eigenkapitalanteilProJahrSeitKauf,
+        imm.jahreSeitKauf,
+        imm.eigenkapitalEinsatzBeiKauf,
+        horizontEffektiv
+      );
+      const verkaufsjahr = verkaufsjahrNachAssetId.get(assetId);
+      ekVerlauf.forEach((wert, i) => {
+        if (verkaufsjahr != null && i >= verkaufsjahr) return;
+        immobilienwertVerlauf[i] += wert;
+      });
+    }
+
     return {
       verlaufOhneSzenario: berechnePortfolioverlauf(Array.from(basis.values()), horizontEffektiv, 0, aktuellesJahr),
       verlaufMitSzenario: berechnePortfolioverlauf(Array.from(mitSzenario.values()), horizontEffektiv, 0, aktuellesJahr),
       mehrfachBetroffeneNamen,
+      immobilienwertVerlauf,
+      immobilienImSzenarioAnzahl: immobilienImSzenario.size,
     };
   }, [watched.aenderungen, watched.startjahr, fields, immobilien, sparpositionen, horizontEffektiv, aktuellesJahr]);
 
@@ -201,6 +240,9 @@ export function SzenarioClient({
   const amEndeOhne = verlaufOhneSzenario[verlaufOhneSzenario.length - 1]?.gesamtNominal ?? 0;
   const amEndeMit = verlaufMitSzenario[verlaufMitSzenario.length - 1]?.gesamtNominal ?? 0;
   const differenz = amEndeMit - amEndeOhne;
+
+  const immobilienwertHeute = immobilienwertVerlauf[0] ?? 0;
+  const immobilienwertAmEnde = immobilienwertVerlauf[immobilienwertVerlauf.length - 1] ?? 0;
 
   const submit = handleSubmit((values) => {
     setServerFehler(null);
@@ -422,7 +464,25 @@ export function SzenarioClient({
           <Stat label="Differenz" value={`${differenz >= 0 ? "+" : ""}${formatEuro(differenz)}`} accent={differenz >= 0 ? "positiv" : "negativ"} />
         </div>
 
-        <SzenarioVergleichChart ohneSzenario={verlaufOhneSzenario} mitSzenario={verlaufMitSzenario} />
+        <SzenarioVergleichChart
+          ohneSzenario={verlaufOhneSzenario}
+          mitSzenario={verlaufMitSzenario}
+          immobilienwertVerlauf={immobilienImSzenarioAnzahl > 0 ? immobilienwertVerlauf : undefined}
+        />
+
+        {immobilienImSzenarioAnzahl > 0 && (
+          <div className="mt-4 rounded-md border border-slate-800 bg-slate-950/40 p-4">
+            <p className="mb-3 text-sm text-slate-400">
+              Zusätzlich zum Cashflow oben steckt bei {immobilienImSzenarioAnzahl === 1 ? "der Immobilie" : "den Immobilien"} im
+              Szenario noch Vermögen im Objekt selbst (Eigenkapitalanteil = Marktwert abzüglich Restschuld) — das zählt hier
+              bewusst NICHT zur Differenz oben, ist als eigene, gepunktete Linie im Chart aber sichtbar.
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+              <Stat label="Immobilienwert heute (Referenz)" value={formatEuro(immobilienwertHeute)} />
+              <Stat label={`Immobilienwert nach ${horizontEffektiv} Jahren (Referenz)`} value={formatEuro(immobilienwertAmEnde)} />
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

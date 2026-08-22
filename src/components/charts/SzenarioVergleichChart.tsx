@@ -4,11 +4,21 @@ import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, 
 import type { PortfolioJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
 
-export function SzenarioVergleichChart({ ohneSzenario, mitSzenario }: { ohneSzenario: PortfolioJahr[]; mitSzenario: PortfolioJahr[] }) {
+export function SzenarioVergleichChart({
+  ohneSzenario,
+  mitSzenario,
+  immobilienwertVerlauf,
+}: {
+  ohneSzenario: PortfolioJahr[];
+  mitSzenario: PortfolioJahr[];
+  /** Optional: EK-Anteil-Referenzverlauf der im Szenario enthaltenen Immobilien (separate Linie, nicht Teil von gesamtNominal). */
+  immobilienwertVerlauf?: number[];
+}) {
   const data = ohneSzenario.map((jahr, i) => ({
     kalenderjahr: jahr.kalenderjahr,
     ohneSzenario: jahr.gesamtNominal,
     mitSzenario: mitSzenario[i]?.gesamtNominal ?? jahr.gesamtNominal,
+    immobilienwert: immobilienwertVerlauf?.[i],
   }));
 
   return (
@@ -31,6 +41,17 @@ export function SzenarioVergleichChart({ ohneSzenario, mitSzenario }: { ohneSzen
         <Legend />
         <Area type="monotone" dataKey="mitSzenario" name="Mit Szenario" stroke="#a855f7" fill="url(#szenario-mit)" />
         <Line type="monotone" dataKey="ohneSzenario" name="Ohne Szenario" stroke="#3b82f6" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+        {immobilienwertVerlauf && (
+          <Line
+            type="monotone"
+            dataKey="immobilienwert"
+            name="Immobilienwert (Referenz, im Szenario)"
+            stroke="#f97316"
+            strokeDasharray="2 3"
+            strokeWidth={2}
+            dot={false}
+          />
+        )}
       </ComposedChart>
     </ResponsiveContainer>
   );
