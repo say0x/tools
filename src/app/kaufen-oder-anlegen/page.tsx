@@ -1,5 +1,6 @@
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
+import { ladeSparpositionen } from "@/server/actions/finanzuebersicht";
 import { ladeObjekte } from "@/server/data/property";
 import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
@@ -10,13 +11,25 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Kaufen oder Anlegen?" };
 
 export default async function KaufenOderAnlegenPage() {
-  const [propertyRows, profilRow, referenceData] = await Promise.all([
+  const [propertyRows, profilRow, referenceData, sparpositionenRows] = await Promise.all([
     ladeObjekte(),
     ladeProfil(),
     ladeReferenceDataSnapshot(),
+    ladeSparpositionen(),
   ]);
 
   const profile = toProfileInput(profilRow);
+
+  // Vorschlag für die Alternativanlage-Rendite aus den echten, bereits besessenen
+  // Wertpapierdepots ableiten, statt einen Schätzwert neu eintippen zu lassen (der
+  // Nutzer hat die Annahme für diese Depots schon in der Finanzübersicht hinterlegt).
+  const besesseneWertpapiere = sparpositionenRows.wertpapiere.filter((w) => w.asset.besitzstatus === "BESITZE_ICH");
+  const renditeVorschlagProzent =
+    besesseneWertpapiere.length > 0
+      ? Math.round(
+          (besesseneWertpapiere.reduce((summe, w) => summe + w.renditeProzentJaehrlich, 0) / besesseneWertpapiere.length) * 10
+        ) / 10
+      : null;
 
   const objekte = propertyRows.map((row) => {
     const result = berechneObjekt(toPropertyInput(row), profile, referenceData);
@@ -46,7 +59,7 @@ export default async function KaufenOderAnlegenPage() {
           Noch keine Objekte in der Bibliothek — lege zuerst eins im Immobilien-Rechner an.
         </p>
       ) : (
-        <KaufenOderAnlegenClient objekte={objekte} />
+        <KaufenOderAnlegenClient objekte={objekte} renditeVorschlagProzent={renditeVorschlagProzent} />
       )}
     </div>
   );

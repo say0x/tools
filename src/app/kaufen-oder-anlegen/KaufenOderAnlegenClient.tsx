@@ -18,9 +18,16 @@ interface ObjektOption {
   vermoegensverlauf: { jahr: number; eigenkapitalanteil: number; kumulierterCashflowNachSteuer: number }[];
 }
 
-export function KaufenOderAnlegenClient({ objekte }: { objekte: ObjektOption[] }) {
+export function KaufenOderAnlegenClient({
+  objekte,
+  renditeVorschlagProzent,
+}: {
+  objekte: ObjektOption[];
+  /** Durchschnittliche Rendite der besessenen Wertpapierdepots, falls vorhanden — sonst null (Fallback: 6%). */
+  renditeVorschlagProzent: number | null;
+}) {
   const [objektId, setObjektId] = useState(objekte[0].id);
-  const [renditeProzent, setRenditeProzent] = useState(6);
+  const [renditeProzent, setRenditeProzent] = useState(renditeVorschlagProzent ?? 6);
 
   const objekt = objekte.find((o) => o.id === objektId) ?? objekte[0];
   const horizontJahre = objekt.vermoegensverlauf.length;
@@ -57,7 +64,14 @@ export function KaufenOderAnlegenClient({ objekte }: { objekte: ObjektOption[] }
               ))}
             </Select>
           </Field>
-          <Field label="Erwartete Rendite Alternativanlage (%/Jahr)" hint="z. B. ein breit gestreutes ETF-Depot">
+          <Field
+            label="Erwartete Rendite Alternativanlage (%/Jahr)"
+            hint={
+              renditeVorschlagProzent != null
+                ? `Vorbelegt mit der Ø-Rendite deiner besessenen Wertpapierdepots (${renditeVorschlagProzent}%) — frei änderbar.`
+                : "z. B. ein breit gestreutes ETF-Depot"
+            }
+          >
             <Input type="number" step="any" value={renditeProzent} onChange={(e) => setRenditeProzent(Number(e.target.value) || 0)} />
           </Field>
         </div>
