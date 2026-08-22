@@ -14,6 +14,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { propertySchema } from "../src/server/actions/property-schema";
 import { defaultPropertyFormValues } from "../src/lib/property-form-defaults";
 import { splitPropertyData } from "../src/server/data/mappers";
+import { ermittleDedupKriterium } from "../src/server/data/import-dedup";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -35,11 +36,12 @@ async function main() {
 
   for (const roh of rohEintraege) {
     const name = String(roh.name ?? "(ohne Namen)");
-    const quelleUrl = typeof roh.quelleUrl === "string" ? roh.quelleUrl : "";
+    const dedupKriterium = ermittleDedupKriterium(roh);
 
-    const bereitsVorhanden = quelleUrl
-      ? await prisma.property.findFirst({ where: { quelleUrl }, include: { asset: true } })
-      : await prisma.property.findFirst({ where: { asset: { name } }, include: { asset: true } });
+    const bereitsVorhanden =
+      "quelleUrl" in dedupKriterium
+        ? await prisma.property.findFirst({ where: { quelleUrl: dedupKriterium.quelleUrl }, include: { asset: true } })
+        : await prisma.property.findFirst({ where: { asset: { name: dedupKriterium.name } }, include: { asset: true } });
 
     if (bereitsVorhanden) {
       console.log(`⏭  Übersprungen (bereits vorhanden): ${name}`);
