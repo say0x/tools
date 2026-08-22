@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { AmpelBadge, BesitzstatusBadge } from "@/components/ui/Badge";
 import { formatEuro } from "@/lib/format";
 import { AMPEL_LABELS } from "@/lib/labels";
@@ -40,19 +41,20 @@ function FilterButton({
 }
 
 export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
+  const [suche, setSuche] = useState("");
   const [activeBesitzstatus, setActiveBesitzstatus] = useState<Set<Besitzstatus>>(new Set());
   const [activeAmpel, setActiveAmpel] = useState<Set<(typeof AMPEL_OPTIONS)[number]>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const gefiltert = useMemo(
-    () =>
-      objekte.filter(
-        (o) =>
-          (activeBesitzstatus.size === 0 || activeBesitzstatus.has(o.besitzstatus)) &&
-          (activeAmpel.size === 0 || activeAmpel.has(o.ampel))
-      ),
-    [objekte, activeBesitzstatus, activeAmpel]
-  );
+  const gefiltert = useMemo(() => {
+    const suchbegriff = suche.trim().toLowerCase();
+    return objekte.filter(
+      (o) =>
+        (suchbegriff === "" || o.name.toLowerCase().includes(suchbegriff)) &&
+        (activeBesitzstatus.size === 0 || activeBesitzstatus.has(o.besitzstatus)) &&
+        (activeAmpel.size === 0 || activeAmpel.has(o.ampel))
+    );
+  }, [objekte, suche, activeBesitzstatus, activeAmpel]);
 
   const alleSichtbarenAusgewaehlt = gefiltert.length > 0 && gefiltert.every((o) => selectedIds.has(o.id));
 
@@ -80,6 +82,14 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
   return (
     <form action="/immobilien/objekte/vergleich" method="get" className="flex flex-col gap-4">
       <div className="flex flex-col gap-3">
+        <Input
+          type="search"
+          value={suche}
+          onChange={(e) => setSuche(e.target.value)}
+          placeholder="Objekt nach Name suchen…"
+          aria-label="Objekte durchsuchen"
+          className="sm:max-w-xs"
+        />
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-slate-500">Status:</span>
           <FilterButton active={activeBesitzstatus.size === 0} onClick={() => setActiveBesitzstatus(new Set())}>
