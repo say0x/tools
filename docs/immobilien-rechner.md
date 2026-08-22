@@ -6,7 +6,7 @@ Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitp
 
 ## Grundprinzip
 
-- **Framework-frei**: `src/server/calc/` importiert weder Prisma noch React. Läuft dadurch identisch server- und clientseitig — z. B. nutzt der [Sparziel-Rechner](weitere-rechner.md) dieselben Funktionen direkt im Browser, ohne Server-Roundtrip.
+- **Framework-frei**: `src/server/calc/` importiert weder Prisma noch React. Läuft dadurch identisch server- und clientseitig — z. B. nutzt der [Sparziel-Rechner](weitere-rechner.md) dieselben Funktionen direkt im Browser, ohne Server-Roundtrip. Seit dem Audit lint-erzwungen: ein `no-restricted-imports`-Override in `eslint.config.mjs` blockt React-/Next.js-/Prisma-Importe innerhalb dieses Verzeichnisses mit einer erklärenden Fehlermeldung, statt sich allein auf Konvention zu verlassen.
 - **Einziger Einstiegspunkt**: `berechneObjekt()` in [`engine.ts`](../src/server/calc/engine.ts). UI-Code und Server Actions importieren nur diese Funktion, nie die Submodule direkt — die bleiben so intern austauschbar.
 - **computed-with-override**: viele Felder (z. B. Grunderwerbsteuer-Satz, AfA-Satz, Miteigentumsanteil, Instandhaltungsrücklage) haben ein `xProzent`/`x`-Feld plus ein `xOverride`-Bool. Ohne Override berechnet die Engine einen Vorschlag aus Referenzdaten/Formel; mit Override gilt der manuell eingetragene Wert. Durchgängiges Muster, kein Sonderfall.
 - **Tests direkt neben dem Code**: jedes `*.ts`-Modul unter `src/server/calc/` hat (fast immer) ein `*.test.ts` daneben. `src/server/calc/__tests__/engine.test.ts` + `fixtures.ts` testen die Gesamt-Orchestrierung.
