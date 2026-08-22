@@ -11,6 +11,9 @@ const links = [
   { href: "/finanzuebersicht", label: "Finanzübersicht" },
   { href: "/szenarien", label: "Szenarien" },
   { href: "/sparziel", label: "Sparziel" },
+  { href: "/steuerrechner", label: "Steuer" },
+  { href: "/kreditvergleich", label: "Kreditvergleich" },
+  { href: "/kaufen-oder-anlegen", label: "Kaufen/Anlegen" },
   { href: "/profil", label: "Profil" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];

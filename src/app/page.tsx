@@ -45,6 +45,21 @@ const tools = [
     title: "Sparziel-Rechner",
     description: "Freistehender Zinseszins-Rechner: Kapitalverlauf einer Sparrate über Zeit, und wann ein Zielbetrag erreicht ist.",
   },
+  {
+    href: "/steuerrechner",
+    title: "Steuerrechner",
+    description: "Freistehender Grenzsteuersatz-Rechner, unabhängig vom Profil — schnell ein anderes Einkommen durchspielen.",
+  },
+  {
+    href: "/kreditvergleich",
+    title: "Kreditvergleich",
+    description: "Zwei Finanzierungsangebote nebeneinander durchrechnen, ohne dass ein Objekt angelegt werden muss.",
+  },
+  {
+    href: "/kaufen-oder-anlegen",
+    title: "Kaufen oder Anlegen?",
+    description: "Ein Objekt aus deiner Bibliothek gegen die Alternative vergleichen, dasselbe Eigenkapital stattdessen anzulegen.",
+  },
 ];
 
 const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
@@ -86,6 +101,14 @@ export default async function Home() {
     (p) => p.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN
   );
   const sparvermoegen = sparpositionenImBesitz.reduce((summe, p) => summe + p.betrag, 0);
+
+  // Notgroschen bewusst nur aus Tagesgeld (sofort verfügbar) — Wertpapierdepots zählen
+  // hier nicht mit, da sie erst verkauft werden müssten und im Kurs schwanken können.
+  const tagesgeldImBesitz = sparpositionenRows.tagesgeld
+    .filter((t) => t.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
+    .reduce((summe, t) => summe + t.betrag, 0);
+  const notgroschenMonate =
+    profilRow && profilRow.fixkostenMonatlich > 0 ? tagesgeldImBesitz / profilRow.fixkostenMonatlich : null;
   const groessteSparposition = sparpositionenImBesitz.reduce(
     (groesste, p) => (groesste === null || p.betrag > groesste.betrag ? p : groesste),
     null as (typeof sparpositionenImBesitz)[number] | null
@@ -125,6 +148,12 @@ export default async function Home() {
   ];
 
   const fakten = [
+    {
+      label: "Notgroschen-Reichweite",
+      value: notgroschenMonate === null ? "—" : `${formatNumber(notgroschenMonate, 1)} Monate`,
+      hint: "Tagesgeld ÷ Fixkosten/Monat aus dem Profil",
+      warnung: notgroschenMonate !== null && notgroschenMonate < 3,
+    },
     {
       label: "Ø Bruttorendite",
       value: durchschnittlicheBruttorendite === null ? "—" : `${formatNumber(durchschnittlicheBruttorendite, 1)}%`,
@@ -226,11 +255,11 @@ export default async function Home() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {fakten.map((fakt) => (
-          <Card key={fakt.label}>
+          <Card key={fakt.label} className={fakt.warnung ? "border-amber-900/50 bg-amber-950/10" : undefined}>
             <div className="text-xs text-slate-500">{fakt.label}</div>
-            <div className="mt-1 text-lg font-semibold text-slate-100">{fakt.value}</div>
+            <div className={`mt-1 text-lg font-semibold ${fakt.warnung ? "text-amber-400" : "text-slate-100"}`}>{fakt.value}</div>
             <div className="mt-1 text-xs text-slate-500">{fakt.hint}</div>
           </Card>
         ))}

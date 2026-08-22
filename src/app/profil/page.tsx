@@ -1,5 +1,7 @@
 import { ladeProfil } from "@/server/actions/profile";
+import { Card, CardTitle } from "@/components/ui/Card";
 import { ProfileForm } from "./ProfileForm";
+import { ExportButton } from "./ExportButton";
 
 // Liest live aus der DB — nicht build-zeitig statisch prerendern (die DB ist
 // beim `next build` in Docker nicht erreichbar, und der Stand wäre ohnehin
@@ -40,6 +42,16 @@ export default async function ProfilPage() {
         </p>
       </div>
       <ProfileForm initialValues={initialValues} />
+
+      <Card>
+        <CardTitle>Daten-Backup</CardTitle>
+        <p className="mb-4 text-sm text-slate-400">
+          Lädt einen lesbaren JSON-Snapshot aller selbst eingegebenen Daten herunter (Objekte, Sparpositionen, Profil,
+          Szenarien, Referenzdaten) — reine Sicherungskopie, kein Wiedereinspiel-Mechanismus. Sinnvoll, weil es kein
+          App-Login und keine Cloud-Synchronisation gibt.
+        </p>
+        <ExportButton />
+      </Card>
     </div>
   );
 }
