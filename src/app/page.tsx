@@ -29,6 +29,11 @@ const tools = [
     title: "Szenarien",
     description: "„Was wäre, wenn…“ — Käufe, Verkäufe, Sparraten & Anschaffungen durchspielen, ohne deine echten Daten zu verändern.",
   },
+  {
+    href: "/sparziel",
+    title: "Sparziel-Rechner",
+    description: "Freistehender Zinseszins-Rechner: Kapitalverlauf einer Sparrate über Zeit, und wann ein Zielbetrag erreicht ist.",
+  },
 ];
 
 export default async function Home() {

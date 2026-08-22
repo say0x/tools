@@ -10,6 +10,7 @@ const links = [
   { href: "/immobilien/objekte", label: "Immobilien" },
   { href: "/finanzuebersicht", label: "Finanzübersicht" },
   { href: "/szenarien", label: "Szenarien" },
+  { href: "/sparziel", label: "Sparziel" },
   { href: "/profil", label: "Profil" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];
