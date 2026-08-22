@@ -1,5 +1,7 @@
 "use client";
 
+// Referenz: docs/weitere-rechner.md
+
 import { useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardTitle } from "@/components/ui/Card";

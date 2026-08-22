@@ -17,6 +17,8 @@ import type { CalculationResult, Meilensteine, ProfileInput, PropertyInput, Refe
  * Orchestriert die gesamte Kennzahlen-Berechnung für ein Objekt. Einzige
  * Stelle, die UI-Code oder Server Actions importieren sollen — alle
  * Submodule bleiben intern austauschbar.
+ *
+ * Ausführliche Referenz (Modul-Landkarte, Ablauf, Schnittstellen): docs/immobilien-rechner.md
  */
 export function berechneObjekt(
   property: PropertyInput,

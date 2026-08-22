@@ -1,5 +1,7 @@
 "use client";
 
+// Referenz (Cashflow-only-Philosophie, Besitzstatus-System): docs/finanzuebersicht-und-szenarien.md
+
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useMemo, useState, useTransition } from "react";
