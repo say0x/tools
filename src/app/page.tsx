@@ -1,7 +1,8 @@
 import Link from "next/link";
+import dynamicImport from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
-import { VermoegensverteilungChart } from "@/components/charts/VermoegensverteilungChart";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { BESITZSTATUS_ZAEHLT_IM_VERMOEGEN } from "@/lib/asset";
 import { berechneObjekt } from "@/server/calc/engine";
@@ -14,6 +15,14 @@ import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
 import { berechneImmobilienPositionen } from "@/server/data/vermoegen";
 
 export const dynamic = "force-dynamic";
+
+// Kein ssr:false hier: Next.js verbietet das direkt in Server Components — der
+// dynamische Import allein sorgt trotzdem für einen separaten, erst bei Bedarf
+// geladenen Chunk statt Recharts fest ins Seiten-Bundle zu backen.
+const VermoegensverteilungChart = dynamicImport(
+  () => import("@/components/charts/VermoegensverteilungChart").then((m) => m.VermoegensverteilungChart),
+  { loading: () => <Skeleton className="h-[100px] w-full" /> }
+);
 
 const tools = [
   {

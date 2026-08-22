@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
-import { VergleichChart } from "@/components/charts/VergleichChart";
-import { VergleichVermoegensChart } from "@/components/charts/VergleichVermoegensChart";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
@@ -12,6 +12,17 @@ import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
 
 export const metadata = { title: "Objektvergleich" };
+
+// Kein ssr:false hier: Next.js verbietet das direkt in Server Components — der
+// dynamische Import allein sorgt trotzdem für einen separaten, erst bei Bedarf
+// geladenen Chunk statt Recharts fest ins Seiten-Bundle zu backen.
+const VergleichChart = dynamic(() => import("@/components/charts/VergleichChart").then((m) => m.VergleichChart), {
+  loading: () => <Skeleton className="h-[240px] w-full" />,
+});
+const VergleichVermoegensChart = dynamic(
+  () => import("@/components/charts/VergleichVermoegensChart").then((m) => m.VergleichVermoegensChart),
+  { loading: () => <Skeleton className="h-[260px] w-full" /> }
+);
 
 function normalizeIds(raw: string | string[] | undefined): string[] {
   if (!raw) return [];

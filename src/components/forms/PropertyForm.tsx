@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm, useWatch, type FieldErrors } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -12,10 +13,10 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { AmpelBadge, BesitzstatusBadge } from "@/components/ui/Badge";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS } from "@/lib/asset";
 import { DualUnitInput } from "@/components/forms/DualUnitInput";
 import { OverridableField } from "@/components/forms/OverridableField";
-import { ObjektChartsPanel } from "@/components/charts/ObjektChartsPanel";
 import { berechneObjekt } from "@/server/calc/engine";
 import {
   BUNDESLAENDER,
@@ -49,6 +50,21 @@ import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
 import { ZUSTANDSFAKTOR } from "@/server/calc/constants";
 import { MAKLERPROVISION_DEFAULT_PROZENT } from "@/server/calc/costs/kaufnebenkosten";
+
+// Dynamisch importiert: bündelt 5 Recharts-Diagramme, die erst unterhalb des Formulars
+// sichtbar sind (showCharts) — das Formular selbst soll ohne Recharts im Bundle interaktiv sein.
+const ObjektChartsPanel = dynamic(() => import("@/components/charts/ObjektChartsPanel").then((m) => m.ObjektChartsPanel), {
+  ssr: false,
+  loading: () => (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Card key={i}>
+          <Skeleton className="h-64 w-full" />
+        </Card>
+      ))}
+    </>
+  ),
+});
 
 export function PropertyForm({
   defaultValues,
@@ -378,7 +394,6 @@ export function PropertyForm({
                 </div>
               )}
               <GewerkeSubform
-                control={control}
                 register={register}
                 fieldArray={gewerkeArray}
                 result={result}
@@ -787,7 +802,6 @@ function Stat({ label, value, subValue }: { label: string; value: string; subVal
 }
 
 function GewerkeSubform({
-  control,
   register,
   fieldArray,
   result,
@@ -796,8 +810,7 @@ function GewerkeSubform({
   watched,
   errors,
 }: {
-  control: any;
-  register: any;
+  register: UseFormRegister<PropertyFormValues>;
   fieldArray: ReturnType<typeof useFieldArray<PropertyFormValues, "gewerke">>;
   result: CalculationResult | null;
   referenceData: ReferenceDataSnapshot;

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
-import { PROPERTY_INCLUDE } from "@/server/data/mappers";
+import { PROPERTY_INCLUDE, splitPropertyData } from "@/server/data/mappers";
 import { propertySchema, type PropertyFormValues } from "./property-schema";
 
 export type { PropertyFormValues } from "./property-schema";
@@ -16,14 +16,6 @@ function parsePropertyFormValues(values: PropertyFormValues): PropertyFormValues
     throw new Error(`Ungültige Eingabe: ${meldung}`);
   }
   return result.data;
-}
-
-function splitPropertyData(data: PropertyFormValues) {
-  const { name, besitzstatus, financing, gewerke, exit, kaufdatum, ...property } = data;
-  // kaufdatum kommt als "YYYY-MM-DD"-String vom HTML-Date-Input — Prisma
-  // erwartet für DateTime-Spalten ein vollständiges ISO-8601-DateTime, keinen reinen Datums-String.
-  // besitzstatus liegt auf der gemeinsamen Asset-Tabelle, nicht auf Property.
-  return { name, besitzstatus, property: { ...property, kaufdatum: new Date(kaufdatum) }, financing, gewerke, exit };
 }
 
 export async function erstelleObjekt(values: PropertyFormValues) {
@@ -93,6 +85,10 @@ export async function dupliziereObjekt(id: string) {
     include: { ...PROPERTY_INCLUDE, asset: true },
   });
 
+  // Basisname ohne ein bereits vorhandenes " (Kopie)"-Suffix — sonst würde das Duplizieren
+  // eines Duplikats den Suffix immer weiter anhängen ("Objekt (Kopie) (Kopie) (Kopie)...").
+  const basisname = original.asset.name.replace(/ \(Kopie\)$/, "");
+
   const created = await prisma.property.create({
     data: {
       kaufpreis: original.kaufpreis,
@@ -138,7 +134,7 @@ export async function dupliziereObjekt(id: string) {
       ansprechpartnerNotizen: original.ansprechpartnerNotizen,
       notizen: original.notizen,
       quelleUrl: original.quelleUrl,
-      asset: { create: { type: "IMMOBILIE", name: `${original.asset.name} (Kopie)`, besitzstatus: original.asset.besitzstatus } },
+      asset: { create: { type: "IMMOBILIE", name: `${basisname} (Kopie)`, besitzstatus: original.asset.besitzstatus } },
       financing: original.financing
         ? {
             create: {
