@@ -1,3 +1,5 @@
+// Referenz ("Objekt-Bibliothek & Vergleich (UI)"): docs/immobilien-rechner.md
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
