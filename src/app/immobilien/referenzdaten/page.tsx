@@ -11,6 +11,8 @@ import { ladeStandardwerte } from "@/server/data/reference-data";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Referenzdaten" };
+
 export default async function ReferenzdatenPage() {
   const [grunderwerbsteuer, mietpreise, gewerkKosten, nutzungsdauer, kaufnebenkostenDefaults, kaufpreisfaktoren, standardwerte] =
     await Promise.all([

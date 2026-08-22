@@ -1,5 +1,7 @@
 import { NeuesSzenarioForm } from "./NeuesSzenarioForm";
 
+export const metadata = { title: "Neues Szenario" };
+
 export default function NeuesSzenarioPage() {
   return (
     <div className="flex flex-col gap-6">

@@ -13,6 +13,8 @@ import { DuplicateObjectButton } from "./DuplicateObjectButton";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Immobilien" };
+
 export default async function ObjektBibliothekPage() {
   const [rows, profilRow, referenceData] = await Promise.all([
     ladeObjekte(),

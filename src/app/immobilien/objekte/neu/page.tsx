@@ -7,6 +7,8 @@ import { toProfileInput } from "@/server/data/mappers";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Neues Objekt" };
+
 export default async function NeuesObjektPage() {
   const [profilRow, referenceData, standardwerte] = await Promise.all([
     ladeProfil(),

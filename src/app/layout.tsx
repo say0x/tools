@@ -14,8 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "tools — Dennis Kohnke",
-  description: "Interne Tool-Suite: Immobilien-Rechner und mehr.",
+  title: {
+    default: "tools — Dennis Kohnke",
+    template: "%s · tools",
+  },
+  description: "Interne Tool-Suite: Immobilien-Rechner, Finanzübersicht und Szenarien.",
+  // Internes Tool, nicht für die Öffentlichkeit gedacht (Zugriff ohnehin nur über
+  // VPN-only Reverse-Proxy) — soll trotzdem nicht versehentlich indexiert werden.
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

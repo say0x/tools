@@ -9,6 +9,12 @@ import { toProfileInput, toPropertyFormValues } from "@/server/data/mappers";
 import { DeleteObjectButton } from "./DeleteObjectButton";
 import { DuplicateObjectButton } from "../DuplicateObjectButton";
 
+export async function generateMetadata({ params }: PageProps<"/immobilien/objekte/[id]">) {
+  const { id } = await params;
+  const row = await ladeObjekt(id);
+  return { title: row?.asset.name ?? "Objekt" };
+}
+
 export default async function ObjektDetailPage({ params }: PageProps<"/immobilien/objekte/[id]">) {
   const { id } = await params;
 
