@@ -33,8 +33,10 @@ Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitp
 | `tax/grenzsteuersatz.ts` | Einkommensteuertarif nach §32a EStG, Grenzsteuersatz | `berechneEinkommensteuer`, `berechneGrenzsteuersatz` |
 | `tax/estg-zonen.ts` | Jahrgangsweise Tarif-Zonenwerte (Datentabelle) | `ESTG_ZONEN`, `resolveEstgZone` |
 | `tax/zve-schaetzung.ts` | Grobe zvE-Schätzung aus Brutto-Einkommen | `schaetzeZvEAusBrutto` |
-| `tax/spekulationssteuer.ts` | §23 EStG-Näherung für einen Verkaufsgewinn | `berechneSpekulationssteuer` — **Hinweis**: definiert und getestet, aber aktuell von `berechneObjekt()` nicht aufgerufen (kein UI-Pfad nutzt sie). Beim nächsten Ausbau des Exit-Szenarios mit einplanen oder als bewusst ungenutzt dokumentieren. |
+| `tax/spekulationssteuer.ts` | §23 EStG-Näherung für einen Verkaufsgewinn | `berechneSpekulationssteuer` |
+| `exit/exit-szenario.ts` | Bewertet den geplanten Verkauf am Ende der Haltedauer (Verkaufspreis/Restschuld aus dem Vermögensverlauf-Zieljahr, Spekulationssteuer darauf) | `berechneExitSzenario` |
 | `analyse/verhandlungsargumente.ts` | Leitet Verhandlungsargumente aus den übrigen Ergebnissen ab | `ermittleVerhandlungsargumente` |
+| `analyse/annahmen-warnungen.ts` | Warnt vor Annahmen, die technisch gültig, aber unrealistisch günstig sind (Leerstand, Wert-/Mietsteigerung) | `ermittleAnnahmenWarnungen` |
 | `affordability/check.ts` | Finanzierbarkeits-Ampel (Schuldendienstquote, Liquiditätsreserve) | `berechneAffordability` |
 
 ## Ablauf von `berechneObjekt()`
@@ -55,6 +57,8 @@ Reihenfolge in [`engine.ts`](../src/server/calc/engine.ts) (jeder Schritt nutzt 
 12. **Kapitaleffizienz-Signal** — `berechneKapitaleffizienz`.
 13. **"Rechnet sich?"-Meldung** — `dealBreaker`: `rechnetSich = cashflowNachSteuer >= 0 && affordability.ampel !== "ROT"`, plus eine erklärende Meldung (nutzt ggf. den Breakeven-Kaufpreis).
 14. **Verhandlungsargumente** — `ermittleVerhandlungsargumente`.
+15. **Annahmen-Warnungen** — `ermittleAnnahmenWarnungen`, prüft Leerstandsquote/Wert-/Mietsteigerung auf unrealistisch günstige Werte (unabhängig vom Exit-Szenario).
+16. **Exit-Szenario** — `berechneExitSzenario`, nur wenn `exit.geplant`: entnimmt Verkaufspreis und Restschuld dem `vermoegensverlauf`-Eintrag zum Jahr `exit.haltedauerJahre` und berechnet darauf die Spekulationssteuer.
 
 ## Eingabe-Schnittstellen (`src/server/calc/types.ts`)
 
@@ -125,7 +129,7 @@ Reihenfolge in [`engine.ts`](../src/server/calc/engine.ts) (jeder Schritt nutzt 
 | Feld | Typ | Beschreibung |
 |---|---|---|
 | `geplant` | `boolean` | Ob ein Verkauf geplant ist |
-| `haltedauerJahre` | `number` | Für Spekulationsfrist-Betrachtung (siehe `tax/spekulationssteuer.ts` — aktuell nicht in `berechneObjekt()` verdrahtet) |
+| `haltedauerJahre` | `number` | Jahr des geplanten Verkaufs seit Kauf — Index ins `vermoegensverlauf`-Array für `exit/exit-szenario.ts`, außerdem Basis der Spekulationsfrist-Prüfung (`tax/spekulationssteuer.ts`) |
 
 ### `ProfileInput`
 
@@ -175,6 +179,8 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 | `kapitaleffizienz` | `KapitaleffizienzResult` | `rendite/kapitaleffizienz.ts` |
 | `dealBreaker` | `{rechnetSich, meldung}` | `engine.ts` |
 | `verhandlungsargumente` | `Verhandlungsargument[]` | `analyse/verhandlungsargumente.ts` |
+| `annahmenWarnungen` | `AnnahmenWarnung[]` | `analyse/annahmen-warnungen.ts` — immer berechnet, unabhängig vom Exit-Szenario |
+| `exitSzenario` | `ExitSzenarioResult \| null` | `exit/exit-szenario.ts` — `null` ohne `exit.geplant` oder bei `haltedauerJahre <= 0` |
 
 Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `VermoegensverlaufJahr`) direkt als JSDoc-Kommentare in [`types.ts`](../src/server/calc/types.ts) — bei Änderungen dort zuerst nachsehen/ergänzen, diese Datei verlinkt nur darauf statt sie zu duplizieren.
 
@@ -189,7 +195,9 @@ Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `Ve
 ## Bekannte Vereinfachungen (Immobilien-Rechner)
 
 - **Tilgungsplan**: simuliert nach Ablauf der Zinsbindung EINMALIG eine Anschlussfinanzierung (neuer Zins = bisheriger Zins + frei definierbarer Aufschlag in Prozentpunkten, Default 1 Prozentpunkt; Annuität wird mit gleichem Tilgungssatz auf die dann aktuelle Restschuld neu berechnet) — keine wiederkehrende Anschlussfinanzierung bei mehrfachem Zinsbindungsablauf innerhalb des Betrachtungszeitraums. Zusätzlich lässt sich eine jährliche Sondertilgung hinterlegen (% der ursprünglichen Darlehenssumme, gedeckelt auf eine ebenfalls frei definierbare vertragliche Max-Grenze, Default 5%) — sie beschleunigt Restschuld-Tilgung und Volltilgungszeitpunkt, wirkt sich aber bewusst nicht auf die laufende Cashflow-/Schuldendienst-Berechnung aus (wie eine zusätzliche Kapitaleinlage behandelt, nicht wie eine laufende Kostenposition).
-- **Steuer**: Grenzsteuersatz nach §32a EStG, AfA, Spekulationssteuer sind Näherungen für die Investitionsentscheidung, keine Steuerberatung — Zonenwerte in `src/server/calc/tax/estg-zonen.ts` vor wichtigen Entscheidungen gegen die aktuelle BMF-Veröffentlichung prüfen. Das zvE wird ohne Override grob aus dem Brutto-Einkommen geschätzt (Pauschbeträge für Werbungskosten/Sonderausgaben, ~20% pauschale Vorsorgeaufwendungen) — für Genauigkeit das echte zvE aus dem Steuerbescheid manuell eintragen. `berechneSpekulationssteuer` ist definiert und getestet, aber aktuell nicht in `berechneObjekt()` verdrahtet.
+- **Steuer**: Grenzsteuersatz nach §32a EStG, AfA, Spekulationssteuer sind Näherungen für die Investitionsentscheidung, keine Steuerberatung — Zonenwerte in `src/server/calc/tax/estg-zonen.ts` vor wichtigen Entscheidungen gegen die aktuelle BMF-Veröffentlichung prüfen. Das zvE wird ohne Override grob aus dem Brutto-Einkommen geschätzt (Pauschbeträge für Werbungskosten/Sonderausgaben, ~20% pauschale Vorsorgeaufwendungen) — für Genauigkeit das echte zvE aus dem Steuerbescheid manuell eintragen.
+- **Exit-Szenario**: Buchwert für die Spekulationssteuer = Gesamtinvestition (Kaufpreis + Kaufnebenkosten + Sofortinvestition) minus kumulierte AfA bis zum Verkaufsjahr (AfA-Satz wird wie im Vermögensverlauf über die Haltedauer konstant angenommen) — keine separate Grundstücksanteil-Betrachtung. Verkaufspreis und Restschuld stammen aus dem `vermoegensverlauf`-Eintrag zum Jahr `haltedauerJahre`; bei einer Haltedauer über `VERMOEGENSVERLAUF_MAX_JAHRE` hinaus wird der letzte verfügbare Eintrag verwendet.
+- **Annahmen-Warnungen**: rein hinweisend (keine Kaufpreis-/Ampel-Auswirkung) — Leerstandsquote < 1%, Wert- oder Mietsteigerung > 3%/Jahr gelten als unrealistisch günstig. Feste Schwellen, keine Herleitung aus Referenzdaten.
 - **Referenzdaten**: Grunderwerbsteuer, Mietpreise, Sanierungskosten, Instandhaltungssätze, Notar-/Grundbuch-Standardsätze sind Startwerte ohne Live-Anbindung, aber auf `/immobilien/referenzdaten` frei editierbar.
 - **Vermögensverlauf**: schreibt Miete und laufende Kosten mit getrennten, jährlichen Raten fort (Mietsteigerung bzw. Kostensteigerung) und übernimmt Zins/Tilgung Jahr für Jahr aus dem echten Tilgungsplan — Grenzsteuersatz und AfA bleiben dabei über die gesamte Laufzeit konstant (keine Simulation von Einkommensänderungen oder Sonderabschreibungs-Auslauf). Wertsteigerung der Immobilie (Default 2%/Jahr, angelehnt ans EZB-Inflationsziel) ist eine reine Annahme, keine Prognose. Die zusätzliche "real"-Linie im Chart rechnet mit derselben Kostensteigerungsrate als Inflations-Näherung inflationsbereinigt — kein separat modelliertes CPI.
 - **Grundsteuer**: wird als vollständig umlagefähig (cash-neutral) behandelt und nicht automatisch berechnet, da der Betrag vom Hebesatz der jeweiligen Gemeinde abhängt.

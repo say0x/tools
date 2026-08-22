@@ -90,7 +90,7 @@ export function KreditvergleichClient() {
             <input
               value={k.name}
               onChange={(e) => updateKredit(i, { name: e.target.value })}
-              className="mb-4 w-full border-none bg-transparent text-base font-semibold text-slate-100 focus:outline-none"
+              className="mb-4 w-full rounded-md border-none bg-transparent text-base font-semibold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
               aria-label={`Name Kredit ${i + 1}`}
             />
             <div className="grid grid-cols-2 gap-3">
