@@ -9,6 +9,8 @@ import { FinanzuebersichtClient } from "./FinanzuebersichtClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Finanzübersicht" };
+
 export default async function FinanzuebersichtPage() {
   const [propertyRows, profilRow, referenceData, sparpositionenRows] = await Promise.all([
     ladeObjekte(),

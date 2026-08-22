@@ -13,6 +13,8 @@ import { SzenarioClient } from "./SzenarioClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Szenario bearbeiten" };
+
 export default async function SzenarioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 

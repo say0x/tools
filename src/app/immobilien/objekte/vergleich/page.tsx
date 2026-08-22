@@ -11,6 +11,8 @@ import { ladeObjekteNachIds } from "@/server/data/property";
 import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
 
+export const metadata = { title: "Objektvergleich" };
+
 function normalizeIds(raw: string | string[] | undefined): string[] {
   if (!raw) return [];
   return Array.isArray(raw) ? raw : [raw];

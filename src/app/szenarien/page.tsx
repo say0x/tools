@@ -7,6 +7,8 @@ import { DeleteSzenarioButton } from "./[id]/DeleteSzenarioButton";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Szenarien" };
+
 export default async function SzenarienPage() {
   const szenarien = await ladeSzenarien();
 

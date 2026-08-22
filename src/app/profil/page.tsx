@@ -6,6 +6,8 @@ import { ProfileForm } from "./ProfileForm";
 // sofort veraltet).
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Profil" };
+
 export default async function ProfilPage() {
   const profil = await ladeProfil();
 
