@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (Cashflow-only-Philosophie, Besitzstatus-System): docs/finanzuebersicht-und-szenarien.md
+// Referenz (Cashflow-only-Philosophie, Besitzstatus-System): docs/tools/finanzuebersicht-und-szenarien.md
 
 import Link from "next/link";
 import dynamic from "next/dynamic";

@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (Änderungsarten, Immobilienwert-Referenzlinie): docs/finanzuebersicht-und-szenarien.md
+// Referenz (Änderungsarten, Immobilienwert-Referenzlinie): docs/tools/finanzuebersicht-und-szenarien.md
 
 import { useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";

@@ -1,4 +1,4 @@
-// Referenz (Dashboard-Kennzahlen, Notgroschen-Reichweite): docs/weitere-rechner.md
+// Referenz (Dashboard-Kennzahlen, Notgroschen-Reichweite): docs/tools/weitere-rechner.md
 
 import Link from "next/link";
 import dynamicImport from "next/dynamic";

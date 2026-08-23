@@ -1,13 +1,13 @@
 # Immobilien-Rechner — Referenz
 
-Ausführliche Referenz für die Berechnungs-Engine unter `src/server/calc/`. Ergänzt die kurze Übersicht in der Haupt-[`README.md`](../README.md) — dort steht das große Bild (Tech-Stack, Setup, Deployment), hier die Details: Modul-Landkarte, Schnittstellen (Ein-/Ausgabetypen) und die Annahmen/Vereinfachungen, die speziell diesen Rechner betreffen.
+Ausführliche Referenz für die Berechnungs-Engine unter `src/server/calc/`. Ergänzt die kurze Übersicht in der Haupt-[`README.md`](../../README.md) — dort steht das große Bild (Tech-Stack, Setup, Deployment), hier die Details: Modul-Landkarte, Schnittstellen (Ein-/Ausgabetypen) und die Annahmen/Vereinfachungen, die speziell diesen Rechner betreffen.
 
 Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitpflegen — insbesondere die Tabellen unter [Eingabe-Schnittstellen](#eingabe-schnittstellen-srcservercalctypests) und [Ausgabe](#ausgabe-calculationresult), die 1:1 aus `src/server/calc/types.ts` abgeleitet sind.
 
 ## Grundprinzip
 
 - **Framework-frei**: `src/server/calc/` importiert weder Prisma noch React. Läuft dadurch identisch server- und clientseitig — z. B. nutzt der [Sparziel-Rechner](weitere-rechner.md) dieselben Funktionen direkt im Browser, ohne Server-Roundtrip. Seit dem Audit lint-erzwungen: ein `no-restricted-imports`-Override in `eslint.config.mjs` blockt React-/Next.js-/Prisma-Importe innerhalb dieses Verzeichnisses mit einer erklärenden Fehlermeldung, statt sich allein auf Konvention zu verlassen.
-- **Einziger Einstiegspunkt**: `berechneObjekt()` in [`engine.ts`](../src/server/calc/engine.ts). UI-Code und Server Actions importieren nur diese Funktion, nie die Submodule direkt — die bleiben so intern austauschbar.
+- **Einziger Einstiegspunkt**: `berechneObjekt()` in [`engine.ts`](../../src/server/calc/engine.ts). UI-Code und Server Actions importieren nur diese Funktion, nie die Submodule direkt — die bleiben so intern austauschbar.
 - **computed-with-override**: viele Felder (z. B. Grunderwerbsteuer-Satz, AfA-Satz, Miteigentumsanteil, Instandhaltungsrücklage) haben ein `xProzent`/`x`-Feld plus ein `xOverride`-Bool. Ohne Override berechnet die Engine einen Vorschlag aus Referenzdaten/Formel; mit Override gilt der manuell eingetragene Wert. Durchgängiges Muster, kein Sonderfall.
 - **Tests direkt neben dem Code**: jedes `*.ts`-Modul unter `src/server/calc/` hat (fast immer) ein `*.test.ts` daneben. `src/server/calc/__tests__/engine.test.ts` + `fixtures.ts` testen die Gesamt-Orchestrierung.
 
@@ -41,7 +41,7 @@ Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitp
 
 ## Ablauf von `berechneObjekt()`
 
-Reihenfolge in [`engine.ts`](../src/server/calc/engine.ts) (jeder Schritt nutzt teils Ergebnisse vorheriger Schritte):
+Reihenfolge in [`engine.ts`](../../src/server/calc/engine.ts) (jeder Schritt nutzt teils Ergebnisse vorheriger Schritte):
 
 1. **zvE ermitteln** — Override oder `schaetzeZvEAusBrutto(bruttoJaehrlich)`.
 2. **Kaufnebenkosten** — `berechneKaufnebenkosten`.
@@ -182,7 +182,7 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 | `annahmenWarnungen` | `AnnahmenWarnung[]` | `analyse/annahmen-warnungen.ts` — immer berechnet, unabhängig vom Exit-Szenario |
 | `exitSzenario` | `ExitSzenarioResult \| null` | `exit/exit-szenario.ts` — `null` ohne `exit.geplant` oder bei `haltedauerJahre <= 0` |
 
-Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `VermoegensverlaufJahr`) direkt als JSDoc-Kommentare in [`types.ts`](../src/server/calc/types.ts) — bei Änderungen dort zuerst nachsehen/ergänzen, diese Datei verlinkt nur darauf statt sie zu duplizieren.
+Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `VermoegensverlaufJahr`) direkt als JSDoc-Kommentare in [`types.ts`](../../src/server/calc/types.ts) — bei Änderungen dort zuerst nachsehen/ergänzen, diese Datei verlinkt nur darauf statt sie zu duplizieren.
 
 ## Objekt-Bibliothek & Vergleich (UI)
 

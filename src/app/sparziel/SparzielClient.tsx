@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz: docs/weitere-rechner.md
+// Referenz: docs/tools/weitere-rechner.md
 
 import { useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";

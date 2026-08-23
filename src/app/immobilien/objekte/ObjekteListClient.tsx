@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz ("Objekt-Bibliothek & Vergleich (UI)"): docs/immobilien-rechner.md
+// Referenz ("Objekt-Bibliothek & Vergleich (UI)"): docs/tools/immobilien-rechner.md
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
