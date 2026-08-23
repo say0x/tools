@@ -184,6 +184,16 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 
 Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `VermoegensverlaufJahr`) direkt als JSDoc-Kommentare in [`types.ts`](../../src/server/calc/types.ts) — bei Änderungen dort zuerst nachsehen/ergänzen, diese Datei verlinkt nur darauf statt sie zu duplizieren.
 
+## Objekt-Formular (UI)
+
+`src/components/forms/PropertyForm.tsx` (832 Zeilen, gemeinsam für Anlegen und Bearbeiten) — zweispaltiges Layout, rechte Spalte sticky:
+
+- **Linke Spalte**: eine Card je Themenblock, in dieser Reihenfolge — Objekt (Stammdaten, Status-Badge), Quelle & Notizen, Ansprechpartner/Makler, Kaufnebenkosten (inkl. "Automatisch berechnen"-Button, der alle vier Override-Flags zurücksetzt), Sanierung/Sofortinvestition (bei Modus `GRANULAR` die Gewerke-Liste, siehe unten), Finanzierung, Miete & Wertentwicklung, Laufende Kosten, Steuer, Exit-Szenario.
+- **Rechte Spalte** (nur wenn `wohnflaeche > 0`, sonst Platzhalter-Hinweis): Kennzahlen, "Rechnet sich das?" (Ampel + Begründung), Kapitaleffizienz, Annahmen-Warnungen (nur bei mindestens einem Fund), Verhandlungs-Argumente (nur bei mindestens einem Fund), Charts (`ObjektChartsPanel`, per `next/dynamic` nachgeladen — siehe [Geteilte UI-Bausteine](weitere-rechner.md#geteilte-ui-bausteine)).
+- Live-Neuberechnung bei jeder Eingabe über `useWatch` + `berechneObjekt()` direkt im Client (kein Server-Roundtrip, ADR-0001) — mit `try/catch`: eine ungültige Zwischeneingabe zeigt einfach keine Kennzahlen statt einer kaputten Seite.
+- Ausgelagerte Teile (Split 2026-08-23, vorher alles in einer 1072-Zeilen-Datei): `components/forms/Stat.tsx` (kleine Label/Wert-Anzeige, nur für dieses Formular — nicht zu verwechseln mit den strukturell ähnlichen, aber bewusst eigenständigen `Stat`-Komponenten in Steuerrechner/Sparziel/Finanzübersicht/ObjekteListClient/SzenarioClient, die je andere Props/Markup haben) und `components/forms/GewerkeSubform.tsx` (die dynamische Gewerke-Liste bei Sanierungsmodus `GRANULAR`, inkl. der Kosten-Formel-Erklärung pro Zeile).
+- Fehlerdarstellung: `flattenFormErrors` (`src/lib/form-errors.ts`, geteilt mit `ProfileForm.tsx`).
+
 ## Objekt-Bibliothek & Vergleich (UI)
 
 - **`/immobilien/objekte`**: Namenssuche kombinierbar mit Besitzstatus-/Ampel-Filtern (UND-Verknüpfung, "Alle" setzt den jeweiligen Filter zurück), "Alle sichtbaren auswählen" wirkt nur auf die aktuell gefilterten Objekte. Die Mehrfachauswahl-Checkboxen speisen sowohl das Vergleichs-Formular (natives GET-Formular) als auch einen "Ausgewählte löschen"-Button (`loescheObjekte`-Server-Action, ein `deleteMany` statt N Einzel-Requests).
