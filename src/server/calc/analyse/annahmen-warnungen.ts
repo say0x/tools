@@ -1,4 +1,4 @@
-// Referenz: docs/immobilien-rechner.md
+// Referenz: docs/tools/immobilien-rechner.md
 
 const LEERSTAND_UNREALISTISCH_SCHWELLE_PROZENT = 1;
 const WERTSTEIGERUNG_OPTIMISTISCH_SCHWELLE_PROZENT = 3;

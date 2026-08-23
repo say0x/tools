@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (primaryLinks/secondaryLinks-Aufteilung, warum ein eigener Dropdown statt externer Bibliothek): docs/weitere-rechner.md
+// Referenz (primaryLinks/secondaryLinks-Aufteilung, warum ein eigener Dropdown statt externer Bibliothek): docs/tools/weitere-rechner.md
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";

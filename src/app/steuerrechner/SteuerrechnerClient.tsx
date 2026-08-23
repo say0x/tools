@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (inkl. ReferenceDot/XAxis-Recharts-Stolperstein): docs/weitere-rechner.md
+// Referenz (inkl. ReferenceDot/XAxis-Recharts-Stolperstein): docs/tools/weitere-rechner.md
 
 import { useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";

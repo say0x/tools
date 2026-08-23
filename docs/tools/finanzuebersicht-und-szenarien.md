@@ -1,6 +1,6 @@
 # Finanzübersicht & Szenarien — Referenz
 
-Ausführliche Referenz für `/finanzuebersicht` und `/szenarien` sowie das gemeinsam genutzte Besitzstatus-System. Ergänzt die kurze Übersicht in der Haupt-[`README.md`](../README.md); Details zur eigentlichen Objekt-Berechnung stehen in [`immobilien-rechner.md`](immobilien-rechner.md).
+Ausführliche Referenz für `/finanzuebersicht` und `/szenarien` sowie das gemeinsam genutzte Besitzstatus-System. Ergänzt die kurze Übersicht in der Haupt-[`README.md`](../../README.md); Details zur eigentlichen Objekt-Berechnung stehen in [`immobilien-rechner.md`](immobilien-rechner.md).
 
 ## Grundphilosophie: Cashflow, nicht Vermögenswert
 

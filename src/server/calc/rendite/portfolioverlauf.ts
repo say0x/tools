@@ -1,7 +1,7 @@
 import type { PortfolioJahr } from "../types";
 
 // Geteilt zwischen Finanzübersicht, Szenarien und dem Sparziel-Rechner — Referenz:
-// docs/finanzuebersicht-und-szenarien.md und docs/weitere-rechner.md
+// docs/tools/finanzuebersicht-und-szenarien.md und docs/tools/weitere-rechner.md
 
 export interface SparpositionVerlaufInput {
   betrag: number;

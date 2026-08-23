@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (Kennzahlen-Sidebar, Exit-Szenario, Annahmen-Warnungen, Verhandlungsargumente): docs/immobilien-rechner.md
+// Referenz (Kennzahlen-Sidebar, Exit-Szenario, Annahmen-Warnungen, Verhandlungsargumente): docs/tools/immobilien-rechner.md
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";

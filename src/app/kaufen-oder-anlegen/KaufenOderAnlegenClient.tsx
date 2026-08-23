@@ -1,6 +1,6 @@
 "use client";
 
-// Referenz (warum Lump-Sum-Vergleich statt klassischer Miete-vs-Kauf-Rechner): docs/weitere-rechner.md
+// Referenz (warum Lump-Sum-Vergleich statt klassischer Miete-vs-Kauf-Rechner): docs/tools/weitere-rechner.md
 
 import { useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";

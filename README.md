@@ -16,19 +16,30 @@ Die Datenbank speichert ausschließlich Rohdaten. Alle Kennzahlen (Renditen, Til
 
 Wiederkehrendes Datenmodell-Muster **"computed-with-override"**: ein Wertefeld + ein `xOverride`-Boolean. Ist der Override aus, berechnet die Engine einen Vorschlag (z. B. Grunderwerbsteuer aus dem Bundesland, Instandhaltungsrücklage aus Baujahr + Bauteilzustand); ist er an, gilt der manuell eingetragene Wert.
 
+## Version
+
+`0.2.0-20260823` (SemVer + CalVer-Datumssuffix, siehe [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md)). Ein Deploy, ein Build — keine unabhängigen Tool-Versionen, siehe [ADR-0007](docs/architecture/decisions/0007-monolith-statt-microservices.md).
+
 ## Dokumentation
 
-Diese README gibt das große Bild — Tech-Stack, Setup, Deployment, ein kurzer Überblick pro Tool. Für Details (Schnittstellen/Variablen der Berechnungs-Engine, Modul-Landkarte, alle bekannten Vereinfachungen) gibt es je Themenblock eine eigene Referenzseite unter [`docs/`](docs/), die bei Änderungen mitgepflegt wird statt hier immer weiter anzuwachsen:
+Diese README gibt den schnellen Einstieg — Tech-Stack, lokale Entwicklung, Deployment in Kurzform. Ausführliche Referenz (Architektur, Datenbank, Security, QA, alle Tool-Details, Changelog) steht strukturiert unter [`docs/`](docs/README.md):
 
-- [`docs/immobilien-rechner.md`](docs/immobilien-rechner.md) — die Berechnungs-Engine (`src/server/calc/`): Modul-Landkarte, Ablauf von `berechneObjekt()`, alle Ein-/Ausgabe-Schnittstellen (`PropertyInput`, `ProfileInput`, `ReferenceDataSnapshot`, `CalculationResult`, …) als Tabellen, bekannte Vereinfachungen speziell zum Immobilien-Rechner.
-- [`docs/finanzuebersicht-und-szenarien.md`](docs/finanzuebersicht-und-szenarien.md) — Cashflow-only-Philosophie, Besitzstatus-System, geteilte Bausteine zwischen Finanzübersicht und Szenarien, die vier Szenario-Änderungsarten.
-- [`docs/weitere-rechner.md`](docs/weitere-rechner.md) — Sparziel-Rechner, Steuerrechner, Kreditvergleich, Kaufen-oder-Anlegen, Daten-Backup, Dashboard, geteilte Chart-/UI-Bausteine.
+| | |
+|---|---|
+| [`docs/architecture/`](docs/architecture/overview.md) | Systemarchitektur + [Architecture Decision Records](docs/architecture/decisions/) |
+| [`docs/tools/`](docs/tools/overview.md) | Tool-Inventar, Überschneidungs-Check, sowie die Detail-Referenz je Tool |
+| [`docs/database/`](docs/database/schema.md) | Datenmodell-Landkarte |
+| [`docs/deployment/`](docs/deployment/docker.md) | Docker, Netzwerk, CI |
+| [`docs/development/`](docs/development/setup.md) | Setup, Tests, Import-Skript |
+| [`docs/security/`](docs/security/overview.md) | Bedrohungsmodell, Audit-Stand |
+| [`docs/qa/`](docs/qa/overview.md) | Testphilosophie, Abdeckung |
+| [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md) | Änderungshistorie |
 
-In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/*.md` dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt.
+In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/`-Seite dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt.
 
-## Lokale Entwicklung
+## Schnellstart
 
-Voraussetzungen: Node.js 22+, eine laufende PostgreSQL-Instanz.
+Voraussetzungen: Node.js 22+, eine laufende PostgreSQL-Instanz. Ausführliche Anleitung inkl. Tests und Import-Skript: [`docs/development/setup.md`](docs/development/setup.md).
 
 ```bash
 npm install
@@ -38,89 +49,30 @@ npx prisma db seed     # befüllt die Referenzdaten-Tabellen mit Startwerten
 npm run dev
 ```
 
-Ohne Docker lässt sich Postgres z. B. so lokal starten:
-
-```bash
-docker compose up -d postgres
-```
-
-### Tests
-
-```bash
-npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/__tests__/engine.test.ts
-```
-
-### CI
-
-`.github/workflows/ci.yml` läuft bei jedem Push nach `main` und bei jedem Pull Request: Lint, Tests, Produktions-Build (der Build-Schritt führt den TypeScript-Check gleich mit aus — ein separater `tsc`-Schritt davor scheitert auf einem frischen Checkout, da `next-env.d.ts` auf `.next/types/*` verweist, das erst der Build selbst erzeugt). Dieselben Prüfungen, die vor jedem Merge in dieser Session ohnehin manuell durchlaufen wurden, jetzt automatisch statt auf Disziplin angewiesen. Kein Postgres-Service nötig (`prisma generate` liest nur das Schema, keine Datenroute wird zur Build-Zeit statisch gerendert).
-
-### Objekte importieren (`data/import-objekte.json`)
-
-Recherchierte Objekte (z. B. von Immobilienportalen zusammengetragen) lassen
-sich über eine JSON-Datei einspielen, statt sie einzeln im Formular
-anzulegen:
-
-```bash
-npm run import:objekte
-```
-
-Liest `data/import-objekte.json`, legt für jeden Eintrag ein neues Objekt mit
-Standardwerten (`src/lib/property-form-defaults.ts`) als Basis an. Idempotent:
-Einträge werden über `quelleUrl` (falls vorhanden) oder sonst über den Namen
-dedupliziert — ein erneuter Lauf überspringt bereits importierte Objekte statt
-Duplikate anzulegen. Jeder Eintrag sollte im `notizen`-Feld dokumentieren,
-welche Werte real aus der Quelle stammen und welche geschätzt wurden (die
-Datei ist danach kein Geheimnis — sie landet im Repo und kann jederzeit
-erweitert werden).
-
 ## Deployment im Homelab (`tools.sayox.de`)
 
 ```bash
 docker compose up -d --build
 ```
 
-Das startet Postgres + die App (`Dockerfile`, Next.js `output: 'standalone'`). Der Container führt beim Start automatisch `prisma migrate deploy` aus (`docker-entrypoint.sh`), bevor der Server hochfährt.
-
-Das `Dockerfile` nutzt BuildKit-Cache-Mounts für `npm ci` (`/root/.npm`) und für Next.js' eigenen Build-Cache (`/app/.next/cache`) — dadurch bleiben npm- und Turbopack-Zwischenstände über mehrere `docker compose up -d --build`-Läufe hinweg erhalten (auch wenn sich `package-lock.json` ändert oder ein `docker system prune` den Layer-Cache gelöscht hat), was wiederholte Rebuilds nach einem `git pull` spürbar beschleunigt. Erfordert BuildKit (Standard bei aktuellem Docker Compose).
-
-**Einmalig nach dem ersten Deploy** die Referenzdaten befüllen:
-
-```bash
-docker compose exec app npx prisma db seed
-```
-
-(Danach nicht erneut ausführen, sonst werden manuelle Anpassungen auf der Referenzdaten-Seite überschrieben — der Seed läuft bewusst nicht automatisch bei jedem Start.)
-
-Die App ist intern unter Port 3000 erreichbar; im Homelab per Reverse-Proxy auf `tools.sayox.de` mappen. Kein eigenes App-Level-Login eingebaut — die Absicherung erfolgt über das Docker-/Homelab-Netz bzw. den Reverse-Proxy (VPN-only o. ä.), da das Tool bewusst nicht öffentlich sein soll. Passend dazu setzt `src/app/layout.tsx` `robots: { index: false, follow: false }` (kein Sitemap/OG-Setup, da nicht für Suchmaschinen/Social-Previews gedacht) und jede Route hat einen eigenen `<title>` (`"%s · tools"`-Template, siehe `metadata`-Exports je `page.tsx`) sowie ein eigenes Favicon (`src/app/icon.png` / `apple-icon.png`, Next-16-App-Icon-Konvention).
+Details, Netzwerk-Absicherung und CI: [`docs/deployment/docker.md`](docs/deployment/docker.md).
 
 ## Projektstruktur (Auszug)
 
+Vollständig mit Erläuterung je Verzeichnis: [`docs/development/setup.md`](docs/development/setup.md#projektstruktur-auszug).
+
 ```
 prisma/schema.prisma          Datenmodell (Asset, UserProfile, Property, Reference*)
-prisma/seed.ts                 Startwerte für Referenztabellen
 src/server/calc/                Framework-freie Berechnungs-Engine + Tests
 src/server/actions/            Server Actions (Profil, Objekt-CRUD, Referenzdaten)
-src/server/data/               Prisma-Reads + Mapper zu den Calc-Engine-Typen
-src/components/forms/          PropertyForm (Objekt-Formular inkl. Live-Kennzahlen)
-src/components/charts/         Recharts-Komponenten
-src/app/immobilien/            Objekt-Bibliothek, -Formular, -Vergleich, Referenzdaten
-src/app/finanzuebersicht/      Aggregierter Vermögensverlauf über Immobilien, Wertpapiere & Tagesgeld
-src/app/szenarien/             "Was wäre wenn"-Szenarien (Basiszustand + Änderungen, verändert nie die echten Daten)
-src/app/profil/                Nutzerprofil (Einkommen, Affordability-Schwellen)
-src/app/sparziel/              Freistehender Zinseszins-/Sparziel-Rechner, ohne eigene Datenhaltung
-src/app/steuerrechner/         Freistehender Grenzsteuersatz-Rechner, ohne eigene Datenhaltung
-src/app/kreditvergleich/       Zwei Finanzierungsangebote vergleichen, ohne eigene Datenhaltung
-src/app/kaufen-oder-anlegen/   Objekt aus der Bibliothek vs. Alternativanlage desselben Eigenkapitals
-src/server/actions/export.ts   Server Action für den JSON-Datenexport (Profil-Seite)
-src/app/page.tsx               Dashboard (Kennzahlen über alle Tools hinweg)
-src/server/data/vermoegen.ts   Geteilte Asset-Aufbereitung (Immobilien-Cashflow, Sparpositionen) für Finanzübersicht + Szenarien
-docs/                          Ausführliche Referenzdokumentation je Themenblock (siehe "Dokumentation" oben)
+src/app/                       10 Tools — Übersicht: docs/tools/overview.md
+docs/                          Ausführliche Referenzdokumentation (siehe "Dokumentation" oben)
 ```
 
 ## Bekannte Vereinfachungen
 
-Vollständige, nach Themenblock sortierte Listen stehen in den docs/*.md-Dateien (siehe [Dokumentation](#dokumentation) oben):
+Vollständige, nach Themenblock sortierte Listen stehen in den `docs/tools/*.md`-Dateien:
 
-- Immobilien-Rechner (Tilgungsplan/Anschlussfinanzierung, Steuer-Näherungen, Referenzdaten, Vermögensverlauf, Verhandlungsargumente, Gewerke, AfA, Affordability, Kapitaleffizienz, Miteigentumsanteil, Objekt-Bibliothek/Vergleich, Duplizieren, Import-Skript) → [`docs/immobilien-rechner.md`](docs/immobilien-rechner.md#bekannte-vereinfachungen-immobilien-rechner)
-- Finanzübersicht, Besitzstatus-System, Szenarien (inkl. Immobilienwert-Referenzlinie) → [`docs/finanzuebersicht-und-szenarien.md`](docs/finanzuebersicht-und-szenarien.md)
-- Sparziel-Rechner, Steuerrechner, Kreditvergleich, Kaufen-oder-Anlegen, Daten-Backup, Dashboard, geteilte Chart-/UI-Bausteine (`loading.tsx`, `next/dynamic`, Farbzuweisung) → [`docs/weitere-rechner.md`](docs/weitere-rechner.md)
+- Immobilien-Rechner (Tilgungsplan/Anschlussfinanzierung, Steuer-Näherungen, Referenzdaten, Vermögensverlauf, Verhandlungsargumente, Gewerke, AfA, Affordability, Kapitaleffizienz, Miteigentumsanteil, Objekt-Bibliothek/Vergleich, Duplizieren, Import-Skript, Exit-Szenario) → [`docs/tools/immobilien-rechner.md`](docs/tools/immobilien-rechner.md#bekannte-vereinfachungen-immobilien-rechner)
+- Finanzübersicht, Besitzstatus-System, Szenarien (inkl. Immobilienwert-Referenzlinie) → [`docs/tools/finanzuebersicht-und-szenarien.md`](docs/tools/finanzuebersicht-und-szenarien.md)
+- Sparziel-Rechner, Steuerrechner, Kreditvergleich, Kaufen-oder-Anlegen, Daten-Backup, Dashboard, geteilte Chart-/UI-Bausteine (`loading.tsx`, `next/dynamic`, Farbzuweisung, Navigation) → [`docs/tools/weitere-rechner.md`](docs/tools/weitere-rechner.md)

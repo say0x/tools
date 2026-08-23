@@ -24,7 +24,7 @@ export interface ExitSzenarioResult {
  * Bewertet den geplanten Verkauf am Ende der Haltedauer: Verkaufspreis und
  * Restschuld werden dem Vermögensverlauf-Zieljahr entnommen, der
  * Veräußerungsgewinn und die Spekulationssteuer (§23 EStG) daraus
- * abgeleitet. Referenz: docs/immobilien-rechner.md
+ * abgeleitet. Referenz: docs/tools/immobilien-rechner.md
  */
 export function berechneExitSzenario(input: ExitSzenarioInput): ExitSzenarioResult | null {
   if (!input.geplant || input.haltedauerJahre <= 0) return null;
