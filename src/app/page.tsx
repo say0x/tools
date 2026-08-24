@@ -14,7 +14,7 @@ import { ladeSzenarien } from "@/server/actions/szenario";
 import { ladeObjekte } from "@/server/data/property";
 import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
-import { berechneImmobilienPositionen } from "@/server/data/vermoegen";
+import { immobilienPositionAusErgebnis } from "@/server/data/vermoegen";
 
 export const dynamic = "force-dynamic";
 
@@ -81,10 +81,19 @@ export default async function Home() {
   ]);
 
   const profile = toProfileInput(profilRow);
+  const heute = new Date();
 
-  const objekteImBesitz = propertyRows
-    .filter((row) => row.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
-    .map((row) => berechneObjekt(toPropertyInput(row), profile, referenceData));
+  // Einmal pro Objekt berechnen und für Ampel/Cashflow-Kennzahlen sowie die
+  // Vermögens-Referenzwerte (immobilienpositionen) wiederverwenden, statt
+  // die kostenintensive 50-Jahres-Engine-Berechnung zweimal anzustoßen.
+  const objekteMitErgebnis = propertyRows.map((row) => ({
+    row,
+    result: berechneObjekt(toPropertyInput(row), profile, referenceData),
+  }));
+
+  const objekteImBesitz = objekteMitErgebnis
+    .filter(({ row }) => row.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
+    .map(({ result }) => result);
 
   const monatlicherImmobilienCashflow = objekteImBesitz.reduce(
     (summe, r) => summe + r.rendite.monatlicherCashflowNachSteuer,
@@ -116,7 +125,9 @@ export default async function Home() {
     null as (typeof sparpositionenImBesitz)[number] | null
   );
 
-  const immobilienpositionen = berechneImmobilienPositionen(propertyRows, profile, referenceData);
+  const immobilienpositionen = objekteMitErgebnis.map(({ row, result }) =>
+    immobilienPositionAusErgebnis(row, result, heute)
+  );
   const immobilienEigenkapitalReferenz = immobilienpositionen
     .filter((p) => p.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
     .reduce((summe, p) => summe + p.eigenkapitalanteilHeuteReferenz, 0);
