@@ -3,7 +3,6 @@
 // Referenz (Kennzahlen-Sidebar, Exit-Szenario, Annahmen-Warnungen, Verhandlungsargumente): docs/tools/immobilien-rechner.md
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import dynamic from "next/dynamic";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
@@ -13,14 +12,14 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
-import { AmpelBadge, BesitzstatusBadge } from "@/components/ui/Badge";
+import { BesitzstatusBadge } from "@/components/ui/Badge";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS } from "@/lib/asset";
 import { DualUnitInput } from "@/components/forms/DualUnitInput";
 import { OverridableField } from "@/components/forms/OverridableField";
 import { GewerkeSubform } from "@/components/forms/GewerkeSubform";
 import { Stat } from "@/components/forms/Stat";
+import { PropertyKennzahlenSidebar } from "@/components/forms/PropertyKennzahlenSidebar";
 import { berechneObjekt } from "@/server/calc/engine";
 import {
   BUNDESLAENDER,
@@ -43,26 +42,9 @@ import {
 } from "@/lib/labels";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
-import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
-import { formatiereAnnahmenWarnung } from "@/lib/annahmen-warnungstexte";
 import { flattenFormErrors } from "@/lib/form-errors";
 import { SPEKULATIONSFRIST_JAHRE } from "@/server/calc/constants";
 import { MAKLERPROVISION_DEFAULT_PROZENT } from "@/server/calc/costs/kaufnebenkosten";
-
-// Dynamisch importiert: bündelt 5 Recharts-Diagramme, die erst unterhalb des Formulars
-// sichtbar sind (showCharts) — das Formular selbst soll ohne Recharts im Bundle interaktiv sein.
-const ObjektChartsPanel = dynamic(() => import("@/components/charts/ObjektChartsPanel").then((m) => m.ObjektChartsPanel), {
-  ssr: false,
-  loading: () => (
-    <>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Card key={i}>
-          <Skeleton className="h-64 w-full" />
-        </Card>
-      ))}
-    </>
-  ),
-});
 
 export function PropertyForm({
   defaultValues,
@@ -737,95 +719,7 @@ export function PropertyForm({
       </div>
 
       <div className="flex flex-col gap-6 lg:sticky lg:top-6 lg:self-start">
-        {result ? (
-          <>
-            <Card>
-              <CardTitle>Kennzahlen</CardTitle>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <Stat label="Bruttomietrendite" value={`${result.rendite.bruttomietrenditeProzent}%`} />
-                <Stat label="Nettomietrendite" value={`${result.rendite.nettomietrenditeProzent}%`} />
-                <Stat label="Kaufpreisfaktor" value={formatNumber(result.rendite.kaufpreisfaktor)} />
-                <Stat label="EK-Rendite" value={`${result.rendite.eigenkapitalrenditeProzent}%`} />
-                <Stat label="Cashflow vor Steuer" value={formatEuro(result.rendite.monatlicherCashflowVorSteuer) + "/Mon."} />
-                <Stat label="Cashflow nach Steuer" value={formatEuro(result.rendite.monatlicherCashflowNachSteuer) + "/Mon."} />
-              </div>
-            </Card>
-
-            <Card>
-              <div className="mb-3 flex items-center justify-between">
-                <CardTitle className="mb-0">Rechnet sich das?</CardTitle>
-                <AmpelBadge status={result.affordability.ampel} />
-              </div>
-              <p className={`text-sm ${result.dealBreaker.rechnetSich ? "text-emerald-400" : "text-amber-400"}`}>
-                {result.dealBreaker.meldung}
-              </p>
-              {result.affordability.begruendung.map((b, i) => (
-                <p key={i} className="mt-2 text-xs text-slate-500">
-                  {b}
-                </p>
-              ))}
-            </Card>
-
-            <Card>
-              <div className="mb-3 flex items-center justify-between">
-                <CardTitle className="mb-0">Kapitaleffizienz</CardTitle>
-                <AmpelBadge status={result.kapitaleffizienz.ampel} />
-              </div>
-              {result.kapitaleffizienz.begruendung.map((b, i) => (
-                <p key={i} className="text-xs text-slate-500">
-                  {b}
-                </p>
-              ))}
-            </Card>
-
-            {result.annahmenWarnungen.length > 0 && (
-              <Card className="border-amber-900/50 bg-amber-950/10">
-                <CardTitle>Diese Annahmen schönen das Ergebnis</CardTitle>
-                <p className="mb-3 text-xs text-slate-500">
-                  Technisch gültige, aber unrealistisch günstige Eingaben — kein Fehler, aber ein Grund, das
-                  Ergebnis mit Vorsicht zu lesen.
-                </p>
-                <div className="flex flex-col gap-3">
-                  {result.annahmenWarnungen.map((warnung, i) => {
-                    const { titel, text } = formatiereAnnahmenWarnung(warnung);
-                    return (
-                      <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
-                        <p className="text-sm font-medium text-amber-300">{titel}</p>
-                        <p className="mt-1 text-sm text-slate-300">{text}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
-            {result.verhandlungsargumente.length > 0 && (
-              <Card>
-                <CardTitle>Verhandlungs-Argumente</CardTitle>
-                <p className="mb-3 text-xs text-slate-500">
-                  Automatisch aus deinen Angaben abgeleitet — Fakten für ein Gespräch mit Verkäufer oder Makler.
-                </p>
-                <div className="flex flex-col gap-3">
-                  {result.verhandlungsargumente.map((arg, i) => {
-                    const { titel, text } = formatiereVerhandlungsargument(arg);
-                    return (
-                      <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
-                        <p className="text-sm font-medium text-amber-300">{titel}</p>
-                        <p className="mt-1 text-sm text-slate-300">{text}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
-            {showCharts && <ObjektChartsPanel result={result} />}
-          </>
-        ) : (
-          <Card>
-            <p className="text-sm text-slate-500">Wohnfläche &gt; 0 eingeben, um Kennzahlen live zu sehen.</p>
-          </Card>
-        )}
+        <PropertyKennzahlenSidebar result={result} showCharts={showCharts} />
       </div>
     </form>
   );
