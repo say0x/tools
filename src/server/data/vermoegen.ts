@@ -1,6 +1,6 @@
 import { differenceInCalendarYears } from "date-fns";
 import { berechneObjekt } from "@/server/calc/engine";
-import type { ProfileInput, ReferenceDataSnapshot } from "@/server/calc/types";
+import type { CalculationResult, ProfileInput, ReferenceDataSnapshot } from "@/server/calc/types";
 import type { Asset, Tagesgeldkonto, Wertpapierposition } from "@/generated/prisma/client";
 import type { Besitzstatus } from "@/lib/asset";
 import type { SparpositionArt } from "@/server/actions/finanzuebersicht-schema";
@@ -26,11 +26,46 @@ export interface ImmobilienPosition {
 }
 
 /**
+ * Wandelt ein bereits berechnetes Engine-Ergebnis in das Positions-Format um,
+ * das sowohl die Finanzübersicht als auch der Szenario-Editor brauchen:
+ * Cashflow-Verlauf ab Kauf + reine Referenzwerte (Kaufpreis/Marktwert/EK-
+ * Anteil heute). Getrennt von {@link berechneImmobilienPositionen}, damit
+ * Aufrufer, die `berechneObjekt()` ohnehin schon für andere Kennzahlen
+ * (z. B. Ampel, Bruttorendite) gerechnet haben, dieses Ergebnis wiederverwenden
+ * können, statt die kostenintensive 50-Jahres-Berechnung ein zweites Mal
+ * anzustoßen.
+ */
+export function immobilienPositionAusErgebnis(
+  row: PropertyWithAsset,
+  result: CalculationResult,
+  heute: Date = new Date()
+): ImmobilienPosition {
+  // Negativ = Kaufdatum liegt in der Zukunft (geplanter Kauf).
+  const jahreSeitKauf = differenceInCalendarYears(heute, row.kaufdatum);
+  // Heutiger Stand im vorhandenen Vermögensverlauf der Objekt-Engine (Jahr 1..50 seit Kauf) nachschlagen —
+  // reine Referenzwerte für die Anzeige, fließen NICHT in die Cashflow-Summe ein.
+  const heutigerVermoegensverlaufEintrag =
+    jahreSeitKauf >= 1 ? result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1] : undefined;
+  return {
+    id: row.id,
+    assetId: row.assetId,
+    name: row.asset.name,
+    besitzstatus: row.asset.besitzstatus,
+    jahreSeitKauf,
+    kaufpreis: row.kaufpreis,
+    eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
+    cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
+    eigenkapitalanteilHeuteReferenz: heutigerVermoegensverlaufEintrag?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro,
+    immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis,
+    eigenkapitalanteilProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.eigenkapitalanteil),
+  };
+}
+
+/**
  * Bereitet Immobilien-Objekte (jeden Besitzstatus, nicht nur "Besitze ich")
- * zu dem Positions-Format auf, das sowohl die Finanzübersicht als auch der
- * Szenario-Editor brauchen: Cashflow-Verlauf ab Kauf + reine Referenzwerte
- * (Kaufpreis/Marktwert/EK-Anteil heute). Geteilt statt dupliziert, weil beide
- * Stellen exakt dieselbe Objekt-Engine-Auswertung + Kaufdatum-Logik brauchen.
+ * zu dem Positions-Format auf — berechnet `berechneObjekt()` dafür selbst.
+ * Für Aufrufer, die das Engine-Ergebnis bereits haben, {@link immobilienPositionAusErgebnis}
+ * direkt verwenden, um die Berechnung nicht zu duplizieren.
  */
 export function berechneImmobilienPositionen(
   propertyRows: PropertyWithAsset[],
@@ -38,28 +73,9 @@ export function berechneImmobilienPositionen(
   referenceData: ReferenceDataSnapshot,
   heute: Date = new Date()
 ): ImmobilienPosition[] {
-  return propertyRows.map((row) => {
-    const result = berechneObjekt(toPropertyInput(row), profile, referenceData);
-    // Negativ = Kaufdatum liegt in der Zukunft (geplanter Kauf).
-    const jahreSeitKauf = differenceInCalendarYears(heute, row.kaufdatum);
-    // Heutiger Stand im vorhandenen Vermögensverlauf der Objekt-Engine (Jahr 1..50 seit Kauf) nachschlagen —
-    // reine Referenzwerte für die Anzeige, fließen NICHT in die Cashflow-Summe ein.
-    const heutigerVermoegensverlaufEintrag =
-      jahreSeitKauf >= 1 ? result.vermoegensverlauf[Math.min(jahreSeitKauf, result.vermoegensverlauf.length) - 1] : undefined;
-    return {
-      id: row.id,
-      assetId: row.assetId,
-      name: row.asset.name,
-      besitzstatus: row.asset.besitzstatus,
-      jahreSeitKauf,
-      kaufpreis: row.kaufpreis,
-      eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
-      cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
-      eigenkapitalanteilHeuteReferenz: heutigerVermoegensverlaufEintrag?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro,
-      immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis,
-      eigenkapitalanteilProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.eigenkapitalanteil),
-    };
-  });
+  return propertyRows.map((row) =>
+    immobilienPositionAusErgebnis(row, berechneObjekt(toPropertyInput(row), profile, referenceData), heute)
+  );
 }
 
 export interface SparpositionPosition {
