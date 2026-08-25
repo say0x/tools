@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VERMOEGENSVERLAUF_MAX_JAHRE } from "@/server/calc/constants";
 
 /// Deckt alle vier Änderungsarten des Szenario-Systems in einer flachen
 /// Struktur ab (analog zum Sparposition-Muster in finanzuebersicht-schema.ts)
@@ -24,7 +25,10 @@ const aenderungSchema = z
       .number({ error: "Jahr muss eine Zahl sein" })
       .int("Jahr muss ganzzahlig sein")
       .min(0, "Jahr darf nicht in der Vergangenheit liegen")
-      .max(80, "Jahr liegt außerhalb eines realistischen Bereichs")
+      // Muss mit VERMOEGENSVERLAUF_MAX_JAHRE übereinstimmen: darüber hinaus ist im
+      // Vermögensverlauf/Chart nichts mehr berechenbar oder sichtbar — eine Änderung mit
+      // einem größeren Jahr würde sich speichern lassen, aber nie sichtbar wirken.
+      .max(VERMOEGENSVERLAUF_MAX_JAHRE, `Jahr darf höchstens ${VERMOEGENSVERLAUF_MAX_JAHRE} betragen`)
       .nullable(),
     bezeichnung: z.string().trim().max(200, "Bezeichnung ist zu lang (max. 200 Zeichen)").nullable(),
     betrag: z.number({ error: "Betrag muss eine Zahl sein" }).min(0, "Betrag darf nicht negativ sein").max(100_000_000, "Betrag ist unrealistisch hoch").nullable(),

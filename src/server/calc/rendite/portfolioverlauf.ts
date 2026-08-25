@@ -14,7 +14,7 @@ export interface SparpositionVerlaufInput {
 
 /** Für das Szenario-System: springt die monatliche Sparrate ab einem bestimmten Jahr auf einen neuen Betrag. */
 export interface SparratenAenderung {
-  /** Jahre ab heute (1-basiert, wie die Jahresreihe), ab dem die neue Rate gilt. */
+  /** Jahre ab heute (1-basiert, wie die Jahresreihe), ab dem die neue Rate gilt. Werte <= 1 greifen ab Jahr 1. */
   abJahr: number;
   neueSparrateMonatlich: number;
 }
@@ -35,9 +35,14 @@ export function berechneSparpositionsverlauf(
   const reihe: number[] = [round2(input.betrag)];
   let saldo = input.betrag;
   let sparrateJaehrlich = input.sparplanBetragMonatlich * 12;
+  // abJahr ist laut Vertrag 1-basiert, kann aber 0 oder negativ hereinkommen (Szenario-
+  // Startjahr = aktuelles Jahr oder in der Vergangenheit) — ohne diese Klemmung würde
+  // "jahr === abJahr" nie zutreffen (die Schleife startet bei 1) und die neue Sparrate
+  // stillschweigend nie greifen. Geklemmt greift sie stattdessen ab dem frühestmöglichen Jahr.
+  const effektivesAbJahr = sparratenAenderung ? Math.max(1, sparratenAenderung.abJahr) : undefined;
 
   for (let jahr = 1; jahr <= horizontJahre; jahr++) {
-    if (sparratenAenderung && jahr === sparratenAenderung.abJahr) {
+    if (sparratenAenderung && jahr === effektivesAbJahr) {
       sparrateJaehrlich = sparratenAenderung.neueSparrateMonatlich * 12;
     }
     saldo = saldo * (1 + input.renditeProzentJaehrlich / 100) + sparrateJaehrlich;
