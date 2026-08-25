@@ -32,7 +32,7 @@ export function SzenarioVergleichChart({
               <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid stroke="#1e293b" />
           <XAxis dataKey="kalenderjahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <Tooltip

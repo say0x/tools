@@ -36,7 +36,7 @@ export function VergleichChart({
               </linearGradient>
             ))}
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+          <CartesianGrid stroke="#1e293b" vertical={false} />
           <XAxis dataKey="name" stroke="#64748b" fontSize={12} interval={0} angle={-30} textAnchor="end" height={60} />
           <YAxis stroke="#64748b" fontSize={12} domain={nullBasierteDomain} />
           <Tooltip
@@ -44,7 +44,7 @@ export function VergleichChart({
             contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
             formatter={(_value, _name, item) => [item.payload.label, ""]}
           />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={64}>
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={24}>
             {data.map((entry, i) => (
               <Cell key={entry.id} fill={`url(#vergleichBalken-${i})`} />
             ))}

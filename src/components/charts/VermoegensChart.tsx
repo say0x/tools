@@ -25,7 +25,7 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
               <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid stroke="#1e293b" />
           <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <Tooltip
