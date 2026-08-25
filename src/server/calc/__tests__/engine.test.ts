@@ -149,6 +149,19 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     const annuitaetJahr2 = result.tilgungsplan[1].zinszahlung + result.tilgungsplan[1].tilgungszahlung;
     expect(annuitaetJahr2).toBeCloseTo(12000, 2);
     expect(jahr2.cashflowVorSteuerJahr).toBeCloseTo(12180 - 2325.6 - 12000, 2);
+    expect(jahr2.kostenJahr).toBeCloseTo(2325.6, 2);
+  });
+
+  it("liefert kostenJahr und steuerJahr passend zu cashflowVorSteuerJahr/cashflowNachSteuerJahr (für die Jahr-X-Cashflow-Aufschlüsselung)", () => {
+    const jahr1 = result.vermoegensverlauf[0];
+    // steuerJahr ist per Definition die Differenz zwischen vor und nach Steuer.
+    expect(jahr1.steuerJahr).toBeCloseTo(jahr1.cashflowVorSteuerJahr - jahr1.cashflowNachSteuerJahr, 2);
+    // kostenJahr + Annuität + Cashflow vor Steuer ergibt wieder die Jahresmiete.
+    const annuitaetJahr1 = result.tilgungsplan[0].zinszahlung + result.tilgungsplan[0].tilgungszahlung;
+    expect(jahr1.kostenJahr + annuitaetJahr1 + jahr1.cashflowVorSteuerJahr).toBeCloseTo(
+      result.rendite.effektiveJahresmiete,
+      2
+    );
   });
 
   it("liefert eine inflationsbereinigte (reale) Eigenkapitalanteil-Reihe, die unter der nominalen liegt", () => {

@@ -61,6 +61,8 @@ export function berechneVermoegensverlauf(input: VermoegensverlaufInput): Vermoe
       cashflowNachSteuerJahr,
       kumulierterCashflowVorSteuer,
       kumulierterCashflowNachSteuer,
+      kostenJahr: round2(kostenJahr),
+      steuerJahr: round2(steuerJahr),
     };
   });
 }

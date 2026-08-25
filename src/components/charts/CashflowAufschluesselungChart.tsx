@@ -5,6 +5,7 @@ import { formatEuro } from "@/lib/format";
 import { nullBasierteDomain } from "@/lib/chart-domain";
 
 export function CashflowAufschluesselungChart({
+  jahr,
   zinsMonatlich,
   tilgungMonatlich,
   laufendeKostenMonatlich,
@@ -12,6 +13,7 @@ export function CashflowAufschluesselungChart({
   cashflowVorSteuerMonatlich,
   cashflowNachSteuerMonatlich,
 }: {
+  jahr: number;
   zinsMonatlich: number;
   tilgungMonatlich: number;
   laufendeKostenMonatlich: number;
@@ -41,7 +43,7 @@ export function CashflowAufschluesselungChart({
   return (
     <div
       role="img"
-      aria-label="Balkendiagramm: Cashflow vor und nach Steuer, aufgeteilt auf Zins, Tilgung, laufende Kosten und Steuer"
+      aria-label={`Balkendiagramm: Cashflow vor und nach Steuer in Jahr ${jahr}, aufgeteilt auf Zins, Tilgung, laufende Kosten und Steuer`}
     >
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} layout="vertical" barSize={24} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>

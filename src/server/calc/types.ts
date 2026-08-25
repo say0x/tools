@@ -271,6 +271,10 @@ export interface VermoegensverlaufJahr {
   cashflowNachSteuerJahr: number;
   kumulierterCashflowVorSteuer: number;
   kumulierterCashflowNachSteuer: number;
+  /** Laufende Kosten in diesem Jahr, bereits mit der Kostensteigerungsrate fortgeschrieben. */
+  kostenJahr: number;
+  /** Steuerlast in diesem Jahr (negativ = Steuererstattung) — Differenz aus cashflowVorSteuerJahr und cashflowNachSteuerJahr. */
+  steuerJahr: number;
 }
 
 /**
