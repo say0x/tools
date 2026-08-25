@@ -472,6 +472,7 @@ export function FinanzuebersichtClient({
             Bei Immobilien: akkumulierter Cashflow nach Steuer ab heute — nicht der Immobilienwert.
           </p>
           <VergleichVermoegensChart
+            ariaLabel="Liniendiagramm: akkumulierter Cashflow bzw. Kapitalverlauf je Position im Vergleich über die Jahre"
             objekte={positionen.map((p) => ({ id: p.id, name: p.name, eigenkapitalanteilProJahr: p.verlauf.slice(1) }))}
             jahre={horizontEffektiv}
           />

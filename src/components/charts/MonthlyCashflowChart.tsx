@@ -20,21 +20,23 @@ export function MonthlyCashflowChart({
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="monat" stroke="#64748b" fontSize={12} />
-        <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} domain={nullBasierteDomain} />
-        <ReferenceLine y={0} stroke="#475569" />
-        <Tooltip
-          contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-          formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
-        />
-        <Legend />
-        <Bar dataKey="vorSteuer" name="Vor Steuer" fill="#f97316" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="nachSteuer" name="Nach Steuer" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div role="img" aria-label="Balkendiagramm: monatlicher Cashflow vor und nach Steuer über zwölf Monate">
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <XAxis dataKey="monat" stroke="#64748b" fontSize={12} />
+          <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} domain={nullBasierteDomain} />
+          <ReferenceLine y={0} stroke="#475569" />
+          <Tooltip
+            contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+            formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
+          />
+          <Legend />
+          <Bar dataKey="vorSteuer" name="Vor Steuer" fill="#f97316" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="nachSteuer" name="Nach Steuer" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
