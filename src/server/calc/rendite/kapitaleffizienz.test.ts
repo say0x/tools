@@ -2,6 +2,30 @@ import { describe, expect, it } from "vitest";
 import { berechneKapitaleffizienz } from "./kapitaleffizienz";
 
 describe("berechneKapitaleffizienz", () => {
+  it("ist GRUEN und bewertet nicht separat, wenn die EK-Rendite null ist (kein EK-Einsatz)", () => {
+    const result = berechneKapitaleffizienz({
+      eigenkapitalrenditeProzent: null,
+      eigenkapitalEinsatzEuro: 0,
+      mindestEigenkapitalrenditeProzent: 4,
+      eigenkapitalPruefungAbEuro: 5000,
+    });
+
+    expect(result.ampel).toBe("GRUEN");
+    expect(result.begruendung[0]).toContain("nicht definiert");
+  });
+
+  it("ist GRUEN und bewertet nicht separat, wenn die EK-Rendite null ist, selbst bei Prüfschwelle 0", () => {
+    const result = berechneKapitaleffizienz({
+      eigenkapitalrenditeProzent: null,
+      eigenkapitalEinsatzEuro: 0,
+      mindestEigenkapitalrenditeProzent: 4,
+      eigenkapitalPruefungAbEuro: 0,
+    });
+
+    expect(result.ampel).toBe("GRUEN");
+    expect(result.begruendung[0]).toContain("nicht definiert");
+  });
+
   it("ist GRUEN und bewertet nicht separat, wenn der EK-Einsatz unter der Prüfschwelle liegt", () => {
     const result = berechneKapitaleffizienz({
       eigenkapitalrenditeProzent: -50,
