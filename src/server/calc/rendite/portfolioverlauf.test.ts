@@ -65,6 +65,27 @@ describe("berechneSparpositionsverlauf", () => {
     expect(reihe[1]).toBe(12000);
     expect(reihe[2]).toBe(12000 + 13200);
   });
+
+  it("wendet die neue Sparrate schon ab Jahr 1 an, wenn abJahr 0 ist (Szenario-Startjahr = aktuelles Jahr, der Default)", () => {
+    // Regressionstest: die Schleife startet bei jahr=1, "jahr === abJahr" hätte bei
+    // abJahr=0 nie zugetroffen und die neue Rate wäre über den gesamten Horizont
+    // stillschweigend nie gegriffen — genau der Default-Fall für ein neues Szenario.
+    const reihe = berechneSparpositionsverlauf(
+      { betrag: 0, renditeProzentJaehrlich: 0, sparplanBetragMonatlich: 500, sparplanSteigerungProzentJaehrlich: 0 },
+      2,
+      { abJahr: 0, neueSparrateMonatlich: 800 }
+    );
+    expect(reihe).toEqual([0, 9600, 19200]);
+  });
+
+  it("wendet die neue Sparrate ebenso ab Jahr 1 an, wenn abJahr negativ ist (Szenario-Startjahr in der Vergangenheit)", () => {
+    const reihe = berechneSparpositionsverlauf(
+      { betrag: 0, renditeProzentJaehrlich: 0, sparplanBetragMonatlich: 500, sparplanSteigerungProzentJaehrlich: 0 },
+      2,
+      { abJahr: -3, neueSparrateMonatlich: 800 }
+    );
+    expect(reihe).toEqual([0, 9600, 19200]);
+  });
 });
 
 describe("berechneImmobilienEigenkapitalverlauf", () => {

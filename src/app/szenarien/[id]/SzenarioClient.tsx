@@ -84,7 +84,11 @@ export function SzenarioClient({
   const horizontEffektiv = Math.min(horizontJahre, maxHorizontJahre);
   const presets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahr) => jahr <= maxHorizontJahre);
 
-  const immobilienZumAufnehmen = immobilien.filter((imm) => imm.besitzstatus !== "BESITZE_ICH");
+  // Nur "Potenzielle Anschaffung"/"Spekulation" — nicht z. B. "Verkauft"/"Archiviert" (per
+  // !== "BESITZE_ICH" würden auch die durchrutschen, siehe SZENARIO_AENDERUNG_TYP_HILFE.IMMOBILIE_AUFNEHMEN).
+  const immobilienZumAufnehmen = immobilien.filter(
+    (imm) => imm.besitzstatus === "POTENZIELLE_ANSCHAFFUNG" || imm.besitzstatus === "SPEKULATION"
+  );
   const immobilienZumVerkaufen = immobilien.filter((imm) => imm.besitzstatus === "BESITZE_ICH");
   const sparpositionenBesessen = sparpositionen.filter((sp) => sp.besitzstatus === "BESITZE_ICH");
 

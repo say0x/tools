@@ -32,7 +32,7 @@ export async function ladeSzenarien() {
 }
 
 export async function ladeSzenario(id: string) {
-  return prisma.szenario.findUnique({ where: { id }, include: { aenderungen: { include: { asset: true } } } });
+  return prisma.szenario.findUnique({ where: { id }, include: { aenderungen: true } });
 }
 
 export async function erstelleSzenario(values: SzenarioFormValues) {
