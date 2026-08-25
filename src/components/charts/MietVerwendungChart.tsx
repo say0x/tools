@@ -5,11 +5,13 @@ import { formatEuro } from "@/lib/format";
 import { nullBasierteDomain } from "@/lib/chart-domain";
 
 export function MietVerwendungChart({
+  jahr,
   zinsMonatlich,
   tilgungMonatlich,
   laufendeKostenMonatlich,
   cashflowVorSteuerMonatlich,
 }: {
+  jahr: number;
   zinsMonatlich: number;
   tilgungMonatlich: number;
   laufendeKostenMonatlich: number;
@@ -17,7 +19,7 @@ export function MietVerwendungChart({
 }) {
   const data = [
     {
-      name: "Kaltmiete (Jahr 1)",
+      name: `Kaltmiete (Jahr ${jahr})`,
       zins: zinsMonatlich,
       tilgung: tilgungMonatlich,
       kosten: laufendeKostenMonatlich,
@@ -28,7 +30,7 @@ export function MietVerwendungChart({
   return (
     <div
       role="img"
-      aria-label="Balkendiagramm: Aufteilung der Kaltmiete in Jahr 1 auf Zins, Tilgung, laufende Kosten und verbleibenden Cashflow"
+      aria-label={`Balkendiagramm: Aufteilung der Kaltmiete in Jahr ${jahr} auf Zins, Tilgung, laufende Kosten und verbleibenden Cashflow`}
     >
       <ResponsiveContainer width="100%" height={140}>
         <BarChart data={data} layout="vertical" barSize={24} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>

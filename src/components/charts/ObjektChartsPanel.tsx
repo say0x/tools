@@ -29,6 +29,7 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
   );
 
   const jahrDaten = result.vermoegensverlauf.find((j) => j.jahr === ausgewaehltesJahr) ?? result.vermoegensverlauf[0];
+  const tilgungsplanJahr = result.tilgungsplan.find((j) => j.jahr === ausgewaehltesJahr) ?? result.tilgungsplan[0];
 
   const setZeitraum = (jahre: number) => {
     const geklemmt = Math.max(1, Math.min(MAX_JAHRE, jahre));
@@ -36,36 +37,67 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
     if (ausgewaehltesJahr > geklemmt) setAusgewaehltesJahr(geklemmt);
   };
 
-  const zinsMonatlich = round2((result.tilgungsplan[0]?.zinszahlung ?? 0) / 12);
-  const tilgungMonatlich = round2((result.tilgungsplan[0]?.tilgungszahlung ?? 0) / 12);
-  const laufendeKostenMonatlich = round2(result.rendite.laufendeKostenJaehrlich / 12);
-  const steuerMonatlich = round2(result.rendite.monatlicherCashflowVorSteuer - result.rendite.monatlicherCashflowNachSteuer);
+  const zinsMonatlich = round2((tilgungsplanJahr?.zinszahlung ?? 0) / 12);
+  const tilgungMonatlich = round2((tilgungsplanJahr?.tilgungszahlung ?? 0) / 12);
+  const laufendeKostenMonatlich = round2((jahrDaten?.kostenJahr ?? 0) / 12);
+  const steuerMonatlich = round2((jahrDaten?.steuerJahr ?? 0) / 12);
+  const cashflowVorSteuerMonatlich = round2((jahrDaten?.cashflowVorSteuerJahr ?? 0) / 12);
+  const cashflowNachSteuerMonatlich = round2((jahrDaten?.cashflowNachSteuerJahr ?? 0) / 12);
+
+  const mieteMonatlich = round2(zinsMonatlich + tilgungMonatlich + laufendeKostenMonatlich + cashflowVorSteuerMonatlich);
+
+  const jahrPresets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahre) => jahre <= betrachtungszeitraum);
+
+  const jahrAuswahl = (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {jahrPresets.map((jahre) => (
+        <Button
+          key={jahre}
+          type="button"
+          size="sm"
+          variant={ausgewaehltesJahr === jahre ? "primary" : "secondary"}
+          onClick={() => setAusgewaehltesJahr(jahre)}
+        >
+          {jahre}J
+        </Button>
+      ))}
+    </div>
+  );
 
   return (
     <>
       <Card>
-        <CardTitle>Wohin geht die Miete? (Jahr 1)</CardTitle>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="mb-0">Wohin geht die Miete? (Jahr {ausgewaehltesJahr})</CardTitle>
+          {jahrAuswahl}
+        </div>
         <MietVerwendungChart
+          jahr={ausgewaehltesJahr}
           zinsMonatlich={zinsMonatlich}
           tilgungMonatlich={tilgungMonatlich}
           laufendeKostenMonatlich={laufendeKostenMonatlich}
-          cashflowVorSteuerMonatlich={result.rendite.monatlicherCashflowVorSteuer}
+          cashflowVorSteuerMonatlich={cashflowVorSteuerMonatlich}
         />
         <p className="mt-2 text-xs text-slate-500">
-          Effektive Kaltmiete Jahr 1: {formatEuro(result.rendite.effektiveJahresmiete / 12)}/Monat, aufgeteilt auf Zins, Tilgung,
-          laufende Kosten und den verbleibenden Cashflow.
+          Effektive Kaltmiete Jahr {ausgewaehltesJahr}: {formatEuro(mieteMonatlich)}/Monat, aufgeteilt auf Zins, Tilgung,
+          laufende Kosten und den verbleibenden Cashflow. Miete und laufende Kosten sind bereits mit den angenommenen
+          Steigerungsraten auf dieses Jahr fortgeschrieben.
         </p>
       </Card>
 
       <Card>
-        <CardTitle>Cashflow vor &amp; nach Steuer im Vergleich (Jahr 1)</CardTitle>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="mb-0">Cashflow vor &amp; nach Steuer im Vergleich (Jahr {ausgewaehltesJahr})</CardTitle>
+          {jahrAuswahl}
+        </div>
         <CashflowAufschluesselungChart
+          jahr={ausgewaehltesJahr}
           zinsMonatlich={zinsMonatlich}
           tilgungMonatlich={tilgungMonatlich}
           laufendeKostenMonatlich={laufendeKostenMonatlich}
           steuerMonatlich={steuerMonatlich}
-          cashflowVorSteuerMonatlich={result.rendite.monatlicherCashflowVorSteuer}
-          cashflowNachSteuerMonatlich={result.rendite.monatlicherCashflowNachSteuer}
+          cashflowVorSteuerMonatlich={cashflowVorSteuerMonatlich}
+          cashflowNachSteuerMonatlich={cashflowNachSteuerMonatlich}
         />
         <p className="mt-2 text-xs text-slate-500">
           Gleiche Bausteine wie oben, zusätzlich mit Steuer-Segment (rot = Steuerlast, wächst der Cashflow-Balken statt dessen,

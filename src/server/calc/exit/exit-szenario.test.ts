@@ -13,6 +13,8 @@ function jahr(overrides: Partial<VermoegensverlaufJahr> & { jahr: number }): Ver
     cashflowNachSteuerJahr: 0,
     kumulierterCashflowVorSteuer: 0,
     kumulierterCashflowNachSteuer: 0,
+    kostenJahr: 0,
+    steuerJahr: 0,
     ...overrides,
   };
 }
