@@ -56,9 +56,9 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
           {meilensteine?.volltilgungJahr != null && meilensteine.volltilgungJahr <= maxJahr && (
             <ReferenceLine
               x={meilensteine.volltilgungJahr}
-              stroke="#22c55e"
+              stroke="#10b981"
               strokeDasharray="4 4"
-              label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#22c55e", fontSize: 11 }}
+              label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#10b981", fontSize: 11 }}
             />
           )}
         </ComposedChart>
