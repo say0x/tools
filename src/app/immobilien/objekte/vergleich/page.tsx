@@ -112,6 +112,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Bruttomietrendite im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: Bruttomietrendite im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -123,6 +124,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Nettomietrendite im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: Nettomietrendite im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -134,6 +136,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Cashflow nach Steuer im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: monatlicher Cashflow nach Steuer im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -145,6 +148,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Eigenkapitalrendite im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: Eigenkapitalrendite im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -156,6 +160,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Kaufpreisfaktor im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: Kaufpreisfaktor im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -167,6 +172,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
             <Card>
               <CardTitle>Kaufnebenkosten im Vergleich</CardTitle>
               <VergleichChart
+                ariaLabel="Balkendiagramm: Kaufnebenkosten im Vergleich der ausgewählten Objekte"
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
@@ -180,6 +186,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
           <Card>
             <CardTitle>Eigenkapitalaufbau im Vergleich (30 Jahre)</CardTitle>
             <VergleichVermoegensChart
+              ariaLabel="Liniendiagramm: Eigenkapitalaufbau im Vergleich der ausgewählten Objekte über die Jahre"
               objekte={objekte.map((o) => ({
                 id: o.id,
                 name: o.name,
