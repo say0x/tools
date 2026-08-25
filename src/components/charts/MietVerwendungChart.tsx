@@ -41,10 +41,10 @@ export function MietVerwendungChart({
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Bar dataKey="zins" name="Zins" stackId="a" fill="#f97316" />
-          <Bar dataKey="tilgung" name="Tilgung" stackId="a" fill="#a855f7" />
-          <Bar dataKey="kosten" name="Laufende Kosten" stackId="a" fill="#eab308" />
-          <Bar dataKey="cashflow" name="Cashflow (Rest)" stackId="a" fill="#10b981" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="zins" name="Zins" stackId="a" fill="#d95926" />
+          <Bar dataKey="tilgung" name="Tilgung" stackId="a" fill="#199e70" />
+          <Bar dataKey="kosten" name="Laufende Kosten" stackId="a" fill="#c98500" />
+          <Bar dataKey="cashflow" name="Cashflow (Rest)" stackId="a" fill="#008300" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

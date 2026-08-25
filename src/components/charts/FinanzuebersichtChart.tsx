@@ -12,8 +12,8 @@ export function FinanzuebersichtChart({ data }: { data: PortfolioJahr[] }) {
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="vermoegen-nominal" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#3987e5" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#3987e5" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="#1e293b" />
@@ -25,12 +25,12 @@ export function FinanzuebersichtChart({ data }: { data: PortfolioJahr[] }) {
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Area type="monotone" dataKey="gesamtNominal" name="Verfügbares Geld (nominal)" stroke="#3b82f6" fill="url(#vermoegen-nominal)" />
+          <Area type="monotone" dataKey="gesamtNominal" name="Verfügbares Geld (nominal)" stroke="#3987e5" fill="url(#vermoegen-nominal)" />
           <Line
             type="monotone"
             dataKey="gesamtReal"
             name="Verfügbares Geld (real, inflationsbereinigt)"
-            stroke="#10b981"
+            stroke="#008300"
             strokeDasharray="4 4"
             strokeWidth={2}
             dot={false}

@@ -24,7 +24,7 @@ export function CashflowChart({ data }: { data: VermoegensverlaufJahr[] }) {
             type="monotone"
             dataKey="kumulierterCashflowVorSteuer"
             name="Kumuliert, vor Steuer"
-            stroke="#f97316"
+            stroke="#d95926"
             strokeWidth={2}
             dot={false}
           />
@@ -32,7 +32,7 @@ export function CashflowChart({ data }: { data: VermoegensverlaufJahr[] }) {
             type="monotone"
             dataKey="kumulierterCashflowNachSteuer"
             name="Kumuliert, nach Steuer"
-            stroke="#3b82f6"
+            stroke="#3987e5"
             strokeWidth={2}
             dot={false}
           />
