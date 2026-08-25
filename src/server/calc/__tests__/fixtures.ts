@@ -143,6 +143,8 @@ export function makeProfileFixture(overrides: Partial<ProfileInput> = {}): Profi
     mietanrechnungProzent: 80,
     mindestEigenkapitalrenditeProzent: 4,
     eigenkapitalPruefungAbEuro: 5000,
+    cashflowStartverlustMaxProzentKaltmiete: 30,
+    cashflowUmschlagjahr: 10,
     liabilities: [],
     ...overrides,
   };

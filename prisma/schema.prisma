@@ -89,6 +89,12 @@ model UserProfile {
   /// EK-Einsatz, ab dem die Kapitaleffizienz-Prüfung überhaupt greift (bei
   /// kleinen EK-Beträgen, z.B. 100%-Finanzierung, ist die % sonst irreführend volatil).
   eigenkapitalPruefungAbEuro        Float @default(5000)
+  /// "Rechnet sich das?"-Ampel: wie viel Prozent der effektiven Kaltmiete der
+  /// Cashflow nach Steuer in Jahr 1 höchstens im Minus sein darf, bevor Rot greift.
+  cashflowStartverlustMaxProzentKaltmiete Float @default(30)
+  /// "Rechnet sich das?"-Ampel: bis zu welchem Jahr der Cashflow nach Steuer
+  /// spätestens ins Plus gedreht haben muss, sonst Rot.
+  cashflowUmschlagjahr                    Int   @default(10)
 
   /// Für die Finanzübersicht: erwartete jährliche Steigerung des Brutto-Einkommens
   /// (bruttoEinkommenMonatlich * 12), rein informativ dargestellt und als

@@ -209,6 +209,42 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
       </Card>
 
       <Card>
+        <CardTitle>„Rechnet sich das?“-Schwellen</CardTitle>
+        <p className="mb-4 text-sm text-slate-400">
+          Bewertet den Cashflow-Verlauf statt nur Jahr 1: ein Objekt darf am Anfang im Rahmen bleiben und muss bis zu
+          einem Zieljahr in den positiven Cashflow drehen.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label={
+              <>
+                Max. Startverlust (% der Kaltmiete) <InfoTooltip text={FIELD_HILFE.cashflowStartverlustMaxProzent} />
+              </>
+            }
+            error={errors.cashflowStartverlustMaxProzentKaltmiete?.message}
+          >
+            <Input
+              type="number"
+              step="any"
+              min={0}
+              max={100}
+              {...register("cashflowStartverlustMaxProzentKaltmiete", { valueAsNumber: true })}
+            />
+          </Field>
+          <Field
+            label={
+              <>
+                Umschlagjahr <InfoTooltip text={FIELD_HILFE.cashflowUmschlagjahr} />
+              </>
+            }
+            error={errors.cashflowUmschlagjahr?.message}
+          >
+            <Input type="number" step={1} min={1} max={50} {...register("cashflowUmschlagjahr", { valueAsNumber: true })} />
+          </Field>
+        </div>
+      </Card>
+
+      <Card>
         <div className="mb-4 flex items-center justify-between">
           <CardTitle className="mb-0">Bestehende Kredite</CardTitle>
           <Button

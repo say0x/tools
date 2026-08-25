@@ -8,6 +8,7 @@ import { berechneKaufnebenkosten } from "./costs/kaufnebenkosten";
 import { berechneFinanzierung, berechneGesamtinvestition } from "./financing/darlehen";
 import { berechneTilgungsplan } from "./financing/tilgungsplan";
 import { berechneBreakevenKaufpreis } from "./rendite/breakeven";
+import { berechneDealBreaker } from "./rendite/dealbreaker";
 import { berechneKapitaleffizienz } from "./rendite/kapitaleffizienz";
 import { berechneRenditeKennzahlen } from "./rendite/renditekennzahlen";
 import { berechneVermoegensverlauf } from "./rendite/vermoegensverlauf";
@@ -147,26 +148,15 @@ export function berechneObjekt(
     eigenkapitalPruefungAbEuro: profile.eigenkapitalPruefungAbEuro,
   });
 
-  const rechnetSich = rendite.monatlicherCashflowNachSteuer >= 0 && affordability.ampel !== "ROT";
-  // Eigene Ampel statt affordability.ampel weiterzureichen: affordability kennt nur Schuldendienst
-  // und Liquidität, nicht den Cashflow. Ohne diese Kombination könnte die "Rechnet sich das?"-Karte
-  // einen grünen Badge neben einer "lohnt sich nicht"-Meldung zeigen (Cashflow negativ, aber
-  // Finanzierbarkeit unkritisch, z. B. bei hohem Einkommen/Eigenkapital).
-  const dealBreakerAmpel: "GRUEN" | "GELB" | "ROT" = !rechnetSich ? "ROT" : affordability.ampel === "GELB" ? "GELB" : "GRUEN";
-  let meldung: string;
-  if (rechnetSich) {
-    meldung = "Das Objekt rechnet sich nach aktueller Kalkulation: positiver Cashflow nach Steuer.";
-  } else if (rendite.monatlicherCashflowNachSteuer < 0 && breakeven.erreichbar && breakeven.differenzZuAktuellemKaufpreis) {
-    meldung = `Lohnt sich unter den aktuellen Annahmen nicht — bei ${formatEuro(
-      breakeven.differenzZuAktuellemKaufpreis
-    )} weniger Kaufpreis (${formatEuro(breakeven.breakevenKaufpreis ?? 0)} statt ${formatEuro(
-      property.kaufpreis
-    )}) würde der Cashflow ausgeglichen sein.`;
-  } else if (rendite.monatlicherCashflowNachSteuer < 0) {
-    meldung = "Lohnt sich unter den aktuellen Annahmen auch bei deutlich niedrigerem Kaufpreis nicht (Cashflow bleibt negativ).";
-  } else {
-    meldung = "Cashflow ist positiv, aber die Finanzierbarkeit (Schuldendienst/Liquidität) ist laut Profil-Check kritisch.";
-  }
+  const dealBreaker = berechneDealBreaker({
+    vermoegensverlauf,
+    effektiveKaltmieteMonatlich: round2(rendite.effektiveJahresmiete / 12),
+    affordabilityAmpel: affordability.ampel,
+    cashflowStartverlustMaxProzentKaltmiete: profile.cashflowStartverlustMaxProzentKaltmiete,
+    cashflowUmschlagjahr: profile.cashflowUmschlagjahr,
+    breakeven,
+    aktuellerKaufpreis: property.kaufpreis,
+  });
 
   const instandhaltung = {
     ...instandhaltungEmpfohlen,
@@ -219,15 +209,11 @@ export function berechneObjekt(
     breakeven,
     affordability,
     kapitaleffizienz,
-    dealBreaker: { rechnetSich, meldung, ampel: dealBreakerAmpel },
+    dealBreaker,
     verhandlungsargumente,
     annahmenWarnungen,
     exitSzenario,
   };
-}
-
-function formatEuro(n: number): string {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 }
 
 function round2(n: number): number {

@@ -170,6 +170,10 @@ export interface ProfileInput {
   mindestEigenkapitalrenditeProzent: number;
   /** EK-Einsatz, ab dem die Kapitaleffizienz-Prüfung überhaupt greift. */
   eigenkapitalPruefungAbEuro: number;
+  /** "Rechnet sich das?": max. Anteil der effektiven Kaltmiete, den der Cashflow nach Steuer in Jahr 1 im Minus sein darf. */
+  cashflowStartverlustMaxProzentKaltmiete: number;
+  /** "Rechnet sich das?": Jahr, bis zu dem der Cashflow nach Steuer spätestens positiv sein muss. */
+  cashflowUmschlagjahr: number;
   liabilities: UserLiabilityInput[];
 }
 

@@ -36,6 +36,15 @@ export const profileSchema = z.object({
     .number({ error: "Prüfschwelle muss eine Zahl sein" })
     .min(0, "Prüfschwelle darf nicht negativ sein")
     .max(100_000_000, "Prüfschwelle ist unrealistisch hoch"),
+  cashflowStartverlustMaxProzentKaltmiete: z
+    .number({ error: "Startverlust-Grenze muss eine Zahl sein" })
+    .min(0, "Startverlust-Grenze darf nicht negativ sein")
+    .max(100, "Startverlust-Grenze darf maximal 100% betragen"),
+  cashflowUmschlagjahr: z
+    .number({ error: "Umschlagjahr muss eine Zahl sein" })
+    .int("Umschlagjahr muss eine ganze Zahl sein")
+    .min(1, "Umschlagjahr muss mindestens 1 sein")
+    .max(50, "Umschlagjahr darf höchstens 50 sein"),
   liabilities: z.array(liabilitySchema),
 });
 

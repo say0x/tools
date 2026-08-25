@@ -25,6 +25,8 @@ export default async function ProfilPage() {
     mietanrechnungProzent: profil?.mietanrechnungProzent ?? 80,
     mindestEigenkapitalrenditeProzent: profil?.mindestEigenkapitalrenditeProzent ?? 4,
     eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro ?? 5000,
+    cashflowStartverlustMaxProzentKaltmiete: profil?.cashflowStartverlustMaxProzentKaltmiete ?? 30,
+    cashflowUmschlagjahr: profil?.cashflowUmschlagjahr ?? 10,
     liabilities:
       profil?.liabilities.map((l) => ({
         bezeichnung: l.bezeichnung,

@@ -94,8 +94,14 @@ export const FIELD_HILFE = {
     "Ab welcher jährlichen Eigenkapitalrendite (Cashflow nach Steuer / eingesetztes Eigenkapital) ein Objekt als kapitaleffizient gilt. Positiver Cashflow allein sagt nichts darüber aus, ob dein eingesetztes Kapital gut arbeitet — z. B. wenn du viel EK statt eines größeren Kredits einsetzt, kann die Rendite trotzdem schlecht sein. Greift erst oberhalb der Prüfschwelle.",
   eigenkapitalPruefungAb:
     "Ab welchem EK-Einsatz (€) die Kapitaleffizienz-Ampel überhaupt bewertet wird. Bei sehr kleinem EK-Einsatz (z. B. nahe 100%-Finanzierung) schwankt die %-Rendite stark und wäre ohne diese Schwelle irreführend.",
+  cashflowStartverlustMaxProzent:
+    "Wie stark der Cashflow nach Steuer in Jahr 1 höchstens im Minus sein darf, relativ zur Kaltmiete — z. B. 30% bei 1.000€ Kaltmiete erlaubt bis zu -300€/Monat. Ein Objekt darf am Anfang negativ starten, aber nicht unbegrenzt. Überschreitet der Jahr-1-Verlust diese Grenze, springt „Rechnet sich das?“ unabhängig vom weiteren Verlauf auf Rot.",
+  cashflowUmschlagjahr:
+    "Bis zu welchem Jahr der Cashflow nach Steuer spätestens ins Plus gedreht haben muss, damit „Rechnet sich das?“ Grün werden kann. Ein Objekt, das laut Prognose z. B. erst danach positiv wird, gilt als zu langsam und wird auf Rot gesetzt — selbst wenn der Jahr-1-Verlust für sich genommen im Rahmen war.",
 
   // Kennzahlen-Anzeige (Objekt-Detail)
   ekRenditeKennzahl:
     "Cashflow-Rendite: (Cashflow nach Steuer × 12) / eingesetztes Eigenkapital. Tilgung zählt hier als reine Ausgabe, nicht als Vermögensaufbau, und Wertsteigerung ist nicht enthalten — für die Gesamtentwicklung deines Eigenkapitals (inkl. Tilgung & Wertsteigerung) sieh dir den Vermögensverlauf-Chart an.",
+  rechnetSichKennzahl:
+    "Kein reiner Jahr-1-Schnappschuss: ein Objekt darf am Anfang negativ starten, solange der Verlust deine im Profil eingestellte Grenze (relativ zur Kaltmiete) nicht überschreitet und der Cashflow bis zu deinem Umschlagjahr ins Plus dreht. Erst wenn beides passt, zählt zusätzlich die Finanzierbarkeit (Schuldendienst/Liquidität). Beide Schwellen stellst du unter Profil → „Rechnet sich das?“-Schwellen ein.",
 } as const;

@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stat } from "@/components/forms/Stat";
 import { formatEuro, formatNumber, formatProzentOderNv } from "@/lib/format";
@@ -69,7 +70,9 @@ export function PropertyKennzahlenSidebar({
 
       <Card>
         <div className="mb-3 flex items-center justify-between">
-          <CardTitle className="mb-0">Rechnet sich das?</CardTitle>
+          <CardTitle className="mb-0">
+            Rechnet sich das? <InfoTooltip text={FIELD_HILFE.rechnetSichKennzahl} />
+          </CardTitle>
           <AmpelBadge status={result.dealBreaker.ampel} />
         </div>
         <p className={`text-sm ${result.dealBreaker.rechnetSich ? "text-emerald-400" : "text-amber-400"}`}>

@@ -32,6 +32,8 @@ export async function upsertProfile(values: ProfileFormValues) {
     mietanrechnungProzent: data.mietanrechnungProzent,
     mindestEigenkapitalrenditeProzent: data.mindestEigenkapitalrenditeProzent,
     eigenkapitalPruefungAbEuro: data.eigenkapitalPruefungAbEuro,
+    cashflowStartverlustMaxProzentKaltmiete: data.cashflowStartverlustMaxProzentKaltmiete,
+    cashflowUmschlagjahr: data.cashflowUmschlagjahr,
   };
 
   await prisma.$transaction(async (tx) => {
