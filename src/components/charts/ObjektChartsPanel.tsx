@@ -66,6 +66,7 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
         </div>
         <CashflowAufschluesselungChart
           jahr={ausgewaehltesJahr}
+          mieteMonatlich={mieteMonatlich}
           zinsMonatlich={zinsMonatlich}
           tilgungMonatlich={tilgungMonatlich}
           laufendeKostenMonatlich={laufendeKostenMonatlich}
