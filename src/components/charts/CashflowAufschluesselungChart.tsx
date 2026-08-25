@@ -6,6 +6,7 @@ import { nullBasierteDomain } from "@/lib/chart-domain";
 
 export function CashflowAufschluesselungChart({
   jahr,
+  mieteMonatlich,
   zinsMonatlich,
   tilgungMonatlich,
   laufendeKostenMonatlich,
@@ -14,6 +15,7 @@ export function CashflowAufschluesselungChart({
   cashflowNachSteuerMonatlich,
 }: {
   jahr: number;
+  mieteMonatlich: number;
   zinsMonatlich: number;
   tilgungMonatlich: number;
   laufendeKostenMonatlich: number;
@@ -22,6 +24,10 @@ export function CashflowAufschluesselungChart({
   cashflowNachSteuerMonatlich: number;
 }) {
   const data = [
+    {
+      name: "Miete",
+      miete: mieteMonatlich,
+    },
     {
       name: "Vor Steuer",
       zins: zinsMonatlich,
@@ -43,10 +49,10 @@ export function CashflowAufschluesselungChart({
   return (
     <div
       role="img"
-      aria-label={`Balkendiagramm: Cashflow vor und nach Steuer in Jahr ${jahr}, aufgeteilt auf Zins, Tilgung, laufende Kosten und Steuer`}
+      aria-label={`Balkendiagramm: Kaltmiete in Jahr ${jahr} im Vergleich zum Cashflow vor und nach Steuer, aufgeteilt auf Zins, Tilgung, laufende Kosten und Steuer`}
     >
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} layout="vertical" barSize={24} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart data={data} layout="vertical" barSize={24} stackOffset="sign" margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="#1e293b" horizontal={false} />
           <XAxis type="number" stroke="#64748b" fontSize={12} domain={nullBasierteDomain} tickFormatter={(v) => `${Math.round(v)}`} />
           <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={12} width={90} />
@@ -56,6 +62,7 @@ export function CashflowAufschluesselungChart({
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
+          <Bar dataKey="miete" name="Miete (Einnahmen)" stackId="a" fill="#3987e5" radius={[4, 4, 4, 4]} />
           <Bar dataKey="zins" name="Zins" stackId="a" fill="#d95926" />
           <Bar dataKey="tilgung" name="Tilgung" stackId="a" fill="#199e70" />
           <Bar dataKey="kosten" name="Laufende Kosten" stackId="a" fill="#c98500" />
