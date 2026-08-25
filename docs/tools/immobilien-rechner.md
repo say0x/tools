@@ -27,6 +27,7 @@ Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitp
 | `rendite/vermoegensverlauf.ts` | Jahresreihe für den Vermögensverlauf-Chart | `berechneVermoegensverlauf` |
 | `rendite/breakeven.ts` | Bisektions-Suche: bei welchem Kaufpreis wird eine Metrik ≥ Zielwert? | `berechneBreakevenKaufpreis` |
 | `rendite/kapitaleffizienz.ts` | EK-Rendite-Ampel, unabhängig von Cashflow/Finanzierbarkeit | `berechneKapitaleffizienz` |
+| `rendite/dealbreaker.ts` | "Rechnet sich?"-Ampel als Trendprüfung über den Vermögensverlauf (Jahr-1-Startverlust + Umschlagjahr), kombiniert mit `affordability.ampel` | `berechneDealBreaker` |
 | `rendite/portfolioverlauf.ts` | Geteilt mit Finanzübersicht/Szenarien — siehe [dortige Doku](finanzuebersicht-und-szenarien.md) | `berechneSparpositionsverlauf`, `berechneImmobilienCashflowverlauf`, `berechneImmobilienEigenkapitalverlauf`, `berechnePortfolioverlauf`, `wendeImmobilienverkaufAn`, `berechneEinmaligeAnschaffungVerlauf` |
 | `rendite/sparziel.ts` | Für den [Sparziel-Rechner](weitere-rechner.md) | `findeJahrBisZielbetrag` |
 | `tax/afa.ts` | AfA-Satz (§7 Abs. 4 EStG), computed-with-override | `ermittleAfaSatzProzent`, `berechneAfaJaehrlich` |
@@ -55,7 +56,7 @@ Reihenfolge in [`engine.ts`](../../src/server/calc/engine.ts) (jeder Schritt nut
 10. **Breakeven-Kaufpreis** — `berechneBreakevenKaufpreis` (Bisektion über hypothetische Kaufpreise, bis Cashflow nach Steuer ≥ 0).
 11. **Affordability-Ampel** — `berechneAffordability`.
 12. **Kapitaleffizienz-Signal** — `berechneKapitaleffizienz`.
-13. **"Rechnet sich?"-Meldung** — `dealBreaker`: `rechnetSich = cashflowNachSteuer >= 0 && affordability.ampel !== "ROT"`, plus eine erklärende Meldung (nutzt ggf. den Breakeven-Kaufpreis).
+13. **"Rechnet sich?"-Ampel** — `rendite/dealbreaker.ts: berechneDealBreaker`: kein Jahr-1-Schnappschuss, sondern eine Trendprüfung über `vermoegensverlauf`. Rot, wenn entweder der Cashflow-nach-Steuer-Verlust in Jahr 1 die Schwelle `cashflowStartverlustMaxProzentKaltmiete` (relativ zur effektiven Kaltmiete) überschreitet, oder der Cashflow bis Jahr `cashflowUmschlagjahr` nicht positiv geworden ist, oder `affordability.ampel === "ROT"`. Sonst Gelb bei `affordability.ampel === "GELB"`, sonst Grün. `rechnetSich = ampel !== "ROT"`. Die Meldung nutzt bei zu großem Jahr-1-Verlust den Breakeven-Kaufpreis.
 14. **Verhandlungsargumente** — `ermittleVerhandlungsargumente`.
 15. **Annahmen-Warnungen** — `ermittleAnnahmenWarnungen`, prüft Leerstandsquote/Wert-/Mietsteigerung auf unrealistisch günstige Werte (unabhängig vom Exit-Szenario).
 16. **Exit-Szenario** — `berechneExitSzenario`, nur wenn `exit.geplant`: entnimmt Verkaufspreis und Restschuld dem `vermoegensverlauf`-Eintrag zum Jahr `exit.haltedauerJahre` und berechnet darauf die Spekulationssteuer.
@@ -146,6 +147,8 @@ Reihenfolge in [`engine.ts`](../../src/server/calc/engine.ts) (jeder Schritt nut
 | `mietanrechnungProzent` | `number` | Anteil der Nettomiete, den die Bank als Einkommen anrechnet — Default 80% |
 | `mindestEigenkapitalrenditeProzent` | `number` | Schwelle für die Kapitaleffizienz-Ampel — Default 4% |
 | `eigenkapitalPruefungAbEuro` | `number` | Ab welchem EK-Einsatz die Kapitaleffizienz-Prüfung überhaupt greift — Default 5.000€ |
+| `cashflowStartverlustMaxProzentKaltmiete` | `number` | Für die "Rechnet sich?"-Ampel: max. Cashflow-Verlust in Jahr 1, relativ zur effektiven Kaltmiete — Default 30% |
+| `cashflowUmschlagjahr` | `number` | Für die "Rechnet sich?"-Ampel: Jahr, bis zu dem der Cashflow nach Steuer spätestens positiv sein muss — Default 10 |
 | `liabilities` | `UserLiabilityInput[]` | Bestehende Kredite (`bezeichnung`, `monatlicheRate`, `restschuld`) — die Rate fließt in die Schuldendienstquote ein |
 
 ### `ReferenceDataSnapshot`
@@ -177,7 +180,7 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 | `breakeven` | `BreakevenResult` | `rendite/breakeven.ts` |
 | `affordability` | `AffordabilityResult` | `affordability/check.ts` |
 | `kapitaleffizienz` | `KapitaleffizienzResult` | `rendite/kapitaleffizienz.ts` |
-| `dealBreaker` | `{rechnetSich, meldung}` | `engine.ts` |
+| `dealBreaker` | `{rechnetSich, ampel, meldung}` | `rendite/dealbreaker.ts` |
 | `verhandlungsargumente` | `Verhandlungsargument[]` | `analyse/verhandlungsargumente.ts` |
 | `annahmenWarnungen` | `AnnahmenWarnung[]` | `analyse/annahmen-warnungen.ts` — immer berechnet, unabhängig vom Exit-Szenario |
 | `exitSzenario` | `ExitSzenarioResult \| null` | `exit/exit-szenario.ts` — `null` ohne `exit.geplant` oder bei `haltedauerJahre <= 0` |

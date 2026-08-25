@@ -95,14 +95,21 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     expect(result.rendite.monatlicherCashflowNachSteuer).toBeGreaterThan(result.rendite.monatlicherCashflowVorSteuer);
   });
 
-  it("meldet den Deal-Breaker konsistent zum Cashflow und liefert bei negativem Cashflow einen Break-even-Kaufpreis", () => {
-    expect(result.dealBreaker.rechnetSich).toBe(result.rendite.monatlicherCashflowNachSteuer >= 0);
-    if (!result.dealBreaker.rechnetSich) {
-      expect(result.breakeven.erreichbar).toBe(true);
-      expect(result.breakeven.breakevenKaufpreis).toBeLessThan(property.kaufpreis);
-      expect(result.breakeven.differenzZuAktuellemKaufpreis).toBeGreaterThan(0);
-      expect(result.dealBreaker.meldung).toContain("Lohnt sich");
-    }
+  it("bewertet den Deal-Breaker anhand des Cashflow-Trends, nicht nur Jahr 1 (Rot wegen zu spätem Umschlagjahr, nicht wegen des Jahr-1-Verlusts)", () => {
+    // Cashflow nach Steuer Jahr 1 liegt innerhalb der Default-Startgrenze (30% von
+    // 1.000€ Kaltmiete = 300€), dreht laut Tilgungsplan aber erst sehr spät ins Plus ->
+    // Rot greift wegen des Umschlagjahr-Kriteriums, nicht wegen des Jahr-1-Verlusts.
+    const ersterPositiverEintrag = result.vermoegensverlauf.find((j) => j.cashflowNachSteuerJahr >= 0);
+    expect(result.rendite.monatlicherCashflowNachSteuer).toBeLessThan(0);
+    expect(result.rendite.monatlicherCashflowNachSteuer).toBeGreaterThan(-300);
+    expect(ersterPositiverEintrag?.jahr).toBeGreaterThan(profile.cashflowUmschlagjahr);
+    expect(result.dealBreaker.ampel).toBe("ROT");
+    expect(result.dealBreaker.rechnetSich).toBe(false);
+    expect(result.dealBreaker.meldung).toContain(`Jahr ${ersterPositiverEintrag?.jahr}`);
+    expect(result.dealBreaker.meldung).toContain("später als deine Zielspanne");
+    // Der Jahr-1-Breakeven-Kaufpreis bleibt als unabhängiges Feld erhalten.
+    expect(result.breakeven.erreichbar).toBe(true);
+    expect(result.breakeven.breakevenKaufpreis).toBeLessThan(property.kaufpreis);
   });
 
   it("dealBreaker.ampel ist ROT bei negativem Cashflow, selbst wenn affordability.ampel GRUEN ist (finanzierbar, aber lohnt sich nicht)", () => {

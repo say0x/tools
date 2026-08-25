@@ -124,6 +124,8 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
       mietanrechnungProzent: 80,
       mindestEigenkapitalrenditeProzent: 4,
       eigenkapitalPruefungAbEuro: 5000,
+      cashflowStartverlustMaxProzentKaltmiete: 30,
+      cashflowUmschlagjahr: 10,
       liabilities: [],
     };
   }
@@ -140,6 +142,8 @@ export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[
     mietanrechnungProzent: row.mietanrechnungProzent,
     mindestEigenkapitalrenditeProzent: row.mindestEigenkapitalrenditeProzent,
     eigenkapitalPruefungAbEuro: row.eigenkapitalPruefungAbEuro,
+    cashflowStartverlustMaxProzentKaltmiete: row.cashflowStartverlustMaxProzentKaltmiete,
+    cashflowUmschlagjahr: row.cashflowUmschlagjahr,
     liabilities: row.liabilities.map((l) => ({
       bezeichnung: l.bezeichnung,
       monatlicheRate: l.monatlicheRate,
