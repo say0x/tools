@@ -17,12 +17,12 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="wert" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#3987e5" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#3987e5" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="ek" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              <stop offset="5%" stopColor="#199e70" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#199e70" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="#1e293b" />
@@ -34,32 +34,35 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Area type="monotone" dataKey="immobilienwert" name="Immobilienwert" stroke="#3b82f6" fill="url(#wert)" />
-          <Area type="monotone" dataKey="restschuld" name="Restschuld" stroke="#f97316" fillOpacity={0} />
-          <Area type="monotone" dataKey="eigenkapitalanteil" name="Eigenkapitalanteil" stroke="#10b981" fill="url(#ek)" />
+          <Area type="monotone" dataKey="immobilienwert" name="Immobilienwert" stroke="#3987e5" fill="url(#wert)" />
+          <Area type="monotone" dataKey="restschuld" name="Restschuld" stroke="#d95926" fillOpacity={0} />
+          <Area type="monotone" dataKey="eigenkapitalanteil" name="Eigenkapitalanteil" stroke="#199e70" fill="url(#ek)" />
           <Line
             type="monotone"
             dataKey="eigenkapitalanteilReal"
             name="Eigenkapitalanteil (real, inflationsbereinigt)"
-            stroke="#10b981"
+            stroke="#199e70"
             strokeDasharray="4 4"
             strokeWidth={1.5}
             dot={false}
           />
+          {/* Meilenstein-Linien sind Zeitmarken, keine eigene Datenserie — tragen ihre
+              Bedeutung über das Text-Label, nicht über eine weitere Kategorie-Farbe (eine
+              4. Farbe neben den 3 Serien oben wäre nicht mehr CVD-sicher unterscheidbar). */}
           {meilensteine && meilensteine.zinsbindungEndeJahr <= maxJahr && (
             <ReferenceLine
               x={meilensteine.zinsbindungEndeJahr}
-              stroke="#a855f7"
+              stroke="#94a3b8"
               strokeDasharray="4 4"
-              label={{ value: "Zinsbindung endet", position: "insideTopLeft", fill: "#a855f7", fontSize: 11 }}
+              label={{ value: "Zinsbindung endet", position: "insideTopLeft", fill: "#94a3b8", fontSize: 11 }}
             />
           )}
           {meilensteine?.volltilgungJahr != null && meilensteine.volltilgungJahr <= maxJahr && (
             <ReferenceLine
               x={meilensteine.volltilgungJahr}
-              stroke="#10b981"
+              stroke="#94a3b8"
               strokeDasharray="4 4"
-              label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#10b981", fontSize: 11 }}
+              label={{ value: "Kredit abbezahlt", position: "insideTopRight", fill: "#94a3b8", fontSize: 11 }}
             />
           )}
         </ComposedChart>

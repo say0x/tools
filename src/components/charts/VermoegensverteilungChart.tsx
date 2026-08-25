@@ -27,8 +27,8 @@ export function VermoegensverteilungChart({
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Bar dataKey="immobilien" name="Immobilien (Eigenkapitalanteil)" stackId="a" fill="#3b82f6" radius={[4, 0, 0, 4]} />
-          <Bar dataKey="bargeld" name="Bargeld & Depots" stackId="a" fill="#a855f7" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="immobilien" name="Immobilien (Eigenkapitalanteil)" stackId="a" fill="#3987e5" radius={[4, 0, 0, 4]} />
+          <Bar dataKey="bargeld" name="Bargeld & Depots" stackId="a" fill="#d95926" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

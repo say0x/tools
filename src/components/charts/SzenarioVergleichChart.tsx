@@ -28,8 +28,8 @@ export function SzenarioVergleichChart({
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="szenario-mit" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#a855f7" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+              <stop offset="5%" stopColor="#199e70" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#199e70" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="#1e293b" />
@@ -41,14 +41,14 @@ export function SzenarioVergleichChart({
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Area type="monotone" dataKey="mitSzenario" name="Mit Szenario" stroke="#a855f7" fill="url(#szenario-mit)" />
-          <Line type="monotone" dataKey="ohneSzenario" name="Ohne Szenario" stroke="#3b82f6" strokeDasharray="4 4" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="mitSzenario" name="Mit Szenario" stroke="#199e70" fill="url(#szenario-mit)" />
+          <Line type="monotone" dataKey="ohneSzenario" name="Ohne Szenario" stroke="#3987e5" strokeDasharray="4 4" strokeWidth={2} dot={false} />
           {immobilienwertVerlauf && (
             <Line
               type="monotone"
               dataKey="immobilienwert"
               name="Immobilienwert (Referenz, im Szenario)"
-              stroke="#f97316"
+              stroke="#d95926"
               strokeDasharray="2 3"
               strokeWidth={2}
               dot={false}

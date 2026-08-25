@@ -32,8 +32,8 @@ export function MonthlyCashflowChart({
             formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
           />
           <Legend />
-          <Bar dataKey="vorSteuer" name="Vor Steuer" fill="#f97316" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="nachSteuer" name="Nach Steuer" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="vorSteuer" name="Vor Steuer" fill="#d95926" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="nachSteuer" name="Nach Steuer" fill="#3987e5" radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
