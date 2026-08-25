@@ -3,6 +3,7 @@
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Meilensteine, VermoegensverlaufJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
+import { tickInterval } from "@/lib/chart-ticks";
 
 export function VermoegensChart({ data, meilensteine }: { data: VermoegensverlaufJahr[]; meilensteine?: Meilensteine }) {
   const maxJahr = data[data.length - 1]?.jahr ?? 0;
@@ -25,7 +26,7 @@ export function VermoegensChart({ data, meilensteine }: { data: Vermoegensverlau
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
+          <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <Tooltip
             contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}

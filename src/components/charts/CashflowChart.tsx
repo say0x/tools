@@ -3,6 +3,7 @@
 import { Legend, Line, ComposedChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { VermoegensverlaufJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
+import { tickInterval } from "@/lib/chart-ticks";
 
 export function CashflowChart({ data }: { data: VermoegensverlaufJahr[] }) {
   return (
@@ -10,7 +11,7 @@ export function CashflowChart({ data }: { data: VermoegensverlaufJahr[] }) {
       <ResponsiveContainer width="100%" height={240}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
+          <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <ReferenceLine y={0} stroke="#475569" />
           <Tooltip

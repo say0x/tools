@@ -12,6 +12,18 @@ export function VergleichChart({
   /** Beschreibt, welche Kennzahl verglichen wird — der Chart wird für mehrere Kennzahlen wiederverwendet. */
   ariaLabel: string;
 }) {
+  // Ein Balkendiagramm, in dem jeder Wert 0 ist, rendert ohne sichtbare Balken oder
+  // Beschriftung (0 Höhe) — sieht wie ein Ladefehler aus statt wie "alle Werte sind 0".
+  const alleWerteNull = data.length > 0 && data.every((d) => d.value === 0);
+
+  if (alleWerteNull) {
+    return (
+      <div role="img" aria-label={ariaLabel} className="flex h-[240px] items-center justify-center text-sm text-slate-500">
+        Alle Werte liegen bei 0 (oder sind nicht verfügbar) — kein Unterschied sichtbar.
+      </div>
+    );
+  }
+
   return (
     <div role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height={240}>

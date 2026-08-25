@@ -3,6 +3,7 @@
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { PortfolioJahr } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
+import { tickInterval } from "@/lib/chart-ticks";
 
 export function SzenarioVergleichChart({
   ohneSzenario,
@@ -32,7 +33,7 @@ export function SzenarioVergleichChart({
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis dataKey="kalenderjahr" stroke="#64748b" fontSize={12} />
+          <XAxis dataKey="kalenderjahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <Tooltip
             contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
