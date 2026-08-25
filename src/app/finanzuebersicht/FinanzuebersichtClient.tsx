@@ -115,9 +115,20 @@ export function FinanzuebersichtClient({
   const presets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahr) => jahr <= maxHorizontJahre);
 
   const aendereImmobilienStatus = (imm: ImmobilienPosition, status: Besitzstatus) => {
+    const vorherigerStatus = immobilienStatus[imm.id] ?? imm.besitzstatus;
     setImmobilienStatus((prev) => ({ ...prev, [imm.id]: status }));
+    setServerFehler(null);
     startTransition(async () => {
-      await setAssetBesitzstatus(imm.assetId, status);
+      try {
+        await setAssetBesitzstatus(imm.assetId, status);
+      } catch (err) {
+        // Optimistisches Update zurücknehmen — sonst zeigt die UI einen Status, der nie
+        // gespeichert wurde, bis ein Reload den echten (unveränderten) Serverwert nachlädt.
+        setImmobilienStatus((prev) => ({ ...prev, [imm.id]: vorherigerStatus }));
+        setServerFehler(
+          `Status von "${imm.name}" konnte nicht geändert werden: ${err instanceof Error ? err.message : "unbekannter Fehler"}. Bitte erneut versuchen.`
+        );
+      }
     });
   };
 
