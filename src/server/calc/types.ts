@@ -341,7 +341,13 @@ export interface CalculationResult {
   breakeven: BreakevenResult;
   affordability: AffordabilityResult;
   kapitaleffizienz: KapitaleffizienzResult;
-  dealBreaker: { rechnetSich: boolean; meldung: string };
+  /**
+   * ampel kombiniert Cashflow (rechnetSich) UND Finanzierbarkeit (affordability.ampel) zu einem
+   * Signal — ROT, wenn eines von beiden nicht passt, GELB nur wenn es sich zwar rechnet, die
+   * Finanzierbarkeit aber knapp ist. Bewusst getrennt von affordability.ampel, das nur die
+   * Finanzierbarkeit allein misst (siehe berechneObjekt in engine.ts für die genaue Ableitung).
+   */
+  dealBreaker: { rechnetSich: boolean; meldung: string; ampel: "GRUEN" | "GELB" | "ROT" };
   verhandlungsargumente: Verhandlungsargument[];
   annahmenWarnungen: AnnahmenWarnung[];
   exitSzenario: ExitSzenarioResult | null;

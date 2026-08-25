@@ -148,6 +148,11 @@ export function berechneObjekt(
   });
 
   const rechnetSich = rendite.monatlicherCashflowNachSteuer >= 0 && affordability.ampel !== "ROT";
+  // Eigene Ampel statt affordability.ampel weiterzureichen: affordability kennt nur Schuldendienst
+  // und Liquidität, nicht den Cashflow. Ohne diese Kombination könnte die "Rechnet sich das?"-Karte
+  // einen grünen Badge neben einer "lohnt sich nicht"-Meldung zeigen (Cashflow negativ, aber
+  // Finanzierbarkeit unkritisch, z. B. bei hohem Einkommen/Eigenkapital).
+  const dealBreakerAmpel: "GRUEN" | "GELB" | "ROT" = !rechnetSich ? "ROT" : affordability.ampel === "GELB" ? "GELB" : "GRUEN";
   let meldung: string;
   if (rechnetSich) {
     meldung = "Das Objekt rechnet sich nach aktueller Kalkulation: positiver Cashflow nach Steuer.";
@@ -214,7 +219,7 @@ export function berechneObjekt(
     breakeven,
     affordability,
     kapitaleffizienz,
-    dealBreaker: { rechnetSich, meldung },
+    dealBreaker: { rechnetSich, meldung, ampel: dealBreakerAmpel },
     verhandlungsargumente,
     annahmenWarnungen,
     exitSzenario,
