@@ -62,10 +62,12 @@ export function berechneRenditeKennzahlen(input: RenditeKennzahlenInput): Rendit
 
   const monatlicherCashflowNachSteuer = round2(monatlicherCashflowVorSteuer - steuerEuroJahr / 12);
 
+  // null statt 0 bei EK-Einsatz 0 €: die Rendite ist rechnerisch nicht definiert
+  // (Division durch 0), nicht "0% Rendite" — beides sähe für Nutzer sonst gleich aus.
   const eigenkapitalrenditeProzent =
     input.eigenkapitalEinsatzEuro > 0
       ? round2(((monatlicherCashflowNachSteuer * 12) / input.eigenkapitalEinsatzEuro) * 100)
-      : 0;
+      : null;
 
   return {
     jahreskaltmiete,

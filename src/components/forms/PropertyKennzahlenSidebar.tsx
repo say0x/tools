@@ -3,7 +3,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stat } from "@/components/forms/Stat";
-import { formatEuro, formatNumber } from "@/lib/format";
+import { formatEuro, formatNumber, formatProzentOderNv } from "@/lib/format";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
 import { formatiereAnnahmenWarnung } from "@/lib/annahmen-warnungstexte";
 import type { CalculationResult } from "@/server/calc/types";
@@ -55,7 +55,11 @@ export function PropertyKennzahlenSidebar({
           <Stat label="Bruttomietrendite" value={`${result.rendite.bruttomietrenditeProzent}%`} />
           <Stat label="Nettomietrendite" value={`${result.rendite.nettomietrenditeProzent}%`} />
           <Stat label="Kaufpreisfaktor" value={formatNumber(result.rendite.kaufpreisfaktor)} />
-          <Stat label="EK-Rendite" value={`${result.rendite.eigenkapitalrenditeProzent}%`} />
+          <Stat
+            label="EK-Rendite"
+            value={formatProzentOderNv(result.rendite.eigenkapitalrenditeProzent)}
+            subValue={result.rendite.eigenkapitalrenditeProzent === null ? "kein EK eingesetzt" : undefined}
+          />
           <Stat label="Cashflow vor Steuer" value={formatEuro(result.rendite.monatlicherCashflowVorSteuer) + "/Mon."} />
           <Stat label="Cashflow nach Steuer" value={formatEuro(result.rendite.monatlicherCashflowNachSteuer) + "/Mon."} />
         </div>

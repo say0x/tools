@@ -254,7 +254,8 @@ export interface RenditeKennzahlen {
   afaJaehrlich: number;
   monatlicherCashflowVorSteuer: number;
   monatlicherCashflowNachSteuer: number;
-  eigenkapitalrenditeProzent: number;
+  /** null bei EK-Einsatz 0 € (z. B. 100%+-Finanzierung) — rechnerisch nicht definiert statt irreführend 0%. */
+  eigenkapitalrenditeProzent: number | null;
   grenzsteuersatzProzent: number;
 }
 

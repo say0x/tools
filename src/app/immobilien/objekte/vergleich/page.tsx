@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatEuro, formatNumber } from "@/lib/format";
+import { formatEuro, formatNumber, formatProzentOderNv } from "@/lib/format";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
 import { ladeObjekteNachIds } from "@/server/data/property";
@@ -93,7 +93,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
                   objekte={objekte}
                   render={(r) => `${formatEuro(r.rendite.monatlicherCashflowNachSteuer)}/Mon.`}
                 />
-                <Row label="EK-Rendite" objekte={objekte} render={(r) => `${r.rendite.eigenkapitalrenditeProzent}%`} />
+                <Row label="EK-Rendite" objekte={objekte} render={(r) => formatProzentOderNv(r.rendite.eigenkapitalrenditeProzent)} />
                 <Row
                   label="Finanzierbarkeit"
                   objekte={objekte}
@@ -148,8 +148,8 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
                 data={objekte.map((o) => ({
                   id: o.id,
                   name: o.name,
-                  value: o.result.rendite.eigenkapitalrenditeProzent,
-                  label: `${o.result.rendite.eigenkapitalrenditeProzent}%`,
+                  value: o.result.rendite.eigenkapitalrenditeProzent ?? 0,
+                  label: formatProzentOderNv(o.result.rendite.eigenkapitalrenditeProzent),
                 }))}
               />
             </Card>

@@ -1,7 +1,7 @@
 import type { KapitaleffizienzResult } from "../types";
 
 export interface KapitaleffizienzInput {
-  eigenkapitalrenditeProzent: number;
+  eigenkapitalrenditeProzent: number | null;
   eigenkapitalEinsatzEuro: number;
   mindestEigenkapitalrenditeProzent: number;
   eigenkapitalPruefungAbEuro: number;
@@ -17,6 +17,15 @@ export interface KapitaleffizienzInput {
  */
 export function berechneKapitaleffizienz(input: KapitaleffizienzInput): KapitaleffizienzResult {
   const { eigenkapitalrenditeProzent, eigenkapitalEinsatzEuro, mindestEigenkapitalrenditeProzent, eigenkapitalPruefungAbEuro } = input;
+
+  if (eigenkapitalrenditeProzent === null) {
+    return {
+      ampel: "GRUEN",
+      begruendung: [
+        `Kein Eigenkapital eingesetzt (${eigenkapitalEinsatzEuro} €) — die EK-Rendite ist damit rechnerisch nicht definiert und wird hier nicht bewertet.`,
+      ],
+    };
+  }
 
   if (eigenkapitalEinsatzEuro < eigenkapitalPruefungAbEuro) {
     return {
