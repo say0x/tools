@@ -22,8 +22,8 @@ export function MonthlyCashflowChart({
   return (
     <div role="img" aria-label="Balkendiagramm: monatlicher Cashflow vor und nach Steuer über zwölf Monate">
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+        <BarChart data={data} barSize={20} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="#1e293b" />
           <XAxis dataKey="monat" stroke="#64748b" fontSize={12} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} domain={nullBasierteDomain} />
           <ReferenceLine y={0} stroke="#475569" />

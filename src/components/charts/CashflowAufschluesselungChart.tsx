@@ -44,8 +44,8 @@ export function CashflowAufschluesselungChart({
       aria-label="Balkendiagramm: Cashflow vor und nach Steuer, aufgeteilt auf Zins, Tilgung, laufende Kosten und Steuer"
     >
       <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+        <BarChart data={data} layout="vertical" barSize={24} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="#1e293b" horizontal={false} />
           <XAxis type="number" stroke="#64748b" fontSize={12} domain={nullBasierteDomain} tickFormatter={(v) => `${Math.round(v)}`} />
           <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={12} width={90} />
           <ReferenceLine x={0} stroke="#475569" />

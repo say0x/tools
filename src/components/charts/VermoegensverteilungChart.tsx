@@ -18,8 +18,8 @@ export function VermoegensverteilungChart({
       aria-label="Balkendiagramm: Vermögensverteilung zwischen Immobilien-Eigenkapitalanteil und Bargeld/Depots"
     >
       <ResponsiveContainer width="100%" height={100}>
-        <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+        <BarChart data={data} layout="vertical" barSize={24} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="#1e293b" horizontal={false} />
           <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <YAxis type="category" dataKey="name" hide />
           <Tooltip

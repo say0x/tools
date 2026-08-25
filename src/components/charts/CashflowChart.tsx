@@ -10,7 +10,7 @@ export function CashflowChart({ data }: { data: VermoegensverlaufJahr[] }) {
     <div role="img" aria-label="Liniendiagramm: kumulierter Cashflow vor und nach Steuer über die Jahre">
       <ResponsiveContainer width="100%" height={240}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid stroke="#1e293b" />
           <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} interval={tickInterval(data.length)} />
           <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
           <ReferenceLine y={0} stroke="#475569" />
