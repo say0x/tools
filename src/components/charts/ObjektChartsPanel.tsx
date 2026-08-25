@@ -3,14 +3,11 @@
 import { useMemo, useState } from "react";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import type { CalculationResult } from "@/server/calc/types";
 import { formatEuro } from "@/lib/format";
 import { VermoegensChart } from "./VermoegensChart";
 import { CashflowChart } from "./CashflowChart";
-import { MonthlyCashflowChart } from "./MonthlyCashflowChart";
-import { MietVerwendungChart } from "./MietVerwendungChart";
 import { CashflowAufschluesselungChart } from "./CashflowAufschluesselungChart";
 
 const MAX_JAHRE = 50;
@@ -48,47 +45,24 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
 
   const jahrPresets = BETRACHTUNGSZEITRAUM_PRESETS.filter((jahre) => jahre <= betrachtungszeitraum);
 
-  const jahrAuswahl = (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {jahrPresets.map((jahre) => (
-        <Button
-          key={jahre}
-          type="button"
-          size="sm"
-          variant={ausgewaehltesJahr === jahre ? "primary" : "secondary"}
-          onClick={() => setAusgewaehltesJahr(jahre)}
-        >
-          {jahre}J
-        </Button>
-      ))}
-    </div>
-  );
-
   return (
     <>
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="mb-0">Wohin geht die Miete? (Jahr {ausgewaehltesJahr})</CardTitle>
-          {jahrAuswahl}
-        </div>
-        <MietVerwendungChart
-          jahr={ausgewaehltesJahr}
-          zinsMonatlich={zinsMonatlich}
-          tilgungMonatlich={tilgungMonatlich}
-          laufendeKostenMonatlich={laufendeKostenMonatlich}
-          cashflowVorSteuerMonatlich={cashflowVorSteuerMonatlich}
-        />
-        <p className="mt-2 text-xs text-slate-500">
-          Effektive Kaltmiete Jahr {ausgewaehltesJahr}: {formatEuro(mieteMonatlich)}/Monat, aufgeteilt auf Zins, Tilgung,
-          laufende Kosten und den verbleibenden Cashflow. Miete und laufende Kosten sind bereits mit den angenommenen
-          Steigerungsraten auf dieses Jahr fortgeschrieben.
-        </p>
-      </Card>
-
-      <Card>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="mb-0">Cashflow vor &amp; nach Steuer im Vergleich (Jahr {ausgewaehltesJahr})</CardTitle>
-          {jahrAuswahl}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {jahrPresets.map((jahre) => (
+              <Button
+                key={jahre}
+                type="button"
+                size="sm"
+                variant={ausgewaehltesJahr === jahre ? "primary" : "secondary"}
+                onClick={() => setAusgewaehltesJahr(jahre)}
+              >
+                {jahre}J
+              </Button>
+            ))}
+          </div>
         </div>
         <CashflowAufschluesselungChart
           jahr={ausgewaehltesJahr}
@@ -100,8 +74,10 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
           cashflowNachSteuerMonatlich={cashflowNachSteuerMonatlich}
         />
         <p className="mt-2 text-xs text-slate-500">
-          Gleiche Bausteine wie oben, zusätzlich mit Steuer-Segment (rot = Steuerlast, wächst der Cashflow-Balken statt dessen,
-          war es eine Steuererstattung).
+          Effektive Kaltmiete Jahr {ausgewaehltesJahr}: {formatEuro(mieteMonatlich)}/Monat, aufgeteilt auf Zins, Tilgung,
+          laufende Kosten und den verbleibenden Cashflow (Zeile &quot;Vor Steuer&quot;) bzw. zusätzlich die Steuerlast (Zeile
+          &quot;Nach Steuer&quot; — wächst der Cashflow-Balken statt dessen, war es eine Steuererstattung). Miete und laufende
+          Kosten sind bereits mit den angenommenen Steigerungsraten auf dieses Jahr fortgeschrieben.
         </p>
       </Card>
 
@@ -145,32 +121,6 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
       <Card>
         <CardTitle>Kumulierter Cashflow — vor &amp; nach Steuer</CardTitle>
         <CashflowChart data={sichtbareDaten} />
-      </Card>
-
-      <Card>
-        <div className="mb-4 flex items-center justify-between">
-          <CardTitle className="mb-0">Monatlicher Cashflow in einem Jahr</CardTitle>
-          <Select
-            className="w-auto"
-            value={ausgewaehltesJahr}
-            onChange={(e) => setAusgewaehltesJahr(Number(e.target.value))}
-          >
-            {Array.from({ length: betrachtungszeitraum }, (_, i) => i + 1).map((jahr) => (
-              <option key={jahr} value={jahr}>
-                Jahr {jahr}
-              </option>
-            ))}
-          </Select>
-        </div>
-        {jahrDaten && (
-          <MonthlyCashflowChart
-            cashflowVorSteuerJahr={jahrDaten.cashflowVorSteuerJahr}
-            cashflowNachSteuerJahr={jahrDaten.cashflowNachSteuerJahr}
-          />
-        )}
-        <p className="mt-2 text-xs text-slate-500">
-          Näherung: Jahreswert gleichmäßig auf 12 Monate verteilt (keine unterjährige Saisonalität im Modell).
-        </p>
       </Card>
     </>
   );
