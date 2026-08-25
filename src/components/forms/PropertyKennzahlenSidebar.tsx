@@ -6,9 +6,10 @@ import { Stat } from "@/components/forms/Stat";
 import { formatEuro, formatNumber, formatProzentOderNv } from "@/lib/format";
 import { formatiereVerhandlungsargument } from "@/lib/verhandlungstexte";
 import { formatiereAnnahmenWarnung } from "@/lib/annahmen-warnungstexte";
+import { FIELD_HILFE } from "@/lib/field-hilfe";
 import type { CalculationResult } from "@/server/calc/types";
 
-// Dynamisch importiert: bündelt 5 Recharts-Diagramme, die erst unterhalb des Formulars
+// Dynamisch importiert: bündelt die Recharts-Diagramme, die erst unterhalb des Formulars
 // sichtbar sind (showCharts) — das Formular selbst soll ohne Recharts im Bundle interaktiv sein.
 const ObjektChartsPanel = dynamic(() => import("@/components/charts/ObjektChartsPanel").then((m) => m.ObjektChartsPanel), {
   ssr: false,
@@ -59,6 +60,7 @@ export function PropertyKennzahlenSidebar({
             label="EK-Rendite"
             value={formatProzentOderNv(result.rendite.eigenkapitalrenditeProzent)}
             subValue={result.rendite.eigenkapitalrenditeProzent === null ? "kein EK eingesetzt" : undefined}
+            hilfe={FIELD_HILFE.ekRenditeKennzahl}
           />
           <Stat label="Cashflow vor Steuer" value={formatEuro(result.rendite.monatlicherCashflowVorSteuer) + "/Mon."} />
           <Stat label="Cashflow nach Steuer" value={formatEuro(result.rendite.monatlicherCashflowNachSteuer) + "/Mon."} />
@@ -68,7 +70,7 @@ export function PropertyKennzahlenSidebar({
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <CardTitle className="mb-0">Rechnet sich das?</CardTitle>
-          <AmpelBadge status={result.affordability.ampel} />
+          <AmpelBadge status={result.dealBreaker.ampel} />
         </div>
         <p className={`text-sm ${result.dealBreaker.rechnetSich ? "text-emerald-400" : "text-amber-400"}`}>
           {result.dealBreaker.meldung}

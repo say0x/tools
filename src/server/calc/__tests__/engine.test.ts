@@ -105,6 +105,39 @@ describe("berechneObjekt (Referenzobjekt, von Hand durchgerechnet)", () => {
     }
   });
 
+  it("dealBreaker.ampel ist ROT bei negativem Cashflow, selbst wenn affordability.ampel GRUEN ist (finanzierbar, aber lohnt sich nicht)", () => {
+    // Käufer mit hohem Einkommen/Eigenkapital, aber niedrig-rentierliches Objekt: Schuldendienst
+    // und Liquidität sind unkritisch (affordability = GRUEN), der Cashflow ist trotzdem negativ.
+    // dealBreaker.ampel muss das erkennen, statt affordability.ampel unreflektiert durchzureichen
+    // (sonst zeigt die "Rechnet sich das?"-Karte einen grünen Badge neben "lohnt sich nicht").
+    const wohlhabenderKaeufer = makeProfileFixture({
+      nettoEinkommenMonatlich: 15000,
+      vorhandenesEigenkapital: 300000,
+    });
+    const renditeschwachesObjekt = makePropertyFixture({
+      kaufpreis: 400000,
+      kaltmieteMonatlich: 500,
+      financing: {
+        eigenkapital: 150000,
+        zinssatzProzent: 4,
+        anfaenglicheTilgungProzent: 2,
+        zinsbindungJahre: 10,
+        finanzierungsart: "FINANZIERUNG_110",
+        eigenkapitalquoteManuellProzent: null,
+        anschlusszinsAufschlagProzent: 0,
+        sondertilgungProzent: 0,
+        sondertilgungMaxProzent: 5,
+      },
+    });
+
+    const gegenbeispiel = berechneObjekt(renditeschwachesObjekt, wohlhabenderKaeufer, referenceDataFixture, { steuerjahr: 2025 });
+
+    expect(gegenbeispiel.rendite.monatlicherCashflowNachSteuer).toBeLessThan(0);
+    expect(gegenbeispiel.affordability.ampel).toBe("GRUEN");
+    expect(gegenbeispiel.dealBreaker.rechnetSich).toBe(false);
+    expect(gegenbeispiel.dealBreaker.ampel).toBe("ROT");
+  });
+
   it("bewertet die Finanzierbarkeit anhand des Profils korrekt (Rate 1.000€, Netto 4.000€ + 800€ angerechnete Miete)", () => {
     // Angerechnete Miete: 1.000 effektive Nettomiete/Monat × 80% Mietanrechnung = 800€ -> Einkommen 4.800€
     expect(result.affordability.angerechneteMieteMonatlich).toBe(800);

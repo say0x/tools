@@ -94,4 +94,8 @@ export const FIELD_HILFE = {
     "Ab welcher jährlichen Eigenkapitalrendite (Cashflow nach Steuer / eingesetztes Eigenkapital) ein Objekt als kapitaleffizient gilt. Positiver Cashflow allein sagt nichts darüber aus, ob dein eingesetztes Kapital gut arbeitet — z. B. wenn du viel EK statt eines größeren Kredits einsetzt, kann die Rendite trotzdem schlecht sein. Greift erst oberhalb der Prüfschwelle.",
   eigenkapitalPruefungAb:
     "Ab welchem EK-Einsatz (€) die Kapitaleffizienz-Ampel überhaupt bewertet wird. Bei sehr kleinem EK-Einsatz (z. B. nahe 100%-Finanzierung) schwankt die %-Rendite stark und wäre ohne diese Schwelle irreführend.",
+
+  // Kennzahlen-Anzeige (Objekt-Detail)
+  ekRenditeKennzahl:
+    "Cashflow-Rendite: (Cashflow nach Steuer × 12) / eingesetztes Eigenkapital. Tilgung zählt hier als reine Ausgabe, nicht als Vermögensaufbau, und Wertsteigerung ist nicht enthalten — für die Gesamtentwicklung deines Eigenkapitals (inkl. Tilgung & Wertsteigerung) sieh dir den Vermögensverlauf-Chart an.",
 } as const;
