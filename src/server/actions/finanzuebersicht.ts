@@ -16,11 +16,14 @@ export async function ladeSparpositionen() {
 
 /**
  * Speichert Gehalt/Inflation-Annahmen (Teil des UserProfile-Singletons) und
- * die komplette Liste der Sparpositionen in einem Rutsch. Die Positionen
- * werden dabei komplett ersetzt (löschen + neu anlegen) statt einzeln
- * diffed — bewusst einfach gehalten wie schon beim "Bestehende Kredite"-Feld
- * im Profil, weil außer dieser Seite nichts auf einzelne Positions-IDs
- * verweist.
+ * die komplette Liste der Sparpositionen in einem Rutsch. Positionen mit
+ * bekannter assetId werden aktualisiert, neue (ohne assetId) angelegt, im
+ * Formular entfernte gelöscht — kein Löschen+Neuanlegen aller Positionen bei
+ * jedem Speichern mehr. Das war früher bewusst einfach gehalten, hat aber
+ * unbeabsichtigt Szenario-Änderungen mitgerissen: SzenarioAenderung.assetId
+ * (Cascade-Delete) verweist bei SPARRATE_AENDERN auf genau diese Assets, die
+ * bei jedem Finanzübersicht-Speichern — auch nur für eine Gehaltsänderung —
+ * neu angelegt wurden und damit ihre alte ID verloren haben.
  */
 export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValues) {
   const result = finanzuebersichtSchema.safeParse(values);
@@ -43,29 +46,97 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
       await tx.userProfile.create({ data: profileData });
     }
 
-    await tx.asset.deleteMany({ where: { type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } } });
+    const bestehendeAssets = await tx.asset.findMany({
+      where: { type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } },
+      select: { id: true, type: true },
+    });
+    const bestehendeAssetsById = new Map(bestehendeAssets.map((a) => [a.id, a]));
+    const uebernommeneIds = new Set<string>();
+
     for (const position of data.sparpositionen) {
+      const vorhandenesAsset = position.assetId ? bestehendeAssetsById.get(position.assetId) : undefined;
+
+      if (!vorhandenesAsset) {
+        if (position.art === "WERTPAPIERDEPOT") {
+          await tx.wertpapierposition.create({
+            data: {
+              betrag: position.betrag,
+              renditeProzentJaehrlich: position.renditeProzentJaehrlich,
+              sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+              sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
+              asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
+            },
+          });
+        } else {
+          await tx.tagesgeldkonto.create({
+            data: {
+              betrag: position.betrag,
+              zinsProzentJaehrlich: position.renditeProzentJaehrlich,
+              sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+              sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
+              asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
+            },
+          });
+        }
+        continue;
+      }
+
+      uebernommeneIds.add(vorhandenesAsset.id);
+      await tx.asset.update({
+        where: { id: vorhandenesAsset.id },
+        data: { name: position.name, besitzstatus: position.besitzstatus, type: position.art },
+      });
+
+      // Art gewechselt (z. B. Wertpapierdepot -> Tagesgeld): alte Detailzeile entfernen, unten neu anlegen.
+      if (vorhandenesAsset.type !== position.art) {
+        if (vorhandenesAsset.type === "WERTPAPIERDEPOT") {
+          await tx.wertpapierposition.delete({ where: { assetId: vorhandenesAsset.id } });
+        } else {
+          await tx.tagesgeldkonto.delete({ where: { assetId: vorhandenesAsset.id } });
+        }
+      }
+
       if (position.art === "WERTPAPIERDEPOT") {
-        await tx.wertpapierposition.create({
-          data: {
+        await tx.wertpapierposition.upsert({
+          where: { assetId: vorhandenesAsset.id },
+          create: {
+            assetId: vorhandenesAsset.id,
             betrag: position.betrag,
             renditeProzentJaehrlich: position.renditeProzentJaehrlich,
             sparplanBetragMonatlich: position.sparplanBetragMonatlich,
             sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-            asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
+          },
+          update: {
+            betrag: position.betrag,
+            renditeProzentJaehrlich: position.renditeProzentJaehrlich,
+            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
           },
         });
       } else {
-        await tx.tagesgeldkonto.create({
-          data: {
+        await tx.tagesgeldkonto.upsert({
+          where: { assetId: vorhandenesAsset.id },
+          create: {
+            assetId: vorhandenesAsset.id,
             betrag: position.betrag,
             zinsProzentJaehrlich: position.renditeProzentJaehrlich,
             sparplanBetragMonatlich: position.sparplanBetragMonatlich,
             sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-            asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
+          },
+          update: {
+            betrag: position.betrag,
+            zinsProzentJaehrlich: position.renditeProzentJaehrlich,
+            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
           },
         });
       }
+    }
+
+    // Im Formular entfernte Positionen löschen (kaskadiert auf evtl. verweisende SzenarioAenderung).
+    const zuLoeschendeIds = bestehendeAssets.map((a) => a.id).filter((id) => !uebernommeneIds.has(id));
+    if (zuLoeschendeIds.length > 0) {
+      await tx.asset.deleteMany({ where: { id: { in: zuLoeschendeIds } } });
     }
   });
 

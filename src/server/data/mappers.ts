@@ -205,6 +205,7 @@ export function toSparpositionFormValues(
 ): SparpositionFormValues[] {
   return [
     ...wertpapiere.map((w) => ({
+      assetId: w.asset.id,
       art: "WERTPAPIERDEPOT" as const,
       name: w.asset.name,
       besitzstatus: w.asset.besitzstatus,
@@ -214,6 +215,7 @@ export function toSparpositionFormValues(
       sparplanSteigerungProzentJaehrlich: w.sparplanSteigerungProzentJaehrlich,
     })),
     ...tagesgeld.map((t) => ({
+      assetId: t.asset.id,
       art: "TAGESGELD" as const,
       name: t.asset.name,
       besitzstatus: t.asset.besitzstatus,

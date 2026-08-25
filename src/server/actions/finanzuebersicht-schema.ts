@@ -9,6 +9,10 @@ export const SPARPOSITION_ARTEN = ["WERTPAPIERDEPOT", "TAGESGELD"] as const;
 export type SparpositionArt = (typeof SPARPOSITION_ARTEN)[number];
 
 const sparpositionSchema = z.object({
+  // Gesetzt für bestehende Positionen (Asset.id), fehlt bei neu angelegten Zeilen im Formular —
+  // speichereFinanzuebersicht() nutzt das, um bestehende Positionen zu aktualisieren statt sie
+  // zu löschen und neu anzulegen (siehe dortiger Kommentar).
+  assetId: z.string().optional(),
   art: z.enum(SPARPOSITION_ARTEN),
   name: z.string().trim().min(1, "Bezeichnung fehlt").max(200, "Bezeichnung ist zu lang (max. 200 Zeichen)"),
   // Default BESITZE_ICH beim Anlegen einer neuen Position (anders als bei Immobilien) —
