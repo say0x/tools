@@ -27,7 +27,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
     control,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     defaultValues: initialValues,
     resolver: zodResolver(profileSchema),
@@ -297,6 +297,9 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
           {isPending ? "Speichert…" : "Profil speichern"}
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+        {!gespeichert && isDirty && !isPending && (
+          <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>
+        )}
       </div>
     </form>
   );
