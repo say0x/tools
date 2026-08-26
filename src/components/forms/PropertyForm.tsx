@@ -2,6 +2,7 @@
 
 // Referenz (Kennzahlen-Sidebar, Exit-Szenario, Annahmen-Warnungen, Verhandlungsargumente): docs/tools/immobilien-rechner.md
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -399,7 +400,12 @@ export function PropertyForm({
         </Card>
 
         <Card>
-          <CardTitle>Finanzierung</CardTitle>
+          <div className="mb-1 flex items-center justify-between">
+            <CardTitle className="mb-0">Finanzierung</CardTitle>
+            <Link href="/kreditvergleich" className="text-sm text-blue-400 hover:underline">
+              Gegen anderes Angebot vergleichen →
+            </Link>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field
               label={
@@ -629,7 +635,12 @@ export function PropertyForm({
         </Card>
 
         <Card>
-          <CardTitle>Steuer (Näherung)</CardTitle>
+          <div className="mb-1 flex items-center justify-between">
+            <CardTitle className="mb-0">Steuer (Näherung)</CardTitle>
+            <Link href="/steuerrechner" className="text-sm text-blue-400 hover:underline">
+              Anderes Einkommen durchspielen →
+            </Link>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <OverridableField
               label={
