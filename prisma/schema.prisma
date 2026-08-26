@@ -123,6 +123,8 @@ model UserLiability {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([profileId])
 }
 
 // ---------------------------------------------------------------------------
@@ -543,4 +545,5 @@ model SzenarioAenderung {
   updatedAt DateTime @updatedAt
 
   @@index([szenarioId])
+  @@index([assetId])
 }
