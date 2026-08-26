@@ -2,16 +2,19 @@
 
 // Referenz (inkl. ReferenceDot/XAxis-Recharts-Stolperstein): docs/tools/weitere-rechner.md
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Switch } from "@/components/ui/Switch";
 import { berechneEinkommensteuer, berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { resolveEstgZone } from "@/server/calc/tax/estg-zonen";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
 import { formatEuro, formatNumber } from "@/lib/format";
+import { FIELD_HILFE } from "@/lib/field-hilfe";
 
 const JAHR = new Date().getFullYear();
 // Für Jahre ohne eigenen Tabelleneintrag fällt resolveEstgZone() auf den jüngsten
@@ -47,9 +50,21 @@ export function SteuerrechnerClient() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardTitle>Annahmen</CardTitle>
+        <div className="mb-1 flex items-center justify-between">
+          <CardTitle className="mb-0">Annahmen</CardTitle>
+          <Link href="/profil" className="text-sm text-blue-400 hover:underline">
+            Dieses Einkommen im Profil hinterlegen →
+          </Link>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Brutto-Jahreseinkommen (€)" hint={`≈ ${formatEuro(bruttoJaehrlich / 12)}/Monat`}>
+          <Field
+            label={
+              <>
+                Brutto-Jahreseinkommen (€) <InfoTooltip text={FIELD_HILFE.bruttoEinkommen} />
+              </>
+            }
+            hint={`≈ ${formatEuro(bruttoJaehrlich / 12)}/Monat`}
+          >
             <Input
               type="number"
               step="any"
@@ -58,7 +73,14 @@ export function SteuerrechnerClient() {
               onChange={(e) => setBruttoJaehrlich(Number(e.target.value) || 0)}
             />
           </Field>
-          <Field label="Zu versteuerndes Einkommen (zvE, €/Jahr)" hint={zvEOverride ? undefined : `Geschätzt aus Brutto: ${formatEuro(zvEGeschaetzt)}`}>
+          <Field
+            label={
+              <>
+                Zu versteuerndes Einkommen (zvE, €/Jahr) <InfoTooltip text={FIELD_HILFE.zvE} />
+              </>
+            }
+            hint={zvEOverride ? undefined : `Geschätzt aus Brutto: ${formatEuro(zvEGeschaetzt)}`}
+          >
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -105,33 +127,35 @@ export function SteuerrechnerClient() {
 
       <Card>
         <CardTitle>Grenzsteuersatz nach Einkommen</CardTitle>
-        <ResponsiveContainer width="100%" height={260}>
-          <ComposedChart data={kurve} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="steuerkurve" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis
-              dataKey="zvE"
-              type="number"
-              domain={[0, KURVE_MAX_ZVE]}
-              stroke="#64748b"
-              fontSize={12}
-              tickFormatter={(v) => `${Math.round(v / 1000)}k`}
-            />
-            <YAxis stroke="#64748b" fontSize={12} unit="%" domain={[0, 45]} />
-            <Tooltip
-              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-              labelFormatter={(zvE) => `zvE ${formatEuro(Number(zvE) || 0)}`}
-              formatter={(value) => [`${formatNumber(Number(value) || 0, 1)}%`, "Grenzsteuersatz"]}
-            />
-            <Area type="monotone" dataKey="grenzsteuersatz" stroke="#3b82f6" fill="url(#steuerkurve)" />
-            {zvE <= KURVE_MAX_ZVE && <ReferenceDot x={Math.round(zvE)} y={grenzsteuersatz} r={5} fill="#f97316" stroke="none" />}
-          </ComposedChart>
-        </ResponsiveContainer>
+        <div role="img" aria-label="Flächendiagramm: Grenzsteuersatz nach zu versteuerndem Einkommen, mit Markierung des eigenen zvE">
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={kurve} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="steuerkurve" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis
+                dataKey="zvE"
+                type="number"
+                domain={[0, KURVE_MAX_ZVE]}
+                stroke="#64748b"
+                fontSize={12}
+                tickFormatter={(v) => `${Math.round(v / 1000)}k`}
+              />
+              <YAxis stroke="#64748b" fontSize={12} unit="%" domain={[0, 45]} />
+              <Tooltip
+                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                labelFormatter={(zvE) => `zvE ${formatEuro(Number(zvE) || 0)}`}
+                formatter={(value) => [`${formatNumber(Number(value) || 0, 1)}%`, "Grenzsteuersatz"]}
+              />
+              <Area type="monotone" dataKey="grenzsteuersatz" stroke="#3b82f6" fill="url(#steuerkurve)" />
+              {zvE <= KURVE_MAX_ZVE && <ReferenceDot x={Math.round(zvE)} y={grenzsteuersatz} r={5} fill="#f97316" stroke="none" />}
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
         <p className="mt-2 text-xs text-slate-500">Der orangene Punkt markiert dein eingegebenes zvE.</p>
       </Card>
     </div>
