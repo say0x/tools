@@ -17,7 +17,13 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro } from "@/lib/format";
 import { SPARPOSITION_ART_LABELS } from "@/lib/labels";
-import { BESITZSTAENDE, BESITZSTATUS_HILFE, BESITZSTATUS_LABELS, type Besitzstatus } from "@/lib/asset";
+import {
+  BESITZSTAENDE,
+  BESITZSTATUS_HILFE,
+  BESITZSTATUS_LABELS,
+  BESITZSTATUS_ZAEHLT_IM_VERMOEGEN,
+  type Besitzstatus,
+} from "@/lib/asset";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
 import {
   berechneImmobilienCashflowverlauf,
@@ -44,13 +50,11 @@ const VergleichVermoegensChart = dynamic(
   { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> }
 );
 
-const ZAEHLT_IM_VERMOEGEN: Besitzstatus = "BESITZE_ICH";
-
 function leereSparposition(sparplanSteigerungVorschlag: number) {
   return {
     art: "WERTPAPIERDEPOT" as const,
     name: "",
-    besitzstatus: ZAEHLT_IM_VERMOEGEN,
+    besitzstatus: BESITZSTATUS_ZAEHLT_IM_VERMOEGEN,
     betrag: 0,
     renditeProzentJaehrlich: 7,
     sparplanBetragMonatlich: 0,
@@ -136,7 +140,7 @@ export function FinanzuebersichtClient({
     const sparpositionenWatched = watched.sparpositionen ?? [];
 
     const wertpapierPositionen: PortfolioPositionVerlauf[] = sparpositionenWatched
-      .filter((p) => p?.besitzstatus === ZAEHLT_IM_VERMOEGEN)
+      .filter((p) => p?.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
       .map((p, i) => ({
         id: fields[i]?.id ?? `position-${i}`,
         name: p?.name?.trim() || SPARPOSITION_ART_LABELS[p?.art ?? "WERTPAPIERDEPOT"],
@@ -152,7 +156,7 @@ export function FinanzuebersichtClient({
       }));
 
     const immobilienPositionen: PortfolioPositionVerlauf[] = immobilien
-      .filter((imm) => immobilienStatus[imm.id] === ZAEHLT_IM_VERMOEGEN)
+      .filter((imm) => immobilienStatus[imm.id] === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
       .map((imm) => ({
         id: imm.id,
         name: imm.name,
@@ -176,7 +180,7 @@ export function FinanzuebersichtClient({
 
   const heute = portfolioverlauf[0];
   const amEnde = portfolioverlauf[portfolioverlauf.length - 1];
-  const ausgewaehlteAnzahl = immobilien.filter((imm) => immobilienStatus[imm.id] === ZAEHLT_IM_VERMOEGEN).length;
+  const ausgewaehlteAnzahl = immobilien.filter((imm) => immobilienStatus[imm.id] === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN).length;
 
   const submit = handleSubmit((values) => {
     setServerFehler(null);
@@ -261,7 +265,7 @@ export function FinanzuebersichtClient({
                   <div
                     key={imm.id}
                     className={`flex items-start gap-3 rounded-md border px-4 py-3 ${
-                      status === ZAEHLT_IM_VERMOEGEN ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-80"
+                      status === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-80"
                     }`}
                   >
                     <details className="group flex-1">

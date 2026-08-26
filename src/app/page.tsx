@@ -7,6 +7,7 @@ import { AmpelBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { BESITZSTATUS_ZAEHLT_IM_VERMOEGEN } from "@/lib/asset";
+import { AMPEL_LABELS } from "@/lib/labels";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
 import { ladeSparpositionen } from "@/server/actions/finanzuebersicht";
@@ -69,7 +70,6 @@ const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
   GELB: "bg-amber-500",
   ROT: "bg-red-500",
 };
-const AMPEL_LABEL: Record<"GRUEN" | "GELB" | "ROT", string> = { GRUEN: "Grün", GELB: "Gelb", ROT: "Rot" };
 
 export default async function Home() {
   const [propertyRows, profilRow, referenceData, sparpositionenRows, szenarien] = await Promise.all([
@@ -248,7 +248,7 @@ export default async function Home() {
                         key={status}
                         className={AMPEL_FARBEN[status]}
                         style={{ width: `${(ampelVerteilung[status] / objekteImBesitz.length) * 100}%` }}
-                        title={`${AMPEL_LABEL[status]}: ${ampelVerteilung[status]}`}
+                        title={`${AMPEL_LABELS[status]}: ${ampelVerteilung[status]}`}
                       />
                     )
                 )}
@@ -258,7 +258,7 @@ export default async function Home() {
                   <div key={status} className="flex items-center gap-1.5">
                     <span className={`h-2.5 w-2.5 rounded-full ${AMPEL_FARBEN[status]}`} />
                     <span className="text-slate-400">
-                      {AMPEL_LABEL[status]}: <span className="text-slate-200">{ampelVerteilung[status]}</span>
+                      {AMPEL_LABELS[status]}: <span className="text-slate-200">{ampelVerteilung[status]}</span>
                     </span>
                   </div>
                 ))}
