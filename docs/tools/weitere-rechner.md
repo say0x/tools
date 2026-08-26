@@ -25,7 +25,7 @@ Referenz für die freistehenden Zusatz-Tools sowie Dashboard und Daten-Backup. A
 
 ## Kaufen oder Anlegen? (`/kaufen-oder-anlegen`)
 
-- Wählt ein Objekt aus der Bibliothek und vergleicht dessen Vermögensverlauf (Eigenkapitalanteil + aufgelaufener Cashflow nach Steuer, aus `berechneObjekt`) gegen eine Einmalanlage derselben Eigenkapitalsumme zu einer frei wählbaren Rendite (`berechneSparpositionsverlauf`, ohne Sparplan).
+- Wählt ein Objekt aus der Bibliothek (gefiltert auf alles außer `VERKAUFT`/`ARCHIVIERT` — für längst verkaufte/nicht mehr relevante Objekte ist "kaufen oder anlegen" keine sinnvolle Frage mehr) und vergleicht dessen Vermögensverlauf (Eigenkapitalanteil + aufgelaufener Cashflow nach Steuer, aus `berechneObjekt`) gegen eine Einmalanlage derselben Eigenkapitalsumme zu einer frei wählbaren Rendite (`berechneSparpositionsverlauf`, ohne Sparplan). Horizont ist fix 50 Jahre (`VERMOEGENSVERLAUF_MAX_JAHRE`), nicht wählbar.
 - Die Renditeannahme ist mit der Ø-Rendite der eigenen, besessenen Wertpapierdepots vorbelegt (`page.tsx`, gefiltert auf `besitzstatus === "BESITZE_ICH"`), statt einen Schätzwert neu eintippen zu lassen — die Annahme steht für dieselben Depots ja schon in der Finanzübersicht. Ohne besessene Depots bleibt der bisherige Fallback von 6%. In beiden Fällen frei überschreibbar.
 - Bewusst als Lump-Sum-Vergleich, **nicht** als klassischer "Miete vs. Eigennutzung"-Rechner: die Objekte in diesem Tool sind grundsätzlich als vermietete Kapitalanlage modelliert (Kaltmiete-Feld, Cashflow-Berechnung setzt einen Mieter voraus), nicht als selbstgenutzte Immobilie — ein Miete-vs-Kauf-Vergleich im klassischen Sinn (Wohnkosten mieten vs. Wohnkosten Eigentum) würde ein eigenes Datenmodell für Wohnkosten brauchen, das es hier nicht gibt.
 

@@ -31,7 +31,18 @@ export default async function KaufenOderAnlegenPage() {
         ) / 10
       : null;
 
-  const objekte = propertyRows.map((row) => {
+  // "Kaufen oder Anlegen?" rechnet den Eigenkapital-Einsatz "beim Kauf" gegen eine
+  // Alternativanlage durch — eine noch sinnvolle Frage für besessene, potenzielle
+  // oder rein spekulative Objekte, aber nicht für längst verkaufte/archivierte:
+  // berechneObjekt() würde deren alte Finanzierungsdaten mit dem heutigen Profil/
+  // Steuerjahr durchrechnen, als stünde der Kauf noch bevor — weder eine echte
+  // Rückschau noch eine sinnvolle Kaufentscheidung. Siehe SzenarioClient.tsx für
+  // dasselbe bereits behobene Muster bei "Immobilie aufnehmen".
+  const objekteZurAuswahl = propertyRows.filter(
+    (row) => row.asset.besitzstatus !== "VERKAUFT" && row.asset.besitzstatus !== "ARCHIVIERT"
+  );
+
+  const objekte = objekteZurAuswahl.map((row) => {
     const result = berechneObjekt(toPropertyInput(row), profile, referenceData);
     return {
       id: row.id,
