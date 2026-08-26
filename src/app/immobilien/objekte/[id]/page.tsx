@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import { PropertyForm } from "@/components/forms/PropertyForm";
 import { ladeProfil } from "@/server/actions/profile";
 import { aktualisiereObjekt } from "@/server/actions/property";
@@ -28,6 +29,12 @@ export default async function ObjektDetailPage({ params }: PageProps<"/immobilie
 
   const updateAction = aktualisiereObjekt.bind(null, id);
 
+  // Nur anbieten, wenn "Kaufen oder Anlegen?" das Objekt überhaupt annimmt (siehe
+  // dessen eigener Besitzstatus-Filter) — sonst würde der Link dort auf ein anderes
+  // Objekt zurückfallen, ohne dass das für den Nutzer nachvollziehbar wäre.
+  const kannMitKaufenOderAnlegenVerglichenWerden =
+    row.asset.besitzstatus !== "VERKAUFT" && row.asset.besitzstatus !== "ARCHIVIERT";
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -39,6 +46,13 @@ export default async function ObjektDetailPage({ params }: PageProps<"/immobilie
           <p className="mt-1 text-slate-400">Kennzahlen aktualisieren sich live mit jeder Änderung.</p>
         </div>
         <div className="flex gap-2">
+          {kannMitKaufenOderAnlegenVerglichenWerden && (
+            <Link href={`/kaufen-oder-anlegen?objekt=${id}`}>
+              <Button variant="secondary" size="sm">
+                Kaufen oder Anlegen?
+              </Button>
+            </Link>
+          )}
           <DuplicateObjectButton id={id} />
           <DeleteObjectButton id={id} />
         </div>
