@@ -117,29 +117,31 @@ export function KaufenOderAnlegenClient({
 
       <Card>
         <CardTitle>Vermögensverlauf im Vergleich</CardTitle>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-            <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
-            <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-            <Tooltip
-              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-              labelFormatter={(jahr) => `Jahr ${jahr}`}
-              formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
-            />
-            <Legend formatter={(id) => (id === "immobilie" ? "Immobilie" : "Alternativanlage")} />
-            <Line type="monotone" dataKey="immobilie" name="immobilie" stroke="#3b82f6" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-            <Line
-              type="monotone"
-              dataKey="alternativanlage"
-              name="alternativanlage"
-              stroke="#a855f7"
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ r: 5 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div role="img" aria-label="Liniendiagramm: Vermögensverlauf von Immobilie und Alternativanlage über die Jahre im Vergleich">
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <Tooltip
+                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                labelFormatter={(jahr) => `Jahr ${jahr}`}
+                formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
+              />
+              <Legend formatter={(id) => (id === "immobilie" ? "Immobilie" : "Alternativanlage")} />
+              <Line type="monotone" dataKey="immobilie" name="immobilie" stroke="#3b82f6" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+              <Line
+                type="monotone"
+                dataKey="alternativanlage"
+                name="alternativanlage"
+                stroke="#a855f7"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
         <p className="mt-2 text-xs text-slate-500">
           Vereinfachung: die Immobilien-Seite reinvestiert den laufenden Cashflow nicht weiter (er läuft nur als Barsumme
           mit), die Alternativanlage-Seite verzinst durchgehend mit der gewählten Rendite — beide Seiten ignorieren Steuern

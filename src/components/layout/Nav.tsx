@@ -18,7 +18,7 @@ const secondaryLinks = [
   { href: "/sparziel", label: "Sparziel-Rechner" },
   { href: "/steuerrechner", label: "Steuerrechner" },
   { href: "/kreditvergleich", label: "Kreditvergleich" },
-  { href: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen" },
+  { href: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen?" },
   { href: "/profil", label: "Profil" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];
