@@ -4,10 +4,13 @@ import Link from "next/link";
 import dynamicImport from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { AmpelBadge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { BESITZSTATUS_ZAEHLT_IM_VERMOEGEN } from "@/lib/asset";
 import { AMPEL_LABELS } from "@/lib/labels";
+import { FIELD_HILFE } from "@/lib/field-hilfe";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
 import { ladeSparpositionen } from "@/server/actions/finanzuebersicht";
@@ -160,11 +163,18 @@ export default async function Home() {
     },
   ];
 
+  const keinProfilHinterlegt = !profilRow || profilRow.fixkostenMonatlich === 0;
+
   const fakten = [
     {
       label: "Notgroschen-Reichweite",
       value: notgroschenMonate === null ? "—" : `${formatNumber(notgroschenMonate, 1)} Monate`,
-      hint: "Tagesgeld ÷ Fixkosten/Monat aus dem Profil",
+      hint:
+        notgroschenMonate === null
+          ? keinProfilHinterlegt
+            ? "Fixkosten im Profil hinterlegen, um das zu berechnen"
+            : "kein Tagesgeld erfasst"
+          : "Tagesgeld ÷ Fixkosten/Monat aus dem Profil",
       warnung: notgroschenMonate !== null && notgroschenMonate < 3,
     },
     {
@@ -181,8 +191,11 @@ export default async function Home() {
       label: "Vermögen gesamt (Referenz)",
       value: formatEuro(gesamtvermoegenReferenz),
       hint: "Immobilien-EK-Anteil + Bargeld & Depots",
+      hilfe: FIELD_HILFE.gesamtvermoegenReferenz,
     },
   ];
+
+  const nochKeineDaten = propertyRows.length === 0 && sparpositionenRows.wertpapiere.length === 0 && sparpositionenRows.tagesgeld.length === 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -190,6 +203,31 @@ export default async function Home() {
         <h1 className="text-2xl font-semibold text-slate-100">Tool-Suite</h1>
         <p className="mt-1 text-slate-400">Interne Finanz- und Investment-Werkzeuge.</p>
       </div>
+
+      {nochKeineDaten && (
+        <Card className="border-blue-900/50 bg-blue-950/10">
+          <CardTitle>Los geht’s</CardTitle>
+          <p className="text-sm text-slate-300">
+            Noch keine Daten erfasst — sobald du dein erstes Objekt oder deine erste Sparposition anlegst, füllt sich
+            dieses Dashboard mit deinen Kennzahlen.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/immobilien/objekte/neu">
+              <Button size="sm">Immobilie anlegen</Button>
+            </Link>
+            <Link href="/finanzuebersicht">
+              <Button variant="secondary" size="sm">
+                Sparposition erfassen
+              </Button>
+            </Link>
+            <Link href="/profil">
+              <Button variant="ghost" size="sm">
+                Profil ausfüllen
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
@@ -271,7 +309,10 @@ export default async function Home() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {fakten.map((fakt) => (
           <Card key={fakt.label} className={fakt.warnung ? "border-amber-900/50 bg-amber-950/10" : undefined}>
-            <div className="text-xs text-slate-500">{fakt.label}</div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              {fakt.label}
+              {fakt.hilfe && <InfoTooltip text={fakt.hilfe} />}
+            </div>
             <div className={`mt-1 text-lg font-semibold ${fakt.warnung ? "text-amber-400" : "text-slate-100"}`}>{fakt.value}</div>
             <div className="mt-1 text-xs text-slate-500">{fakt.hint}</div>
           </Card>
