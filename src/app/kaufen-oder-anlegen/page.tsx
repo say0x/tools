@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { berechneObjekt } from "@/server/calc/engine";
 import { ladeProfil } from "@/server/actions/profile";
 import { ladeSparpositionen } from "@/server/actions/finanzuebersicht";
@@ -70,7 +71,11 @@ export default async function KaufenOderAnlegenPage({ searchParams }: PageProps<
       </div>
       {objekte.length === 0 ? (
         <p className="text-sm text-slate-400">
-          Noch keine Objekte in der Bibliothek — lege zuerst eins im Immobilien-Rechner an.
+          Noch keine Objekte in der Bibliothek —{" "}
+          <Link href="/immobilien/objekte/neu" className="text-blue-400 hover:underline">
+            jetzt eins anlegen
+          </Link>
+          .
         </p>
       ) : (
         <KaufenOderAnlegenClient
