@@ -66,6 +66,11 @@ const tools = [
     title: "Kaufen oder Anlegen?",
     description: "Ein Objekt aus deiner Bibliothek gegen die Alternative vergleichen, dasselbe Eigenkapital stattdessen anzulegen.",
   },
+  {
+    href: "/profil",
+    title: "Profil",
+    description: "Einkommen, Budget und Schwellen hinterlegen — steuert die Ampeln und Kennzahlen aller anderen Tools.",
+  },
 ];
 
 const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
