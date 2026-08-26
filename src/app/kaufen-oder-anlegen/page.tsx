@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Kaufen oder Anlegen?" };
 
-export default async function KaufenOderAnlegenPage() {
+export default async function KaufenOderAnlegenPage({ searchParams }: PageProps<"/kaufen-oder-anlegen">) {
+  const params = await searchParams;
+  const objektIdAusLink = typeof params.objekt === "string" ? params.objekt : undefined;
+
   const [propertyRows, profilRow, referenceData, sparpositionenRows] = await Promise.all([
     ladeObjekte(),
     ladeProfil(),
@@ -70,7 +73,11 @@ export default async function KaufenOderAnlegenPage() {
           Noch keine Objekte in der Bibliothek — lege zuerst eins im Immobilien-Rechner an.
         </p>
       ) : (
-        <KaufenOderAnlegenClient objekte={objekte} renditeVorschlagProzent={renditeVorschlagProzent} />
+        <KaufenOderAnlegenClient
+          objekte={objekte}
+          renditeVorschlagProzent={renditeVorschlagProzent}
+          initialObjektId={objektIdAusLink}
+        />
       )}
     </div>
   );

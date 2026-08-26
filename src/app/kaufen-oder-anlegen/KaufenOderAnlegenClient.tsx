@@ -21,12 +21,17 @@ interface ObjektOption {
 export function KaufenOderAnlegenClient({
   objekte,
   renditeVorschlagProzent,
+  initialObjektId,
 }: {
   objekte: ObjektOption[];
   /** Durchschnittliche Rendite der besessenen Wertpapierdepots, falls vorhanden — sonst null (Fallback: 6%). */
   renditeVorschlagProzent: number | null;
+  /** Aus ?objekt=<id> in der URL (z. B. Link von der Objekt-Detailseite) — nur übernommen, wenn die ID tatsächlich in der Auswahl existiert. */
+  initialObjektId?: string;
 }) {
-  const [objektId, setObjektId] = useState(objekte[0].id);
+  const [objektId, setObjektId] = useState(
+    initialObjektId && objekte.some((o) => o.id === initialObjektId) ? initialObjektId : objekte[0].id
+  );
   const [renditeProzent, setRenditeProzent] = useState(renditeVorschlagProzent ?? 6);
 
   const objekt = objekte.find((o) => o.id === objektId) ?? objekte[0];
