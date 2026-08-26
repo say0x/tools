@@ -68,7 +68,10 @@ export function KreditvergleichClient() {
         const monatlicheRate = jahr1 ? (jahr1.zinszahlung + jahr1.tilgungszahlung) / 12 : 0;
         const zinskostenGesamt = tilgungsplan.reduce((summe, j) => summe + j.zinszahlung, 0);
         const restschuldNachHorizont = tilgungsplan[tilgungsplan.length - 1]?.restschuldEnde ?? 0;
-        const volltilgungsjahr = tilgungsplan.find((j) => j.restschuldEnde === 0)?.jahr ?? null;
+        // Toleranzbereich statt strikter Gleichheit — dieselbe Bedingung wie im
+        // Immobilien-Rechner (engine.ts) und in tilgungsplan.test.ts, damit "Volltilgung"
+        // nicht an zwei Stellen unabhängig als exakte vs. gerundete Gleichheit definiert ist.
+        const volltilgungsjahr = tilgungsplan.find((j) => j.restschuldEnde <= 0.01 && j.restschuldStart > 0.01)?.jahr ?? null;
         return { tilgungsplan, monatlicheRate, zinskostenGesamt, restschuldNachHorizont, volltilgungsjahr };
       }),
     [kredite]
