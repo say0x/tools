@@ -17,6 +17,7 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro } from "@/lib/format";
 import { SPARPOSITION_ART_LABELS } from "@/lib/labels";
+import { flattenFormErrors } from "@/lib/form-errors";
 import {
   BESITZSTAENDE,
   BESITZSTATUS_HILFE,
@@ -97,7 +98,7 @@ export function FinanzuebersichtClient({
     register,
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FinanzuebersichtFormValues>({
     defaultValues: {
       bruttoEinkommenMonatlich: bruttoEinkommenMonatlichInitial,
@@ -195,6 +196,8 @@ export function FinanzuebersichtClient({
     });
   });
 
+  const fehlerListe = flattenFormErrors(errors);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -207,10 +210,15 @@ export function FinanzuebersichtClient({
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-6">
-        {(serverFehler || Object.keys(errors).length > 0) && (
+        {(serverFehler || fehlerListe.length > 0) && (
           <Card className="border-red-900/50 bg-red-950/20">
             <p className="text-sm font-medium text-red-400">Bitte folgende Angaben korrigieren:</p>
-            {serverFehler && <p className="mt-2 text-sm text-red-300">{serverFehler}</p>}
+            <ul className="mt-2 list-disc pl-5 text-sm text-red-300">
+              {serverFehler && <li>{serverFehler}</li>}
+              {fehlerListe.map((meldung, i) => (
+                <li key={i}>{meldung}</li>
+              ))}
+            </ul>
           </Card>
         )}
 
@@ -430,12 +438,20 @@ export function FinanzuebersichtClient({
             {isPending ? "Speichert…" : "Finanzübersicht speichern"}
           </Button>
           {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+          {!gespeichert && isDirty && !isPending && (
+            <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>
+          )}
         </div>
       </form>
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="mb-0">Verfügbares Geld</CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle className="mb-0">Verfügbares Geld</CardTitle>
+            <Link href="/szenarien" className="text-sm text-blue-400 hover:underline">
+              Als Szenario weiterplanen →
+            </Link>
+          </div>
           <Field label="Betrachtungszeitraum" className="w-40">
             <Select value={horizontJahre} onChange={(e) => setHorizontJahre(Number(e.target.value))}>
               {presets.map((jahr) => (
