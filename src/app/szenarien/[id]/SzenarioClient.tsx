@@ -2,6 +2,7 @@
 
 // Referenz (Änderungsarten, Immobilienwert-Referenzlinie): docs/tools/finanzuebersicht-und-szenarien.md
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useFieldArray, useForm, useWatch, type FieldPath } from "react-hook-form";
@@ -14,6 +15,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro } from "@/lib/format";
+import { flattenFormErrors } from "@/lib/form-errors";
 import { SZENARIO_AENDERUNG_TYP_HILFE, SZENARIO_AENDERUNG_TYP_LABELS } from "@/lib/labels";
 import { leereSzenarioAenderung } from "@/lib/szenario-form-defaults";
 import { BETRACHTUNGSZEITRAUM_PRESETS } from "@/server/calc/constants";
@@ -73,7 +75,7 @@ export function SzenarioClient({
     handleSubmit,
     setError,
     clearErrors,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<SzenarioFormValues>({
     defaultValues: { name: nameInitial, startjahr: startjahrInitial, notizen: notizenInitial, aenderungen: aenderungenInitial },
   });
@@ -284,13 +286,20 @@ export function SzenarioClient({
     });
   });
 
+  const fehlerListe = flattenFormErrors(errors);
+
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={submit} className="flex flex-col gap-6">
-        {(serverFehler || Object.keys(errors).length > 0) && (
+        {(serverFehler || fehlerListe.length > 0) && (
           <Card className="border-red-900/50 bg-red-950/20">
             <p className="text-sm font-medium text-red-400">Bitte folgende Angaben korrigieren:</p>
-            {serverFehler && <p className="mt-2 text-sm text-red-300">{serverFehler}</p>}
+            <ul className="mt-2 list-disc pl-5 text-sm text-red-300">
+              {serverFehler && <li>{serverFehler}</li>}
+              {fehlerListe.map((meldung, i) => (
+                <li key={i}>{meldung}</li>
+              ))}
+            </ul>
           </Card>
         )}
 
@@ -446,12 +455,20 @@ export function SzenarioClient({
             {isPending ? "Speichert…" : "Szenario speichern"}
           </Button>
           {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
+          {!gespeichert && isDirty && !isPending && (
+            <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>
+          )}
         </div>
       </form>
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="mb-0">Auswirkung auf mein Vermögen</CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle className="mb-0">Auswirkung auf mein Vermögen</CardTitle>
+            <Link href="/finanzuebersicht" className="text-sm text-blue-400 hover:underline">
+              Ist-Zustand: Finanzübersicht →
+            </Link>
+          </div>
           <Field label="Betrachtungszeitraum" className="w-40">
             <Select value={horizontJahre} onChange={(e) => setHorizontJahre(Number(e.target.value))}>
               {presets.map((jahr) => (
