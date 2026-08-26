@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 const liabilitySchema = z.object({
+  // null bei neu hinzugefügten Krediten (noch kein DB-Eintrag) — steuert in
+  // upsertProfile(), ob eine bestehende Zeile aktualisiert oder eine neue
+  // angelegt wird, statt bei jedem Speichern alle Kredite zu löschen und mit
+  // neuen IDs neu anzulegen (das Muster, das bei den Sparpositionen der
+  // Finanzübersicht schon einmal zu kaskadierendem Datenverlust führte).
+  id: z.string().nullable(),
   bezeichnung: z.string().trim().min(1, "Bezeichnung fehlt").max(200, "Bezeichnung ist zu lang (max. 200 Zeichen)"),
   monatlicheRate: z.number({ error: "Rate muss eine Zahl sein" }).min(0, "Rate darf nicht negativ sein").max(1_000_000, "Rate ist unrealistisch hoch"),
   restschuld: z.number({ error: "Restschuld muss eine Zahl sein" }).min(0, "Restschuld darf nicht negativ sein").max(100_000_000, "Restschuld ist unrealistisch hoch"),

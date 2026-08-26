@@ -4,7 +4,7 @@ import { ladeObjekte } from "@/server/data/property";
 import { ladeProfil } from "./profile";
 import { ladeSparpositionen } from "./finanzuebersicht";
 import { ladeSzenarien } from "./szenario";
-import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
+import { ladeReferenceDataSnapshot, ladeStandardwerte } from "@/server/data/reference-data";
 
 /**
  * Vollständiger, lesbarer JSON-Export aller selbst eingegebenen Daten — reine
@@ -16,12 +16,17 @@ import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
  * Referenz: docs/tools/weitere-rechner.md
  */
 export async function exportiereAlleDaten() {
-  const [objekte, profil, sparpositionen, szenarien, referenzdaten] = await Promise.all([
+  const [objekte, profil, sparpositionen, szenarien, referenzdaten, standardwerte] = await Promise.all([
     ladeObjekte(),
     ladeProfil(),
     ladeSparpositionen(),
     ladeSzenarien(),
     ladeReferenceDataSnapshot(),
+    // ladeReferenceDataSnapshot() liefert nur die für die Calc-Engine transformierten
+    // Referenzwerte (Grunderwerbsteuer, Mietpreise, ...), nicht die separat über
+    // /immobilien/referenzdaten editierbaren Standardwerte (Vorbelegung für neue
+    // Objekte) — die fehlten hier bislang komplett im Backup.
+    ladeStandardwerte(),
   ]);
 
   return {
@@ -31,5 +36,6 @@ export async function exportiereAlleDaten() {
     sparpositionen,
     szenarien,
     referenzdaten,
+    standardwerte,
   };
 }

@@ -1,4 +1,5 @@
 import { ladeProfil } from "@/server/actions/profile";
+import { PROFIL_DEFAULT_WERTE } from "@/server/data/mappers";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProfileForm } from "./ProfileForm";
 import { ExportButton } from "./ExportButton";
@@ -14,21 +15,27 @@ export default async function ProfilPage() {
   const profil = await ladeProfil();
 
   const initialValues = {
-    nettoEinkommenMonatlich: profil?.nettoEinkommenMonatlich ?? 0,
-    bruttoEinkommenMonatlich: profil?.bruttoEinkommenMonatlich ?? 0,
-    zuVersteuerndesEinkommenJaehrlich: profil?.zuVersteuerndesEinkommenJaehrlich ?? 0,
-    zvEOverride: profil?.zvEOverride ?? false,
-    fixkostenMonatlich: profil?.fixkostenMonatlich ?? 0,
-    vorhandenesEigenkapital: profil?.vorhandenesEigenkapital ?? 0,
-    maxSchuldendienstquoteProzent: profil?.maxSchuldendienstquoteProzent ?? 35,
-    mindestLiquiditaetsreserveEuro: profil?.mindestLiquiditaetsreserveEuro ?? 10000,
-    mietanrechnungProzent: profil?.mietanrechnungProzent ?? 80,
-    mindestEigenkapitalrenditeProzent: profil?.mindestEigenkapitalrenditeProzent ?? 4,
-    eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro ?? 5000,
-    cashflowStartverlustMaxProzentKaltmiete: profil?.cashflowStartverlustMaxProzentKaltmiete ?? 30,
-    cashflowUmschlagjahr: profil?.cashflowUmschlagjahr ?? 10,
+    nettoEinkommenMonatlich: profil?.nettoEinkommenMonatlich ?? PROFIL_DEFAULT_WERTE.nettoEinkommenMonatlich,
+    bruttoEinkommenMonatlich: profil?.bruttoEinkommenMonatlich ?? PROFIL_DEFAULT_WERTE.bruttoEinkommenMonatlich,
+    zuVersteuerndesEinkommenJaehrlich:
+      profil?.zuVersteuerndesEinkommenJaehrlich ?? PROFIL_DEFAULT_WERTE.zuVersteuerndesEinkommenJaehrlich,
+    zvEOverride: profil?.zvEOverride ?? PROFIL_DEFAULT_WERTE.zvEOverride,
+    fixkostenMonatlich: profil?.fixkostenMonatlich ?? PROFIL_DEFAULT_WERTE.fixkostenMonatlich,
+    vorhandenesEigenkapital: profil?.vorhandenesEigenkapital ?? PROFIL_DEFAULT_WERTE.vorhandenesEigenkapital,
+    maxSchuldendienstquoteProzent:
+      profil?.maxSchuldendienstquoteProzent ?? PROFIL_DEFAULT_WERTE.maxSchuldendienstquoteProzent,
+    mindestLiquiditaetsreserveEuro:
+      profil?.mindestLiquiditaetsreserveEuro ?? PROFIL_DEFAULT_WERTE.mindestLiquiditaetsreserveEuro,
+    mietanrechnungProzent: profil?.mietanrechnungProzent ?? PROFIL_DEFAULT_WERTE.mietanrechnungProzent,
+    mindestEigenkapitalrenditeProzent:
+      profil?.mindestEigenkapitalrenditeProzent ?? PROFIL_DEFAULT_WERTE.mindestEigenkapitalrenditeProzent,
+    eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro ?? PROFIL_DEFAULT_WERTE.eigenkapitalPruefungAbEuro,
+    cashflowStartverlustMaxProzentKaltmiete:
+      profil?.cashflowStartverlustMaxProzentKaltmiete ?? PROFIL_DEFAULT_WERTE.cashflowStartverlustMaxProzentKaltmiete,
+    cashflowUmschlagjahr: profil?.cashflowUmschlagjahr ?? PROFIL_DEFAULT_WERTE.cashflowUmschlagjahr,
     liabilities:
       profil?.liabilities.map((l) => ({
+        id: l.id,
         bezeichnung: l.bezeichnung,
         monatlicheRate: l.monatlicheRate,
         restschuld: l.restschuld,
