@@ -104,4 +104,8 @@ export const FIELD_HILFE = {
     "Cashflow-Rendite: (Cashflow nach Steuer × 12) / eingesetztes Eigenkapital. Tilgung zählt hier als reine Ausgabe, nicht als Vermögensaufbau, und Wertsteigerung ist nicht enthalten — für die Gesamtentwicklung deines Eigenkapitals (inkl. Tilgung & Wertsteigerung) sieh dir den Vermögensverlauf-Chart an.",
   rechnetSichKennzahl:
     "Kein reiner Jahr-1-Schnappschuss: ein Objekt darf am Anfang negativ starten, solange der Verlust deine im Profil eingestellte Grenze (relativ zur Kaltmiete) nicht überschreitet und der Cashflow bis zu deinem Umschlagjahr ins Plus dreht. Erst wenn beides passt, zählt zusätzlich die Finanzierbarkeit (Schuldendienst/Liquidität). Beide Schwellen stellst du unter Profil → „Rechnet sich das?“-Schwellen ein.",
+
+  // Dashboard
+  gesamtvermoegenReferenz:
+    "Immobilien-Eigenkapitalanteil (Marktwert abzüglich Restschuld deiner Objekt-Finanzierungen) plus dein Bargeld & Depots. Eine reine Referenzgröße, kein Nettovermögen: bestehende Kredite, die du unter Profil → „Bestehende Kredite“ eingetragen hast, werden hier nicht abgezogen.",
 } as const;
