@@ -7,7 +7,7 @@ import { NutzungsdauerTable } from "./NutzungsdauerTable";
 import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
 import { KaufpreisfaktorTable } from "./KaufpreisfaktorTable";
 import { StandardwerteCard } from "./StandardwerteCard";
-import { ladeStandardwerte } from "@/server/data/reference-data";
+import { ladeKaufnebenkostenDefaultsRow, ladeStandardwerte } from "@/server/data/reference-data";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default async function ReferenzdatenPage() {
       prisma.referenceMietpreis.findMany(),
       prisma.referenceGewerkKosten.findMany(),
       prisma.referenceNutzungsdauer.findMany(),
-      prisma.referenceKaufnebenkostenDefaults.findFirst(),
+      ladeKaufnebenkostenDefaultsRow(),
       prisma.referenceKaufpreisfaktor.findMany(),
       ladeStandardwerte(),
     ]);
