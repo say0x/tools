@@ -2,6 +2,7 @@
 
 // Referenz: docs/tools/weitere-rechner.md
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -45,7 +46,12 @@ export function SparzielClient() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardTitle>Annahmen</CardTitle>
+        <div className="mb-1 flex items-center justify-between">
+          <CardTitle className="mb-0">Annahmen</CardTitle>
+          <Link href="/finanzuebersicht" className="text-sm text-blue-400 hover:underline">
+            Als echte Position anlegen →
+          </Link>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Startkapital (€)">
             <Input type="number" step="any" min={0} value={startkapital} onChange={(e) => setStartkapital(Number(e.target.value) || 0)} />
@@ -83,30 +89,33 @@ export function SparzielClient() {
           label="Zielbetrag erreicht"
           value={jahrBisZiel === null ? `nicht in ${HORIZONT_JAHRE} Jahren` : jahrBisZiel === 0 ? "sofort" : `in ${jahrBisZiel} Jahren`}
           hint={formatEuro(zielbetrag)}
+          accent={jahrBisZiel === null ? "negativ" : "positiv"}
         />
       </div>
 
       <Card>
         <CardTitle>Kapitalverlauf</CardTitle>
-        <ResponsiveContainer width="100%" height={280}>
-          <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="sparziel-kapital" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
-            <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-            <Tooltip
-              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-              labelFormatter={(jahr) => `Jahr ${jahr}`}
-              formatter={(value) => [formatEuro(Number(value) || 0), "Kapital"]}
-            />
-            <Area type="monotone" dataKey="kapital" name="Kapital" stroke="#3b82f6" fill="url(#sparziel-kapital)" />
-          </ComposedChart>
-        </ResponsiveContainer>
+        <div role="img" aria-label="Flächendiagramm: Kapitalverlauf über die Jahre">
+          <ResponsiveContainer width="100%" height={280}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="sparziel-kapital" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <Tooltip
+                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                labelFormatter={(jahr) => `Jahr ${jahr}`}
+                formatter={(value) => [formatEuro(Number(value) || 0), "Kapital"]}
+              />
+              <Area type="monotone" dataKey="kapital" name="Kapital" stroke="#3b82f6" fill="url(#sparziel-kapital)" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
         <p className="mt-2 text-xs text-slate-500">
           Vereinfachung: Sparrate wird jährlich am Jahresanfang gutgeschrieben (keine unterjährige Verzinsung), Rendite konstant über
           den gesamten Zeitraum — reale Kapitalmarktrenditen schwanken.
@@ -126,11 +135,27 @@ function summeEinzahlungen(sparrateMonatlich: number, steigerungProzent: number,
   return summe;
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  accent?: "positiv" | "negativ";
+}) {
   return (
     <Card>
       <div className="text-xs text-slate-500">{label}</div>
-      <div className="mt-1 text-xl font-semibold text-slate-100">{value}</div>
+      <div
+        className={`mt-1 text-xl font-semibold ${
+          accent === "positiv" ? "text-emerald-400" : accent === "negativ" ? "text-red-400" : "text-slate-100"
+        }`}
+      >
+        {value}
+      </div>
       {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
     </Card>
   );
