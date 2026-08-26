@@ -159,9 +159,11 @@ export function KreditvergleichClient() {
         <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="text-left text-slate-500">
-              <th className="pb-3 pr-4 font-medium">Kennzahl</th>
+              <th scope="col" className="pb-3 pr-4 font-medium">
+                Kennzahl
+              </th>
               {kredite.map((k, i) => (
-                <th key={i} className="pb-3 pr-4 font-medium text-slate-200">
+                <th key={i} scope="col" className="pb-3 pr-4 font-medium text-slate-200">
                   {k.name}
                 </th>
               ))}
@@ -169,7 +171,9 @@ export function KreditvergleichClient() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             <tr>
-              <td className="py-2 pr-4 text-slate-400">Monatliche Rate (Jahr 1)</td>
+              <th scope="row" className="py-2 pr-4 text-left font-normal text-slate-400">
+                Monatliche Rate (Jahr 1)
+              </th>
               {ergebnisse.map((e, i) => (
                 <td key={i} className="py-2 pr-4 text-slate-100">
                   {formatEuro(e.monatlicheRate)}
@@ -177,7 +181,9 @@ export function KreditvergleichClient() {
               ))}
             </tr>
             <tr>
-              <td className="py-2 pr-4 text-slate-400">Zinskosten gesamt ({BETRACHTUNGSZEITRAUM_JAHRE} J.)</td>
+              <th scope="row" className="py-2 pr-4 text-left font-normal text-slate-400">
+                Zinskosten gesamt ({BETRACHTUNGSZEITRAUM_JAHRE} J.)
+              </th>
               {ergebnisse.map((e, i) => (
                 <td key={i} className="py-2 pr-4 text-slate-100">
                   {formatEuro(e.zinskostenGesamt)}
@@ -185,7 +191,9 @@ export function KreditvergleichClient() {
               ))}
             </tr>
             <tr>
-              <td className="py-2 pr-4 text-slate-400">Restschuld nach {BETRACHTUNGSZEITRAUM_JAHRE} Jahren</td>
+              <th scope="row" className="py-2 pr-4 text-left font-normal text-slate-400">
+                Restschuld nach {BETRACHTUNGSZEITRAUM_JAHRE} Jahren
+              </th>
               {ergebnisse.map((e, i) => (
                 <td key={i} className="py-2 pr-4 text-slate-100">
                   {formatEuro(e.restschuldNachHorizont)}
@@ -193,7 +201,9 @@ export function KreditvergleichClient() {
               ))}
             </tr>
             <tr>
-              <td className="py-2 pr-4 text-slate-400">Volltilgung</td>
+              <th scope="row" className="py-2 pr-4 text-left font-normal text-slate-400">
+                Volltilgung
+              </th>
               {ergebnisse.map((e, i) => (
                 <td key={i} className="py-2 pr-4 text-slate-100">
                   {e.volltilgungsjahr === null ? `nicht in ${BETRACHTUNGSZEITRAUM_JAHRE} Jahren` : `Jahr ${e.volltilgungsjahr}`}
@@ -206,31 +216,33 @@ export function KreditvergleichClient() {
 
       <Card>
         <CardTitle>Restschuld-Verlauf</CardTitle>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-            <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
-            <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-            <Tooltip
-              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-              labelFormatter={(jahr) => `Jahr ${jahr}`}
-              formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
-            />
-            <Legend formatter={(id) => kredite[Number(String(id).replace("kredit", ""))]?.name ?? id} />
-            {kredite.map((k, i) => (
-              <Line
-                key={i}
-                type="monotone"
-                dataKey={`kredit${i}`}
-                name={`kredit${i}`}
-                stroke={farbeFuerIndex(i)}
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 5 }}
+        <div role="img" aria-label="Liniendiagramm: Restschuld-Verlauf beider Kredite über die Jahre im Vergleich">
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis dataKey="jahr" stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <Tooltip
+                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                labelFormatter={(jahr) => `Jahr ${jahr}`}
+                formatter={(value, name) => [formatEuro(Number(value) || 0), String(name)]}
               />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+              <Legend formatter={(id) => kredite[Number(String(id).replace("kredit", ""))]?.name ?? id} />
+              {kredite.map((k, i) => (
+                <Line
+                  key={i}
+                  type="monotone"
+                  dataKey={`kredit${i}`}
+                  name={`kredit${i}`}
+                  stroke={farbeFuerIndex(i)}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 5 }}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
         <p className="mt-2 text-xs text-slate-500">
           Sondertilgung reduziert die Restschuld hier zusätzlich zur regulären Tilgung, wirkt sich aber wie im
           Immobilien-Rechner nicht auf die laufende Rate aus (behandelt wie eine zusätzliche Kapitaleinlage).
