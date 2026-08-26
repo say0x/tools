@@ -64,6 +64,7 @@ export function PropertyForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const [serverFehler, setServerFehler] = useState<string | null>(null);
   const {
     register,
     control,
@@ -108,11 +109,16 @@ export function PropertyForm({
   };
 
   const submit = handleSubmit((values) => {
+    setServerFehler(null);
     startTransition(async () => {
-      await onSubmit(values);
-      reset(values);
-      setGespeichert(true);
-      setTimeout(() => setGespeichert(false), 2500);
+      try {
+        await onSubmit(values);
+        reset(values);
+        setGespeichert(true);
+        setTimeout(() => setGespeichert(false), 2500);
+      } catch (err) {
+        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
     });
   });
 
@@ -121,10 +127,11 @@ export function PropertyForm({
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-6 pb-20 lg:grid-cols-[2fr_1fr]">
       <div className="flex flex-col gap-6">
-        {fehlerListe.length > 0 && (
+        {(fehlerListe.length > 0 || serverFehler) && (
           <Card className="border-red-900/50 bg-red-950/20">
             <p className="text-sm font-medium text-red-400">Bitte folgende Angaben korrigieren:</p>
             <ul className="mt-2 list-disc pl-5 text-sm text-red-300">
+              {serverFehler && <li>{serverFehler}</li>}
               {fehlerListe.map((meldung, i) => (
                 <li key={i}>{meldung}</li>
               ))}
