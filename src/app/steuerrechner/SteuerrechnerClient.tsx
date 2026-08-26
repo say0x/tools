@@ -9,10 +9,16 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { berechneEinkommensteuer, berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
+import { resolveEstgZone } from "@/server/calc/tax/estg-zonen";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
 import { formatEuro, formatNumber } from "@/lib/format";
 
 const JAHR = new Date().getFullYear();
+// Für Jahre ohne eigenen Tabelleneintrag fällt resolveEstgZone() auf den jüngsten
+// bekannten Tarif zurück (siehe estg-zonen.ts) — der Hint muss denselben Wert zeigen,
+// den berechneEinkommensteuer()/berechneGrenzsteuersatz() unten tatsächlich verwenden,
+// statt ihn separat zu erraten.
+const TARIFJAHR = resolveEstgZone(JAHR).jahr;
 const KURVE_MAX_ZVE = 300000;
 const KURVE_SCHRITTE = 60;
 
@@ -83,7 +89,7 @@ export function SteuerrechnerClient() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Zu versteuerndes Einkommen" value={formatEuro(zvE)} />
-        <Stat label="Einkommensteuer (Jahr)" value={formatEuro(einkommensteuer)} hint={`Tarif ${JAHR >= 2025 ? 2025 : JAHR}`} />
+        <Stat label="Einkommensteuer (Jahr)" value={formatEuro(einkommensteuer)} hint={`Tarif ${TARIFJAHR}`} />
         <Stat label="Grenzsteuersatz" value={`${formatNumber(grenzsteuersatz, 1)}%`} hint="Steuer auf den nächsten Euro" />
         <Stat label="Durchschnittssteuersatz" value={`${formatNumber(durchschnittssteuersatz, 1)}%`} hint="Einkommensteuer ÷ zvE" />
       </div>
