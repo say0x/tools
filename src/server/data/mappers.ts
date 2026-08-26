@@ -110,24 +110,33 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
   };
 }
 
+// Einzige Quelle für die Profil-Standardwerte, solange noch kein UserProfile
+// existiert — von hier auch von src/app/profil/page.tsx für die Formular-
+// Vorbelegung importiert, statt dieselben Zahlen ein zweites Mal hart zu
+// codieren (die beiden Kopien liefen sonst bei einer künftigen Änderung
+// unbemerkt auseinander). Die Prisma-Schema-@default-Werte auf UserProfile
+// bleiben bewusst eine dritte, separate Deklaration — Prisma kann keine
+// TS-Konstante importieren, die greift ohnehin nur beim Anlegen einer neuen
+// Zeile, nicht bei diesem Vorher-existiert-noch-nichts-Fallback.
+export const PROFIL_DEFAULT_WERTE = {
+  nettoEinkommenMonatlich: 0,
+  bruttoEinkommenMonatlich: 0,
+  zuVersteuerndesEinkommenJaehrlich: 0,
+  zvEOverride: false,
+  fixkostenMonatlich: 0,
+  vorhandenesEigenkapital: 0,
+  maxSchuldendienstquoteProzent: 35,
+  mindestLiquiditaetsreserveEuro: 10000,
+  mietanrechnungProzent: 80,
+  mindestEigenkapitalrenditeProzent: 4,
+  eigenkapitalPruefungAbEuro: 5000,
+  cashflowStartverlustMaxProzentKaltmiete: 30,
+  cashflowUmschlagjahr: 10,
+} as const;
+
 export function toProfileInput(row: (UserProfile & { liabilities: UserLiability[] }) | null): ProfileInput {
   if (!row) {
-    return {
-      nettoEinkommenMonatlich: 0,
-      bruttoEinkommenMonatlich: 0,
-      zuVersteuerndesEinkommenJaehrlich: 0,
-      zvEOverride: false,
-      fixkostenMonatlich: 0,
-      vorhandenesEigenkapital: 0,
-      maxSchuldendienstquoteProzent: 35,
-      mindestLiquiditaetsreserveEuro: 10000,
-      mietanrechnungProzent: 80,
-      mindestEigenkapitalrenditeProzent: 4,
-      eigenkapitalPruefungAbEuro: 5000,
-      cashflowStartverlustMaxProzentKaltmiete: 30,
-      cashflowUmschlagjahr: 10,
-      liabilities: [],
-    };
+    return { ...PROFIL_DEFAULT_WERTE, liabilities: [] };
   }
 
   return {

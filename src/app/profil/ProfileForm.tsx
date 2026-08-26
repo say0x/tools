@@ -111,6 +111,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
             overrideField="zvEOverride"
             computedValue={zvESchaetzung}
             setValue={setValue}
+            formel={`Geschätzt aus dem Brutto-Jahreseinkommen (${formatEuro((Number(brutto) || 0) * 12)}): abzüglich Werbungskosten-/Sonderausgaben-Pauschale und ~20% pauschaler Vorsorgeaufwendungen. Für Genauigkeit das echte zvE aus dem Steuerbescheid eintragen (Häkchen „manuell").`}
           />
           <Field
             label={
@@ -251,7 +252,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
             type="button"
             variant="secondary"
             size="sm"
-            onClick={() => append({ bezeichnung: "", monatlicheRate: 0, restschuld: 0 })}
+            onClick={() => append({ id: null, bezeichnung: "", monatlicheRate: 0, restschuld: 0 })}
           >
             + Kredit hinzufügen
           </Button>

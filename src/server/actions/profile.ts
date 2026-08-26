@@ -41,11 +41,30 @@ export async function upsertProfile(values: ProfileFormValues) {
       ? await tx.userProfile.update({ where: { id: bestehend.id }, data: profileData })
       : await tx.userProfile.create({ data: profileData });
 
-    await tx.userLiability.deleteMany({ where: { profileId: profile.id } });
-    if (data.liabilities.length > 0) {
-      await tx.userLiability.createMany({
-        data: data.liabilities.map((l) => ({ ...l, profileId: profile.id })),
-      });
+    // Diffing per id statt Löschen+Neuanlegen aller Kredite bei jedem Speichern
+    // (das Muster, das bei den Sparpositionen der Finanzübersicht schon einmal
+    // zu kaskadierendem Datenverlust führte, siehe finanzuebersicht.ts) — auch
+    // wenn UserLiability.id aktuell von nichts referenziert wird, unnötig neue
+    // IDs bei jedem Speichern zu erzeugen ist kein Verhalten, das man bewusst
+    // beibehalten will.
+    const bestehendeIds = new Set(
+      (await tx.userLiability.findMany({ where: { profileId: profile.id }, select: { id: true } })).map((l) => l.id)
+    );
+    const uebernommeneIds = new Set<string>();
+
+    for (const l of data.liabilities) {
+      const liabilityData = { bezeichnung: l.bezeichnung, monatlicheRate: l.monatlicheRate, restschuld: l.restschuld };
+      if (l.id && bestehendeIds.has(l.id)) {
+        uebernommeneIds.add(l.id);
+        await tx.userLiability.update({ where: { id: l.id }, data: liabilityData });
+      } else {
+        await tx.userLiability.create({ data: { ...liabilityData, profileId: profile.id } });
+      }
+    }
+
+    const zuLoeschendeIds = [...bestehendeIds].filter((id) => !uebernommeneIds.has(id));
+    if (zuLoeschendeIds.length > 0) {
+      await tx.userLiability.deleteMany({ where: { id: { in: zuLoeschendeIds } } });
     }
   });
 
