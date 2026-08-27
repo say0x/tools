@@ -1,7 +1,13 @@
+import { cache } from "react";
 import { prisma } from "@/server/db";
 import type { Bundesland, Finanzierungsart } from "@/generated/prisma/client";
 import type { ReferenceDataSnapshot } from "@/server/calc/types";
 import { BUNDESLAENDER, GEWERKE } from "@/server/calc/types";
+
+// ladeReferenceDataSnapshot() und ladeStandardwerte() lesen beide dieselbe (einzige)
+// Zeile aus ReferenceKaufnebenkostenDefaults — auf Seiten, die beide Loader parallel
+// aufrufen (z.B. /immobilien/objekte/neu), dedupliziert cache() das zu einer Anfrage.
+export const ladeKaufnebenkostenDefaultsRow = cache(() => prisma.referenceKaufnebenkostenDefaults.findFirst());
 
 /** Lädt alle Referenztabellen und formt sie in das Format, das die Calc-Engine erwartet. */
 export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot> {
@@ -18,7 +24,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     prisma.referenceMietpreis.findMany(),
     prisma.referenceGewerkKosten.findMany(),
     prisma.referenceInstandhaltungssatz.findMany({ orderBy: { altersklasseVonJahren: "asc" } }),
-    prisma.referenceKaufnebenkostenDefaults.findFirst(),
+    ladeKaufnebenkostenDefaultsRow(),
     prisma.referenceKaufpreisfaktor.findMany(),
     prisma.referenceNutzungsdauer.findMany(),
   ]);
@@ -81,7 +87,7 @@ export interface Standardwerte {
 
 /** Werte, mit denen neue Objekte vorausgefüllt werden sollen — jedes Feld null, wenn kein Standard gesetzt ist. */
 export async function ladeStandardwerte(): Promise<Standardwerte> {
-  const row = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+  const row = await ladeKaufnebenkostenDefaultsRow();
   return {
     bundesland: row?.standardBundesland ?? null,
     zinssatzProzent: row?.standardZinssatzProzent ?? null,
