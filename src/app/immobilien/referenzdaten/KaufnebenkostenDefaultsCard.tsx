@@ -17,14 +17,20 @@ export function KaufnebenkostenDefaultsCard({
   const [saved, setSaved] = useState({ notarProzent: initialNotarProzent, grundbuchProzent: initialGrundbuchProzent });
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const [serverFehler, setServerFehler] = useState<string | null>(null);
   const isDirty = notarProzent !== saved.notarProzent || grundbuchProzent !== saved.grundbuchProzent;
 
   const save = () => {
+    setServerFehler(null);
     startTransition(async () => {
-      await aktualisiereKaufnebenkostenDefaults({ notarProzent, grundbuchProzent });
-      setSaved({ notarProzent, grundbuchProzent });
-      setGespeichert(true);
-      setTimeout(() => setGespeichert(false), 2000);
+      try {
+        await aktualisiereKaufnebenkostenDefaults({ notarProzent, grundbuchProzent });
+        setSaved({ notarProzent, grundbuchProzent });
+        setGespeichert(true);
+        setTimeout(() => setGespeichert(false), 2000);
+      } catch (err) {
+        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
     });
   };
 
@@ -56,6 +62,7 @@ export function KaufnebenkostenDefaultsCard({
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
         {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
+        {serverFehler && <span className="text-sm text-red-400">{serverFehler}</span>}
       </div>
     </div>
   );
