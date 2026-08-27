@@ -14,6 +14,7 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
   const [savedRows, setSavedRows] = useState(initialRows);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const [serverFehler, setServerFehler] = useState<string | null>(null);
   const isDirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
 
   const update = (id: string, patch: Partial<Row>) => {
@@ -21,13 +22,18 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
   };
 
   const save = () => {
+    setServerFehler(null);
     startTransition(async () => {
-      await aktualisiereGewerkKosten(
-        rows.map((r) => ({ id: r.id, kostenProM2Min: r.kostenProM2Min, kostenProM2Max: r.kostenProM2Max }))
-      );
-      setSavedRows(rows);
-      setGespeichert(true);
-      setTimeout(() => setGespeichert(false), 2000);
+      try {
+        await aktualisiereGewerkKosten(
+          rows.map((r) => ({ id: r.id, kostenProM2Min: r.kostenProM2Min, kostenProM2Max: r.kostenProM2Max }))
+        );
+        setSavedRows(rows);
+        setGespeichert(true);
+        setTimeout(() => setGespeichert(false), 2000);
+      } catch (err) {
+        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
     });
   };
 
@@ -64,6 +70,7 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
         {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
+        {serverFehler && <span className="text-sm text-red-400">{serverFehler}</span>}
       </div>
     </div>
   );

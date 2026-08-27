@@ -14,14 +14,20 @@ export function GrunderwerbsteuerTable({ initialRows }: { initialRows: Row[] }) 
   const [savedRows, setSavedRows] = useState(initialRows);
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
+  const [serverFehler, setServerFehler] = useState<string | null>(null);
   const isDirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
 
   const save = () => {
+    setServerFehler(null);
     startTransition(async () => {
-      await aktualisiereGrunderwerbsteuer(rows.map((r) => ({ id: r.id, satzProzent: r.satzProzent })));
-      setSavedRows(rows);
-      setGespeichert(true);
-      setTimeout(() => setGespeichert(false), 2000);
+      try {
+        await aktualisiereGrunderwerbsteuer(rows.map((r) => ({ id: r.id, satzProzent: r.satzProzent })));
+        setSavedRows(rows);
+        setGespeichert(true);
+        setTimeout(() => setGespeichert(false), 2000);
+      } catch (err) {
+        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
     });
   };
 
@@ -52,6 +58,7 @@ export function GrunderwerbsteuerTable({ initialRows }: { initialRows: Row[] }) 
         </Button>
         {gespeichert && <span className="text-sm text-emerald-400">Gespeichert.</span>}
         {!gespeichert && isDirty && <span className="text-sm text-amber-400">Ungespeicherte Änderungen</span>}
+        {serverFehler && <span className="text-sm text-red-400">{serverFehler}</span>}
       </div>
     </div>
   );
