@@ -12,7 +12,15 @@ Priorität nach Risiko, nicht nach Vollständigkeit um ihrer selbst willen: Rech
 - **CI**: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) führt Lint, Tests und Produktions-Build bei jedem Push nach `main` und jedem Pull Request aus.
 - **E2E (Playwright)**: [`e2e/`](../../e2e/) — lokale, opt-in Suite gegen eine echte laufende Instanz (kein Teil der GitHub-Actions-CI, die ohne Postgres/laufenden Server läuft). Deckt Erreichbarkeit + Konsolenfehler-Freiheit jeder Hauptroute (`smoke.spec.ts`), automatisierte a11y-Scans je Hauptroute via axe-core (`accessibility.spec.ts`, WCAG 2 A/AA), Tastatur-/ARIA-Verhalten der Hauptnavigation (`nav.spec.ts`) und eine echte Formular-Interaktion (`steuerrechner.spec.ts`). Läuft gegen alle drei Playwright-Engines (Chromium/Firefox/WebKit, `playwright.config.ts`). Voraussetzung: `npm run dev` + lokale Postgres-Instanz laufen auf `http://localhost:3000` (überschreibbar via `E2E_BASE_URL`) sowie einmalig `npx playwright install`. Ausführen: `npm run test:e2e` (alle drei Engines) oder `npm run test:e2e -- --project=chromium` (eine Engine). In Sandboxes ohne `npx playwright install`-Zugriff: `PLAYWRIGHT_CHROMIUM_PATH=<pfad-zu-chromium> npm run test:e2e -- --project=chromium`.
 
-Ausführen: `npm run test` (siehe [`docs/development/setup.md`](../development/setup.md)).
+Ausführen: `npm run test` (siehe [`docs/development/setup.md`](../development/setup.md)). Coverage-Report: `npm run test:coverage` (`@vitest/coverage-v8`).
+
+## Test-Coverage (2026-08-28)
+
+Erstmals gemessen statt nur an der Testanzahl ("207 Tests") festgemacht. Gesamtwert bewusst niedrig (~24% Statements) — das ist kein Alarmsignal, sondern folgt direkt aus der oben beschriebenen Philosophie: `server/calc/**` (Rechenkern) liegt bei 95–100% Statements, UI-Komponenten/Seiten sind laut Philosophie bewusst nicht unit-getestet (dafür jetzt die `e2e/`-Suite) und ziehen den Durchschnitt stark nach unten, ohne eine echte Lücke zu sein.
+
+Eine echte, bisher übersehene Lücke fand sich in `server/data/`: `mappers.ts` und `vermoegen.ts` transformieren Prisma-Decimal-Zeilen in die von Calc-Engine/Formularen erwartete `number`-Form (`.toNumber()`-Konvertierung) bzw. berechnen die Positions-/Index-Logik für Finanzübersicht und Szenarien (`immobilienPositionAusErgebnis`) — beides echte, fehleranfällige Logik (ein vergessenes `.toNumber()` bleibt TypeScript-"kompatibel", bricht aber erst zur Laufzeit; die Jahres-Index-Suche im Vermögensverlauf hat mehrere Grenzfälle: Kauf in der Zukunft, Kauf im laufenden Jahr, Kauf länger her als der berechnete Verlauf reicht), aber komplett ungetestet (0% bzw. nur `splitPropertyData` abgedeckt). Ergänzt: `mappers.test.ts` (jetzt 100% Statements) und neu `vermoegen.test.ts`.
+
+**Bewusst nicht nachgezogen**: `server/data/reference-data.ts` (`ladeReferenceDataSnapshot`/`ladeStandardwerte`) — strukturell ähnlich (Decimal-Konvertierung + Fallback-Defaults), aber direkte `prisma.*.findMany()`-Aufrufe ohne bestehende Mocking-Infrastruktur in der Suite; und `server/actions/*.ts` — bereits als "bewusst nicht flächendeckend getestet" dokumentiert (dünne Prisma-Orchestrierung über bereits getestete Rechenkern-Funktionen).
 
 ## Manuelle QS (diese Session)
 
@@ -48,6 +56,16 @@ Kein konkreter Fix nötig — die bereits in einer früheren Session umgesetzte 
 `playwright.config.ts` definiert die `e2e/`-Suite jetzt für alle drei Engines (Chromium, Firefox, WebKit) statt nur Chromium — `npm run test:e2e` deckt damit reale Rendering-/Verhaltensunterschiede ab, nicht nur einen einzelnen Browser.
 
 **Bekannte Einschränkung dieser Session**: die Entwicklungs-Sandbox, in der dieser Umbau geprüft wurde, blockiert per Netzwerk-Policy den Download der Firefox-/WebKit-Browserbinaries (`npx playwright install firefox webkit` schlägt mit 403 auf `cdn.playwright.dev` fehl) — nur Chromium ist dort vorinstalliert. Die 25 Chromium-Tests liefen deshalb wie gehabt vollständig grün; Firefox/WebKit sind konfiguriert und einsatzbereit, aber in dieser Sandbox nicht selbst ausführbar. Auf einer Maschine mit vollem Internetzugriff (lokal beim Nutzer oder ein CI-Runner) reicht ein einmaliges `npx playwright install`, danach laufen alle drei Engines über `npm run test:e2e`.
+
+## Type-Safety-Audit (2026-08-28)
+
+Vollständige Durchsuchung des Quellcodes (`src/**/*.{ts,tsx}`, `src/generated/` ausgeschlossen — Prisma-Generator-Output, nicht Projekt-Code) nach den drei üblichen TypeScript-"Fluchttüren": `any`/`as any`, `as Type`-Assertions und non-null-Assertions (`!`).
+
+- **`any`/`as any`**: null Treffer im eigenen Anwendungscode. Alle ursprünglich gefundenen ~45 Treffer lagen ausschließlich in `src/generated/prisma/` (Promise-artige `then`/`catch`-Typisierungen und interne Typ-Maschinerie des Prisma-Generators) — kein von den Projektautoren geschriebener oder änderbarer Code.
+- **Non-null-Assertions (`!`)**: ein einziger Treffer im gesamten Projekt, in `src/server/calc/exit/exit-szenario.test.ts:58` (`result!.erloesVorSteuerEuro`) — nach einem vorangehenden `expect(result).not.toBeNull()` im selben Testfall, also faktisch abgesichert. Im produktiven Anwendungscode kein einziger Treffer.
+- **`as Type`-Assertions**: 11 Treffer im Anwendungscode, alle geprüft — jeder ist entweder eine unvermeidbare DOM-API-Notwendigkeit (`e.target as Node` in `Nav.tsx` für Click-Outside; `e.target.value as Besitzstatus`/`as Bundesland | null` etc. bei `<select>`-onChange-Handlern in `FinanzuebersichtClient.tsx`/`StandardwerteCard.tsx`), ein von react-hook-form erzwungenes Pattern (`issue.path.join(".") as FieldPath<SzenarioFormValues>` in `SzenarioClient.tsx` für dynamische Zod→RHF-Fehlerpfade; `{ ...getValues(), ...watched } as PropertyFormValues` in `PropertyForm.tsx`, laufzeit-abgesichert durch umgebendes try/catch), eine algebraisch wahre Aussage gegen eine bekannte TypeScript-Lücke (`Object.fromEntries(...) as ReferenceDataSnapshot[...]` dreimal in `reference-data.ts` — `Object.fromEntries` verliert grundsätzlich spezifische Key-Typen, obwohl die Quelle (`BUNDESLAENDER`/`GEWERKE`) exakt die Zielkeys durchläuft) oder laufzeit-abgesichert vor der Verwendung (`form-errors.ts`s rekursiver Fehlerbaum-Walker prüft `typeof`/`in` vor jedem Cast).
+
+Kein Fix nötig — keiner der gefundenen Treffer maskiert einen echten Typ-Mismatch oder ein Laufzeitrisiko. Der kalkulationslastige Charakter des Projekts (explizite `Decimal.toNumber()`-Konvertierungen statt impliziter Zahl-Koerzion, siehe Task #51) und die durchgängige Nutzung von Zod-Validierung an den Systemgrenzen erklären, warum unsichere Typ-Umgehungen hier nicht nötig waren.
 
 ## Dead-Code-Sweep (2026-08-28)
 
