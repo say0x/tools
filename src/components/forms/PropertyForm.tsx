@@ -632,7 +632,7 @@ export function PropertyForm({
               <div className="flex items-center gap-2">
                 <Input type="number" step="any" {...register("versicherungJaehrlich", { valueAsNumber: true })} />
                 <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
-                  <Switch {...register("versicherungUmlagefaehig")} />
+                  <Switch bare {...register("versicherungUmlagefaehig")} />
                   umlagefähig
                   <InfoTooltip text={FIELD_HILFE.versicherungUmlagefaehig} />
                 </label>
@@ -671,7 +671,7 @@ export function PropertyForm({
               }
             >
               <div className="flex h-[38px] items-center">
-                <Switch {...register("afaSonderabschreibung")} />
+                <Switch bare {...register("afaSonderabschreibung")} />
               </div>
             </Field>
           </div>
@@ -688,7 +688,7 @@ export function PropertyForm({
             <CardTitle className="mb-0 flex items-center gap-1">
               Exit-Szenario <InfoTooltip text={FIELD_HILFE.exitSzenario} />
             </CardTitle>
-            <Switch {...register("exit.geplant")} />
+            <Switch aria-label="Exit-Szenario geplant" {...register("exit.geplant")} />
           </div>
           <div className={`mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 ${watched.exit?.geplant ? "" : "opacity-40"}`}>
             <Field label="Geplante Haltedauer (Jahre)">
