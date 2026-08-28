@@ -45,27 +45,27 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereStandardwerte({
-          standardBundesland: werte.bundesland,
-          standardZinssatzProzent: werte.zinssatzProzent,
-          standardTilgungProzent: werte.tilgungProzent,
-          standardZinsbindungJahre: werte.zinsbindungJahre,
-          standardFinanzierungsart: werte.finanzierungsart,
-          standardMietsteigerungProzent: werte.mietsteigerungProzent,
-          standardWertsteigerungProzent: werte.wertsteigerungProzent,
-          standardKostensteigerungProzent: werte.kostensteigerungProzent,
-          standardLeerstandsquoteProzent: werte.leerstandsquoteProzent,
-          standardAnschlusszinsAufschlagProzent: werte.anschlusszinsAufschlagProzent,
-          standardSondertilgungProzent: werte.sondertilgungProzent,
-          standardSondertilgungMaxProzent: werte.sondertilgungMaxProzent,
-        });
-        setSavedWerte(werte);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereStandardwerte({
+        standardBundesland: werte.bundesland,
+        standardZinssatzProzent: werte.zinssatzProzent,
+        standardTilgungProzent: werte.tilgungProzent,
+        standardZinsbindungJahre: werte.zinsbindungJahre,
+        standardFinanzierungsart: werte.finanzierungsart,
+        standardMietsteigerungProzent: werte.mietsteigerungProzent,
+        standardWertsteigerungProzent: werte.wertsteigerungProzent,
+        standardKostensteigerungProzent: werte.kostensteigerungProzent,
+        standardLeerstandsquoteProzent: werte.leerstandsquoteProzent,
+        standardAnschlusszinsAufschlagProzent: werte.anschlusszinsAufschlagProzent,
+        standardSondertilgungProzent: werte.sondertilgungProzent,
+        standardSondertilgungMaxProzent: werte.sondertilgungMaxProzent,
+      });
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSavedWerte(werte);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 

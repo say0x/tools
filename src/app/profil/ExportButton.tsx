@@ -11,22 +11,22 @@ export function ExportButton() {
   const handleExport = () => {
     setFehler(null);
     startTransition(async () => {
-      try {
-        const daten = await exportiereAlleDaten();
-        const json = JSON.stringify(daten, null, 2);
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const datum = new Date().toISOString().slice(0, 10);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `tools-backup-${datum}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        setFehler(err instanceof Error ? err.message : "Export fehlgeschlagen.");
+      const result = await exportiereAlleDaten();
+      if (!result.success) {
+        setFehler(result.error);
+        return;
       }
+      const json = JSON.stringify(result.data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const datum = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tools-backup-${datum}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     });
   };
 

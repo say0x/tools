@@ -29,6 +29,7 @@ import {
   type PortfolioPositionVerlauf,
 } from "@/server/calc/rendite/portfolioverlauf";
 import type { SzenarioFormValues } from "@/server/actions/szenario";
+import type { ActionResult } from "@/server/actions/result";
 import { szenarioSchema, SZENARIO_AENDERUNG_TYPEN } from "@/server/actions/szenario-schema";
 import type { ImmobilienPosition, SparpositionPosition } from "@/server/data/vermoegen";
 
@@ -48,7 +49,7 @@ export function SzenarioClient({
   maxHorizontJahre,
   aktuellesJahr,
 }: {
-  onSubmit: (values: SzenarioFormValues) => Promise<void>;
+  onSubmit: (values: SzenarioFormValues) => Promise<ActionResult>;
   nameInitial: string;
   startjahrInitial: number;
   notizenInitial: string;
@@ -276,13 +277,13 @@ export function SzenarioClient({
     }
 
     startTransition(async () => {
-      try {
-        await onSubmit(result.data);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2500);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const actionResult = await onSubmit(result.data);
+      if (!actionResult.success) {
+        setServerFehler(actionResult.error);
+        return;
       }
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2500);
     });
   });
 

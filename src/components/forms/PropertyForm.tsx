@@ -33,6 +33,7 @@ import {
   type ReferenceDataSnapshot,
 } from "@/server/calc/types";
 import type { PropertyFormValues } from "@/server/actions/property";
+import type { ActionResult } from "@/server/actions/result";
 import { propertySchema } from "@/server/actions/property-schema";
 import {
   BUNDESLAND_LABELS,
@@ -58,7 +59,7 @@ export function PropertyForm({
   defaultValues: PropertyFormValues;
   profile: ProfileInput;
   referenceData: ReferenceDataSnapshot;
-  onSubmit: (values: PropertyFormValues) => Promise<void>;
+  onSubmit: (values: PropertyFormValues) => Promise<ActionResult>;
   submitLabel: string;
   showCharts?: boolean;
 }) {
@@ -111,14 +112,14 @@ export function PropertyForm({
   const submit = handleSubmit((values) => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await onSubmit(values);
-        reset(values);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2500);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const actionResult = await onSubmit(values);
+      if (!actionResult.success) {
+        setServerFehler(actionResult.error);
+        return;
       }
+      reset(values);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2500);
     });
   });
 

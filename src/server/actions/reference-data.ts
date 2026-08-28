@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/server/db";
 import { BUNDESLAENDER, FINANZIERUNGSARTEN } from "@/server/calc/types";
+import { ausfuehren, type ActionResult } from "./result";
 
 const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(20) }));
 const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0).max(1000) }));
@@ -41,72 +42,86 @@ function parseOrThrow<T>(schema: z.ZodType<T>, values: unknown): T {
   return result.data;
 }
 
-export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>) {
-  const data = parseOrThrow(grunderwerbsteuerUpdateSchema, updates);
-  await prisma.$transaction(
-    data.map((u) => prisma.referenceGrunderwerbsteuer.update({ where: { id: u.id }, data: { satzProzent: u.satzProzent } }))
-  );
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereGrunderwerbsteuer(updates: z.infer<typeof grunderwerbsteuerUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(grunderwerbsteuerUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) => prisma.referenceGrunderwerbsteuer.update({ where: { id: u.id }, data: { satzProzent: u.satzProzent } }))
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereMietpreise(updates: z.infer<typeof mietpreisUpdateSchema>) {
-  const data = parseOrThrow(mietpreisUpdateSchema, updates);
-  await prisma.$transaction(
-    data.map((u) => prisma.referenceMietpreis.update({ where: { id: u.id }, data: { mietpreisProM2: u.mietpreisProM2 } }))
-  );
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereMietpreise(updates: z.infer<typeof mietpreisUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(mietpreisUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) => prisma.referenceMietpreis.update({ where: { id: u.id }, data: { mietpreisProM2: u.mietpreisProM2 } }))
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereGewerkKosten(updates: z.infer<typeof gewerkKostenUpdateSchema>) {
-  const data = parseOrThrow(gewerkKostenUpdateSchema, updates);
-  await prisma.$transaction(
-    data.map((u) =>
-      prisma.referenceGewerkKosten.update({
-        where: { id: u.id },
-        data: { kostenProM2Min: u.kostenProM2Min, kostenProM2Max: u.kostenProM2Max },
-      })
-    )
-  );
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereGewerkKosten(updates: z.infer<typeof gewerkKostenUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(gewerkKostenUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) =>
+        prisma.referenceGewerkKosten.update({
+          where: { id: u.id },
+          data: { kostenProM2Min: u.kostenProM2Min, kostenProM2Max: u.kostenProM2Max },
+        })
+      )
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof kaufnebenkostenDefaultsSchema>) {
-  const data = parseOrThrow(kaufnebenkostenDefaultsSchema, values);
-  const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
-  if (bestehend) {
-    await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
-  } else {
-    await prisma.referenceKaufnebenkostenDefaults.create({ data });
-  }
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereKaufnebenkostenDefaults(values: z.infer<typeof kaufnebenkostenDefaultsSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(kaufnebenkostenDefaultsSchema, values);
+    const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+    if (bestehend) {
+      await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
+    } else {
+      await prisma.referenceKaufnebenkostenDefaults.create({ data });
+    }
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kaufpreisfaktorUpdateSchema>) {
-  const data = parseOrThrow(kaufpreisfaktorUpdateSchema, updates);
-  await prisma.$transaction(
-    data.map((u) =>
-      prisma.referenceKaufpreisfaktor.update({ where: { id: u.id }, data: { kaufpreisfaktorReferenz: u.kaufpreisfaktorReferenz } })
-    )
-  );
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereKaufpreisfaktoren(updates: z.infer<typeof kaufpreisfaktorUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(kaufpreisfaktorUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) =>
+        prisma.referenceKaufpreisfaktor.update({ where: { id: u.id }, data: { kaufpreisfaktorReferenz: u.kaufpreisfaktorReferenz } })
+      )
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereNutzungsdauer(updates: z.infer<typeof nutzungsdauerUpdateSchema>) {
-  const data = parseOrThrow(nutzungsdauerUpdateSchema, updates);
-  await prisma.$transaction(
-    data.map((u) => prisma.referenceNutzungsdauer.update({ where: { id: u.id }, data: { nutzungsdauerJahre: u.nutzungsdauerJahre } }))
-  );
-  revalidatePath("/immobilien/referenzdaten");
+export async function aktualisiereNutzungsdauer(updates: z.infer<typeof nutzungsdauerUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(nutzungsdauerUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) => prisma.referenceNutzungsdauer.update({ where: { id: u.id }, data: { nutzungsdauerJahre: u.nutzungsdauerJahre } }))
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
 }
 
-export async function aktualisiereStandardwerte(values: z.infer<typeof standardwerteSchema>) {
-  const data = parseOrThrow(standardwerteSchema, values);
-  const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
-  if (bestehend) {
-    await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
-  } else {
-    await prisma.referenceKaufnebenkostenDefaults.create({ data: { notarProzent: 1.0, grundbuchProzent: 0.5, ...data } });
-  }
-  revalidatePath("/immobilien/referenzdaten");
-  revalidatePath("/immobilien/objekte/neu");
+export async function aktualisiereStandardwerte(values: z.infer<typeof standardwerteSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(standardwerteSchema, values);
+    const bestehend = await prisma.referenceKaufnebenkostenDefaults.findFirst();
+    if (bestehend) {
+      await prisma.referenceKaufnebenkostenDefaults.update({ where: { id: bestehend.id }, data });
+    } else {
+      await prisma.referenceKaufnebenkostenDefaults.create({ data: { notarProzent: 1.0, grundbuchProzent: 0.5, ...data } });
+    }
+    revalidatePath("/immobilien/referenzdaten");
+    revalidatePath("/immobilien/objekte/neu");
+  });
 }

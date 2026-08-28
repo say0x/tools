@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
 import { PROPERTY_INCLUDE, splitPropertyData } from "@/server/data/mappers";
 import { propertySchema, type PropertyFormValues } from "./property-schema";
+import { ausfuehren, type ActionResult } from "./result";
 
 export type { PropertyFormValues } from "./property-schema";
 
@@ -18,52 +19,56 @@ function parsePropertyFormValues(values: PropertyFormValues): PropertyFormValues
   return result.data;
 }
 
-export async function erstelleObjekt(values: PropertyFormValues) {
-  const data = parsePropertyFormValues(values);
-  const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
+export async function erstelleObjekt(values: PropertyFormValues): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parsePropertyFormValues(values);
+    const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
 
-  const created = await prisma.property.create({
-    data: {
-      ...property,
-      asset: { create: { type: "IMMOBILIE", name, besitzstatus } },
-      financing: { create: financing },
-      exit: { create: exit },
-      gewerke: { createMany: { data: gewerke } },
-    },
+    const created = await prisma.property.create({
+      data: {
+        ...property,
+        asset: { create: { type: "IMMOBILIE", name, besitzstatus } },
+        financing: { create: financing },
+        exit: { create: exit },
+        gewerke: { createMany: { data: gewerke } },
+      },
+    });
+
+    revalidatePath("/immobilien/objekte");
+    redirect(`/immobilien/objekte/${created.id}`);
   });
-
-  revalidatePath("/immobilien/objekte");
-  redirect(`/immobilien/objekte/${created.id}`);
 }
 
-export async function aktualisiereObjekt(id: string, values: PropertyFormValues) {
-  const data = parsePropertyFormValues(values);
-  const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
+export async function aktualisiereObjekt(id: string, values: PropertyFormValues): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parsePropertyFormValues(values);
+    const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
 
-  await prisma.$transaction(async (tx) => {
-    const existing = await tx.property.findUniqueOrThrow({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.property.findUniqueOrThrow({ where: { id } });
 
-    await tx.asset.update({ where: { id: existing.assetId }, data: { name, besitzstatus } });
-    await tx.property.update({ where: { id }, data: property });
-    await tx.propertyFinancing.upsert({
-      where: { propertyId: id },
-      update: financing,
-      create: { ...financing, propertyId: id },
+      await tx.asset.update({ where: { id: existing.assetId }, data: { name, besitzstatus } });
+      await tx.property.update({ where: { id }, data: property });
+      await tx.propertyFinancing.upsert({
+        where: { propertyId: id },
+        update: financing,
+        create: { ...financing, propertyId: id },
+      });
+      await tx.propertyExit.upsert({
+        where: { propertyId: id },
+        update: exit,
+        create: { ...exit, propertyId: id },
+      });
+
+      await tx.propertyGewerk.deleteMany({ where: { propertyId: id } });
+      if (gewerke.length > 0) {
+        await tx.propertyGewerk.createMany({ data: gewerke.map((g) => ({ ...g, propertyId: id })) });
+      }
     });
-    await tx.propertyExit.upsert({
-      where: { propertyId: id },
-      update: exit,
-      create: { ...exit, propertyId: id },
-    });
 
-    await tx.propertyGewerk.deleteMany({ where: { propertyId: id } });
-    if (gewerke.length > 0) {
-      await tx.propertyGewerk.createMany({ data: gewerke.map((g) => ({ ...g, propertyId: id })) });
-    }
+    revalidatePath("/immobilien/objekte");
+    revalidatePath(`/immobilien/objekte/${id}`);
   });
-
-  revalidatePath("/immobilien/objekte");
-  revalidatePath(`/immobilien/objekte/${id}`);
 }
 
 export async function loescheObjekt(id: string) {

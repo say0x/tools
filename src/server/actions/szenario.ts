@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
 import { szenarioSchema, type SzenarioAenderungFormValues, type SzenarioFormValues } from "./szenario-schema";
+import { ausfuehren, type ActionResult } from "./result";
 
 export type { SzenarioAenderungTyp, SzenarioAenderungFormValues, SzenarioFormValues } from "./szenario-schema";
 
@@ -35,35 +36,39 @@ export async function ladeSzenario(id: string) {
   return prisma.szenario.findUnique({ where: { id }, include: { aenderungen: true } });
 }
 
-export async function erstelleSzenario(values: SzenarioFormValues) {
-  const data = parseSzenarioFormValues(values);
-  const created = await prisma.szenario.create({
-    data: {
-      name: data.name,
-      startjahr: data.startjahr,
-      notizen: data.notizen,
-      aenderungen: { createMany: { data: data.aenderungen.map(zuAenderungData) } },
-    },
+export async function erstelleSzenario(values: SzenarioFormValues): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseSzenarioFormValues(values);
+    const created = await prisma.szenario.create({
+      data: {
+        name: data.name,
+        startjahr: data.startjahr,
+        notizen: data.notizen,
+        aenderungen: { createMany: { data: data.aenderungen.map(zuAenderungData) } },
+      },
+    });
+    revalidatePath("/szenarien");
+    redirect(`/szenarien/${created.id}`);
   });
-  revalidatePath("/szenarien");
-  redirect(`/szenarien/${created.id}`);
 }
 
-export async function aktualisiereSzenario(id: string, values: SzenarioFormValues) {
-  const data = parseSzenarioFormValues(values);
+export async function aktualisiereSzenario(id: string, values: SzenarioFormValues): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseSzenarioFormValues(values);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.szenario.update({ where: { id }, data: { name: data.name, startjahr: data.startjahr, notizen: data.notizen } });
-    await tx.szenarioAenderung.deleteMany({ where: { szenarioId: id } });
-    if (data.aenderungen.length > 0) {
-      await tx.szenarioAenderung.createMany({
-        data: data.aenderungen.map((a) => ({ ...zuAenderungData(a), szenarioId: id })),
-      });
-    }
+    await prisma.$transaction(async (tx) => {
+      await tx.szenario.update({ where: { id }, data: { name: data.name, startjahr: data.startjahr, notizen: data.notizen } });
+      await tx.szenarioAenderung.deleteMany({ where: { szenarioId: id } });
+      if (data.aenderungen.length > 0) {
+        await tx.szenarioAenderung.createMany({
+          data: data.aenderungen.map((a) => ({ ...zuAenderungData(a), szenarioId: id })),
+        });
+      }
+    });
+
+    revalidatePath("/szenarien");
+    revalidatePath(`/szenarien/${id}`);
   });
-
-  revalidatePath("/szenarien");
-  revalidatePath(`/szenarien/${id}`);
 }
 
 export async function loescheSzenario(id: string) {

@@ -23,14 +23,14 @@ export function KaufnebenkostenDefaultsCard({
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereKaufnebenkostenDefaults({ notarProzent, grundbuchProzent });
-        setSaved({ notarProzent, grundbuchProzent });
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereKaufnebenkostenDefaults({ notarProzent, grundbuchProzent });
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSaved({ notarProzent, grundbuchProzent });
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 
