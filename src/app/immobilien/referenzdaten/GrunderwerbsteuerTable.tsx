@@ -20,14 +20,14 @@ export function GrunderwerbsteuerTable({ initialRows }: { initialRows: Row[] }) 
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereGrunderwerbsteuer(rows.map((r) => ({ id: r.id, satzProzent: r.satzProzent })));
-        setSavedRows(rows);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereGrunderwerbsteuer(rows.map((r) => ({ id: r.id, satzProzent: r.satzProzent })));
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSavedRows(rows);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 

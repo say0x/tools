@@ -28,10 +28,9 @@ export function NeuesSzenarioForm() {
   const submit = handleSubmit((values) => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await erstelleSzenario(values);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Anlegen fehlgeschlagen.");
+      const result = await erstelleSzenario(values);
+      if (!result.success) {
+        setServerFehler(result.error);
       }
     });
   });

@@ -24,14 +24,14 @@ export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereMietpreise(rows.map((r) => ({ id: r.id, mietpreisProM2: r.mietpreisProM2 })));
-        setSavedRows(rows);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereMietpreise(rows.map((r) => ({ id: r.id, mietpreisProM2: r.mietpreisProM2 })));
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSavedRows(rows);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 

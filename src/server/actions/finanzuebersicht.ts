@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/server/db";
 import { finanzuebersichtSchema, type FinanzuebersichtFormValues } from "./finanzuebersicht-schema";
+import { ausfuehren, type ActionResult } from "./result";
 
 export type { FinanzuebersichtFormValues, SparpositionArt, SparpositionFormValues } from "./finanzuebersicht-schema";
 
@@ -25,120 +26,122 @@ export async function ladeSparpositionen() {
  * bei jedem Finanzübersicht-Speichern — auch nur für eine Gehaltsänderung —
  * neu angelegt wurden und damit ihre alte ID verloren haben.
  */
-export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValues) {
-  const result = finanzuebersichtSchema.safeParse(values);
-  if (!result.success) {
-    const meldung = result.error.issues.map((issue) => issue.message).join(" · ");
-    throw new Error(`Ungültige Eingabe: ${meldung}`);
-  }
-  const data = result.data;
-
-  await prisma.$transaction(async (tx) => {
-    const bestehend = await tx.userProfile.findFirst();
-    const profileData = {
-      bruttoEinkommenMonatlich: data.bruttoEinkommenMonatlich,
-      gehaltssteigerungProzentJaehrlich: data.gehaltssteigerungProzentJaehrlich,
-      inflationProzentJaehrlich: data.inflationProzentJaehrlich,
-    };
-    if (bestehend) {
-      await tx.userProfile.update({ where: { id: bestehend.id }, data: profileData });
-    } else {
-      await tx.userProfile.create({ data: profileData });
+export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValues): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const result = finanzuebersichtSchema.safeParse(values);
+    if (!result.success) {
+      const meldung = result.error.issues.map((issue) => issue.message).join(" · ");
+      throw new Error(`Ungültige Eingabe: ${meldung}`);
     }
+    const data = result.data;
 
-    const bestehendeAssets = await tx.asset.findMany({
-      where: { type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } },
-      select: { id: true, type: true },
-    });
-    const bestehendeAssetsById = new Map(bestehendeAssets.map((a) => [a.id, a]));
-    const uebernommeneIds = new Set<string>();
+    await prisma.$transaction(async (tx) => {
+      const bestehend = await tx.userProfile.findFirst();
+      const profileData = {
+        bruttoEinkommenMonatlich: data.bruttoEinkommenMonatlich,
+        gehaltssteigerungProzentJaehrlich: data.gehaltssteigerungProzentJaehrlich,
+        inflationProzentJaehrlich: data.inflationProzentJaehrlich,
+      };
+      if (bestehend) {
+        await tx.userProfile.update({ where: { id: bestehend.id }, data: profileData });
+      } else {
+        await tx.userProfile.create({ data: profileData });
+      }
 
-    for (const position of data.sparpositionen) {
-      const vorhandenesAsset = position.assetId ? bestehendeAssetsById.get(position.assetId) : undefined;
+      const bestehendeAssets = await tx.asset.findMany({
+        where: { type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } },
+        select: { id: true, type: true },
+      });
+      const bestehendeAssetsById = new Map(bestehendeAssets.map((a) => [a.id, a]));
+      const uebernommeneIds = new Set<string>();
 
-      if (!vorhandenesAsset) {
+      for (const position of data.sparpositionen) {
+        const vorhandenesAsset = position.assetId ? bestehendeAssetsById.get(position.assetId) : undefined;
+
+        if (!vorhandenesAsset) {
+          if (position.art === "WERTPAPIERDEPOT") {
+            await tx.wertpapierposition.create({
+              data: {
+                betrag: position.betrag,
+                renditeProzentJaehrlich: position.renditeProzentJaehrlich,
+                sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+                sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
+                asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
+              },
+            });
+          } else {
+            await tx.tagesgeldkonto.create({
+              data: {
+                betrag: position.betrag,
+                zinsProzentJaehrlich: position.renditeProzentJaehrlich,
+                sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+                sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
+                asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
+              },
+            });
+          }
+          continue;
+        }
+
+        uebernommeneIds.add(vorhandenesAsset.id);
+        await tx.asset.update({
+          where: { id: vorhandenesAsset.id },
+          data: { name: position.name, besitzstatus: position.besitzstatus, type: position.art },
+        });
+
+        // Art gewechselt (z. B. Wertpapierdepot -> Tagesgeld): alte Detailzeile entfernen, unten neu anlegen.
+        if (vorhandenesAsset.type !== position.art) {
+          if (vorhandenesAsset.type === "WERTPAPIERDEPOT") {
+            await tx.wertpapierposition.delete({ where: { assetId: vorhandenesAsset.id } });
+          } else {
+            await tx.tagesgeldkonto.delete({ where: { assetId: vorhandenesAsset.id } });
+          }
+        }
+
         if (position.art === "WERTPAPIERDEPOT") {
-          await tx.wertpapierposition.create({
-            data: {
+          await tx.wertpapierposition.upsert({
+            where: { assetId: vorhandenesAsset.id },
+            create: {
+              assetId: vorhandenesAsset.id,
               betrag: position.betrag,
               renditeProzentJaehrlich: position.renditeProzentJaehrlich,
               sparplanBetragMonatlich: position.sparplanBetragMonatlich,
               sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-              asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
+            },
+            update: {
+              betrag: position.betrag,
+              renditeProzentJaehrlich: position.renditeProzentJaehrlich,
+              sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+              sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
             },
           });
         } else {
-          await tx.tagesgeldkonto.create({
-            data: {
+          await tx.tagesgeldkonto.upsert({
+            where: { assetId: vorhandenesAsset.id },
+            create: {
+              assetId: vorhandenesAsset.id,
               betrag: position.betrag,
               zinsProzentJaehrlich: position.renditeProzentJaehrlich,
               sparplanBetragMonatlich: position.sparplanBetragMonatlich,
               sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-              asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
+            },
+            update: {
+              betrag: position.betrag,
+              zinsProzentJaehrlich: position.renditeProzentJaehrlich,
+              sparplanBetragMonatlich: position.sparplanBetragMonatlich,
+              sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
             },
           });
         }
-        continue;
       }
 
-      uebernommeneIds.add(vorhandenesAsset.id);
-      await tx.asset.update({
-        where: { id: vorhandenesAsset.id },
-        data: { name: position.name, besitzstatus: position.besitzstatus, type: position.art },
-      });
-
-      // Art gewechselt (z. B. Wertpapierdepot -> Tagesgeld): alte Detailzeile entfernen, unten neu anlegen.
-      if (vorhandenesAsset.type !== position.art) {
-        if (vorhandenesAsset.type === "WERTPAPIERDEPOT") {
-          await tx.wertpapierposition.delete({ where: { assetId: vorhandenesAsset.id } });
-        } else {
-          await tx.tagesgeldkonto.delete({ where: { assetId: vorhandenesAsset.id } });
-        }
+      // Im Formular entfernte Positionen löschen (kaskadiert auf evtl. verweisende SzenarioAenderung).
+      const zuLoeschendeIds = bestehendeAssets.map((a) => a.id).filter((id) => !uebernommeneIds.has(id));
+      if (zuLoeschendeIds.length > 0) {
+        await tx.asset.deleteMany({ where: { id: { in: zuLoeschendeIds } } });
       }
+    });
 
-      if (position.art === "WERTPAPIERDEPOT") {
-        await tx.wertpapierposition.upsert({
-          where: { assetId: vorhandenesAsset.id },
-          create: {
-            assetId: vorhandenesAsset.id,
-            betrag: position.betrag,
-            renditeProzentJaehrlich: position.renditeProzentJaehrlich,
-            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
-            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-          },
-          update: {
-            betrag: position.betrag,
-            renditeProzentJaehrlich: position.renditeProzentJaehrlich,
-            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
-            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-          },
-        });
-      } else {
-        await tx.tagesgeldkonto.upsert({
-          where: { assetId: vorhandenesAsset.id },
-          create: {
-            assetId: vorhandenesAsset.id,
-            betrag: position.betrag,
-            zinsProzentJaehrlich: position.renditeProzentJaehrlich,
-            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
-            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-          },
-          update: {
-            betrag: position.betrag,
-            zinsProzentJaehrlich: position.renditeProzentJaehrlich,
-            sparplanBetragMonatlich: position.sparplanBetragMonatlich,
-            sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-          },
-        });
-      }
-    }
-
-    // Im Formular entfernte Positionen löschen (kaskadiert auf evtl. verweisende SzenarioAenderung).
-    const zuLoeschendeIds = bestehendeAssets.map((a) => a.id).filter((id) => !uebernommeneIds.has(id));
-    if (zuLoeschendeIds.length > 0) {
-      await tx.asset.deleteMany({ where: { id: { in: zuLoeschendeIds } } });
-    }
+    revalidatePath("/finanzuebersicht");
   });
-
-  revalidatePath("/finanzuebersicht");
 }

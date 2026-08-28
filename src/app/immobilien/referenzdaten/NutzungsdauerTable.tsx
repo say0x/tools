@@ -24,14 +24,14 @@ export function NutzungsdauerTable({ initialRows }: { initialRows: Row[] }) {
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereNutzungsdauer(rows.map((r) => ({ id: r.id, nutzungsdauerJahre: r.nutzungsdauerJahre })));
-        setSavedRows(rows);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereNutzungsdauer(rows.map((r) => ({ id: r.id, nutzungsdauerJahre: r.nutzungsdauerJahre })));
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSavedRows(rows);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 

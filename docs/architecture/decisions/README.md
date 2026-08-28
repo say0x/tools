@@ -11,3 +11,4 @@ Dokumentiert die wichtigsten, bereits getroffenen Architekturentscheidungen im R
 | [0005](0005-computed-with-override-pattern.md) | "computed-with-override" statt reiner Eingabe- oder Berechnungsfelder |
 | [0006](0006-kein-app-level-login.md) | Kein App-Level-Login, Absicherung über VPN-only-Netzwerk |
 | [0007](0007-monolith-statt-microservices.md) | Ein Next.js-Monolith statt Microservices/separater API |
+| [0008](0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md) | Server Actions geben ein ActionResult zurück statt Fehler zu werfen |

@@ -24,14 +24,14 @@ export function KaufpreisfaktorTable({ initialRows }: { initialRows: Row[] }) {
   const save = () => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await aktualisiereKaufpreisfaktoren(rows.map((r) => ({ id: r.id, kaufpreisfaktorReferenz: r.kaufpreisfaktorReferenz })));
-        setSavedRows(rows);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2000);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await aktualisiereKaufpreisfaktoren(rows.map((r) => ({ id: r.id, kaufpreisfaktorReferenz: r.kaufpreisfaktorReferenz })));
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setSavedRows(rows);
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2000);
     });
   };
 

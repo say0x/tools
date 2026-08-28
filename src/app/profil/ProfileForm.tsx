@@ -49,13 +49,13 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
   const onSubmit = handleSubmit((values) => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await upsertProfile(values);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2500);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await upsertProfile(values);
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2500);
     });
   });
 

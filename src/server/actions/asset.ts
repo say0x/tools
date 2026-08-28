@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/server/db";
 import { BESITZSTAENDE, type Besitzstatus } from "@/lib/asset";
+import { ausfuehren, type ActionResult } from "./result";
 
 /**
  * Setzt den Besitzstatus eines Assets — funktioniert für JEDEN Asset-Typ
@@ -13,11 +14,13 @@ import { BESITZSTAENDE, type Besitzstatus } from "@/lib/asset";
  * Auswahl-Schalter in der Finanzübersicht) keine komplette Formular-Validierung
  * durchläuft.
  */
-export async function setAssetBesitzstatus(assetId: string, besitzstatus: Besitzstatus) {
-  if (!BESITZSTAENDE.includes(besitzstatus)) {
-    throw new Error(`Ungültiger Besitzstatus: ${besitzstatus}`);
-  }
-  await prisma.asset.update({ where: { id: assetId }, data: { besitzstatus } });
-  revalidatePath("/finanzuebersicht");
-  revalidatePath("/immobilien/objekte");
+export async function setAssetBesitzstatus(assetId: string, besitzstatus: Besitzstatus): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    if (!BESITZSTAENDE.includes(besitzstatus)) {
+      throw new Error(`Ungültiger Besitzstatus: ${besitzstatus}`);
+    }
+    await prisma.asset.update({ where: { id: assetId }, data: { besitzstatus } });
+    revalidatePath("/finanzuebersicht");
+    revalidatePath("/immobilien/objekte");
+  });
 }

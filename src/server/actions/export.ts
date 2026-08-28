@@ -5,6 +5,7 @@ import { ladeProfil } from "./profile";
 import { ladeSparpositionen } from "./finanzuebersicht";
 import { ladeSzenarien } from "./szenario";
 import { ladeReferenceDataSnapshot, ladeStandardwerte } from "@/server/data/reference-data";
+import { ausfuehren } from "./result";
 
 /**
  * Vollständiger, lesbarer JSON-Export aller selbst eingegebenen Daten — reine
@@ -16,26 +17,30 @@ import { ladeReferenceDataSnapshot, ladeStandardwerte } from "@/server/data/refe
  * Referenz: docs/tools/weitere-rechner.md
  */
 export async function exportiereAlleDaten() {
-  const [objekte, profil, sparpositionen, szenarien, referenzdaten, standardwerte] = await Promise.all([
-    ladeObjekte(),
-    ladeProfil(),
-    ladeSparpositionen(),
-    ladeSzenarien(),
-    ladeReferenceDataSnapshot(),
-    // ladeReferenceDataSnapshot() liefert nur die für die Calc-Engine transformierten
-    // Referenzwerte (Grunderwerbsteuer, Mietpreise, ...), nicht die separat über
-    // /immobilien/referenzdaten editierbaren Standardwerte (Vorbelegung für neue
-    // Objekte) — die fehlten hier bislang komplett im Backup.
-    ladeStandardwerte(),
-  ]);
+  return ausfuehren(async () => {
+    const [objekte, profil, sparpositionen, szenarien, referenzdaten, standardwerte] = await Promise.all([
+      ladeObjekte(),
+      ladeProfil(),
+      ladeSparpositionen(),
+      ladeSzenarien(),
+      ladeReferenceDataSnapshot(),
+      // ladeReferenceDataSnapshot() liefert nur die für die Calc-Engine transformierten
+      // Referenzwerte (Grunderwerbsteuer, Mietpreise, ...), nicht die separat über
+      // /immobilien/referenzdaten editierbaren Standardwerte (Vorbelegung für neue
+      // Objekte) — die fehlten hier bislang komplett im Backup.
+      ladeStandardwerte(),
+    ]);
 
-  return {
-    exportiertAm: new Date().toISOString(),
-    objekte,
-    profil,
-    sparpositionen,
-    szenarien,
-    referenzdaten,
-    standardwerte,
-  };
+    return {
+      exportiertAm: new Date().toISOString(),
+      objekte,
+      profil,
+      sparpositionen,
+      szenarien,
+      referenzdaten,
+      standardwerte,
+    };
+  });
 }
+
+export type ExportedDaten = Extract<Awaited<ReturnType<typeof exportiereAlleDaten>>, { success: true }>["data"];

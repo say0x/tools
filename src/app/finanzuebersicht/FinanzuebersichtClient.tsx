@@ -125,15 +125,12 @@ export function FinanzuebersichtClient({
     setImmobilienStatus((prev) => ({ ...prev, [imm.id]: status }));
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await setAssetBesitzstatus(imm.assetId, status);
-      } catch (err) {
+      const result = await setAssetBesitzstatus(imm.assetId, status);
+      if (!result.success) {
         // Optimistisches Update zurücknehmen — sonst zeigt die UI einen Status, der nie
         // gespeichert wurde, bis ein Reload den echten (unveränderten) Serverwert nachlädt.
         setImmobilienStatus((prev) => ({ ...prev, [imm.id]: vorherigerStatus }));
-        setServerFehler(
-          `Status von "${imm.name}" konnte nicht geändert werden: ${err instanceof Error ? err.message : "unbekannter Fehler"}. Bitte erneut versuchen.`
-        );
+        setServerFehler(`Status von "${imm.name}" konnte nicht geändert werden: ${result.error}. Bitte erneut versuchen.`);
       }
     });
   };
@@ -187,13 +184,13 @@ export function FinanzuebersichtClient({
   const submit = handleSubmit((values) => {
     setServerFehler(null);
     startTransition(async () => {
-      try {
-        await speichereFinanzuebersicht(values);
-        setGespeichert(true);
-        setTimeout(() => setGespeichert(false), 2500);
-      } catch (err) {
-        setServerFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      const result = await speichereFinanzuebersicht(values);
+      if (!result.success) {
+        setServerFehler(result.error);
+        return;
       }
+      setGespeichert(true);
+      setTimeout(() => setGespeichert(false), 2500);
     });
   });
 
