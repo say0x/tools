@@ -128,7 +128,7 @@ export function GewerkeSubform({
               }
             >
               <div className="flex h-[38px] items-center">
-                <Switch {...register(`gewerke.${index}.sofortSanieren` as const)} />
+                <Switch bare {...register(`gewerke.${index}.sofortSanieren` as const)} />
               </div>
             </Field>
             {istFenster ? (

@@ -92,6 +92,7 @@ export function SteuerrechnerClient() {
               />
               <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-400">
                 <Switch
+                  bare
                   checked={zvEOverride}
                   onChange={(e) => {
                     if (e.target.checked) setZvEManuell(Math.round(zvEGeschaetzt));
