@@ -39,6 +39,14 @@ Die App ist intern unter Port 3000 erreichbar; im Homelab per Reverse-Proxy auf 
 
 Passend zum VPN-only-Modell: `src/app/layout.tsx` setzt `robots: { index: false, follow: false }` (kein Sitemap/OG-Setup, da nicht für Suchmaschinen/Social-Previews gedacht). Jede Route hat einen eigenen `<title>` (`"%s · tools"`-Template) und ein eigenes Favicon (`src/app/icon.png` / `apple-icon.png`, Next-16-App-Icon-Konvention).
 
+### HTTP-Security-Header
+
+`next.config.ts`s `headers()` setzt auf jede Route eine Content-Security-Policy plus `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` und ein restriktives `Permissions-Policy` (keine Kamera/Mikrofon/Geolocation — von der App ohnehin nicht genutzt).
+
+Die CSP ist bewusst **statisch** (`script-src 'self' 'unsafe-inline'`) statt Nonce-basiert: eine Nonce-CSP erzwingt dynamisches Rendering auf jeder Route (keine Static-Optimierung/ISR mehr, siehe `node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`) — für ein VPN-only-Einzelnutzer-Tool ohne öffentlichen Zugriff ([ADR-0006](../architecture/decisions/0006-kein-app-level-login.md)) ein unverhältnismäßiger Performance-Tradeoff gegenüber dem zusätzlichen Schutz. `style-src 'unsafe-inline'` ist nötig für echte, unvermeidbare inline `style={{}}`-Nutzung (dynamische Balkenbreite im Dashboard, Fallback-Styling in `global-error.tsx`). Alles andere bleibt streng: kein Framing (`frame-ancestors 'none'`), keine Plugins (`object-src 'none'`), keine externen Bild-/Font-/Verbindungsziele — die App lädt ohnehin nichts von Drittanbietern (`next/font` hostet Google Fonts zur Build-Zeit selbst).
+
+`Strict-Transport-Security` (HSTS) wird hier bewusst **nicht** gesetzt — TLS-Terminierung passiert am Reverse-Proxy, nicht in der App selbst (die App läuft intern über Klartext-HTTP auf Port 3000), HSTS gehört deshalb in die Reverse-Proxy-Konfiguration außerhalb dieses Repos.
+
 ## CI
 
 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) läuft bei jedem Push nach `main` und bei jedem Pull Request: Lint, Tests, Produktions-Build. Der Build-Schritt führt den TypeScript-Check gleich mit aus — ein separater `tsc`-Schritt davor scheitert auf einem frischen Checkout, da `next-env.d.ts` auf `.next/types/*` verweist, das erst der Build selbst erzeugt (Erkenntnis aus dem ersten echten CI-Lauf, siehe [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md)). Kein Postgres-Service im Workflow nötig — `prisma generate` liest nur das Schema, keine Datenroute wird zur Build-Zeit statisch gerendert (alle DB-lesenden Routen sind `export const dynamic = "force-dynamic"`); `DATABASE_URL` im Workflow ist ein syntaktisch gültiger, aber nicht erreichbarer Dummy-Wert.
