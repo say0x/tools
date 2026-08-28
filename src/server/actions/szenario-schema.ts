@@ -10,8 +10,6 @@ export const SZENARIO_AENDERUNG_TYPEN = [
   "SPARRATE_AENDERN",
   "EINMALIGE_ANSCHAFFUNG",
 ] as const;
-export type SzenarioAenderungTyp = (typeof SZENARIO_AENDERUNG_TYPEN)[number];
-
 const aenderungSchema = z
   .object({
     typ: z.enum(SZENARIO_AENDERUNG_TYPEN),

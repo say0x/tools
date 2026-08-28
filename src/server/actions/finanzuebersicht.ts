@@ -5,7 +5,7 @@ import { prisma } from "@/server/db";
 import { finanzuebersichtSchema, type FinanzuebersichtFormValues } from "./finanzuebersicht-schema";
 import { ausfuehren, type ActionResult } from "./result";
 
-export type { FinanzuebersichtFormValues, SparpositionArt, SparpositionFormValues } from "./finanzuebersicht-schema";
+export type { FinanzuebersichtFormValues, SparpositionFormValues } from "./finanzuebersicht-schema";
 
 export async function ladeSparpositionen() {
   const [wertpapiere, tagesgeld] = await Promise.all([

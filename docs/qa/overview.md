@@ -67,6 +67,23 @@ Vollständige Durchsuchung des Quellcodes (`src/**/*.{ts,tsx}`, `src/generated/`
 
 Kein Fix nötig — keiner der gefundenen Treffer maskiert einen echten Typ-Mismatch oder ein Laufzeitrisiko. Der kalkulationslastige Charakter des Projekts (explizite `Decimal.toNumber()`-Konvertierungen statt impliziter Zahl-Koerzion, siehe Task #51) und die durchgängige Nutzung von Zod-Validierung an den Systemgrenzen erklären, warum unsichere Typ-Umgehungen hier nicht nötig waren.
 
+## Dead-Code-Sweep (2026-08-28)
+
+Vollständige Durchsuchung mit `knip` (Unused-Files/-Exports/-Dependencies-Analyse, per `npx` ohne feste Projekt-Abhängigkeit ausgeführt) — jeder gemeldete Fund einzeln geprüft, bevor etwas entfernt wurde.
+
+**Echte Funde, behoben:**
+- `engine.ts` importierte `berechneGesamtinvestition` aus `darlehen.ts` ausschließlich, um es unter der Engine-Fassade erneut zu exportieren (`export { berechneGesamtinvestition }`) — nirgends im Projekt über diesen Weg importiert (Tests nutzen `./darlehen` direkt). Re-Export entfernt.
+- `finanzuebersicht.ts`s Typ-Re-Export-Zeile enthielt `SparpositionArt`, das aber ausschließlich direkt aus `finanzuebersicht-schema.ts` importiert wird (`server/data/vermoegen.ts`), nie über die Action-Fassade — aus der Re-Export-Zeile entfernt (die beiden tatsächlich genutzten Typen bleiben).
+- `ExportedDaten` (`export.ts`) — abgeleiteter Rückgabetyp von `exportiereAlleDaten()`, aber nirgends importiert (`ExportButton.tsx` nutzt das Ergebnis nur inline). Entfernt.
+- `SzenarioAenderungTyp` (`szenario-schema.ts` + Re-Export in `szenario.ts`) — weder exportiert noch innerhalb der eigenen Datei genutzt (das abgeleitete `SzenarioAenderungFormValues` baut nicht darauf auf). Entfernt.
+- `pg` und `@types/pg` als direkte Dependencies — `@prisma/adapter-pg` bringt `pg` bereits selbst als eigene direkte Abhängigkeit mit; der Projektcode importiert `pg` nirgends direkt (nur die Adapter-Konfiguration via `PrismaPg({ connectionString })`). Aus `package.json` entfernt.
+
+**Geprüft und bewusst nicht verändert (false positives von `knip`):**
+- `@prisma/client` als "unused dependency" gemeldet, ist aber ein echtes Laufzeit-Requirement — der generierte Prisma-Client importiert `@prisma/client/runtime/client` direkt. `knip` verfolgt generierten Code nicht.
+- Vier Konstanten (`AFA_SATZ_STANDARD_PROZENT`, `AFA_SATZ_ALTBAU_PROZENT`, `AFA_ALTBAU_GRENZJAHR`, `ESTG_ZONEN`) und 13 Typen aus `server/calc/` als "unused" gemeldet — alle werden innerhalb ihrer eigenen Datei bzw. strukturell in einem tatsächlich verwendeten übergeordneten Typ genutzt (z. B. `Sanierungsmodus`/`Verglasungsart`/`PropertyExitInput`/`UserLiabilityInput` als Felder von `PropertyInput`/`ProfileInput`, die einzelnen `AnnahmenWarnung*`/`Verhandlungsargument*`-Interfaces als Varianten der Union-Typen `AnnahmenWarnung`/`Verhandlungsargument`). `knip` erkennt strukturelle Typnutzung nicht als "Verwendung" des benannten Exports — kein echter Dead Code, nur ein breiteres API-Surface als nötig. Unverändert gelassen, um den Fund nicht mit kosmetischen `export`-Entfernungen an tatsächlich genutztem Code aufzublähen.
+
+Verifiziert nach jeder Änderung: `npx tsc --noEmit`, `npm run lint`, `npx vitest run` (207/207), `npm run build` — alle grün.
+
 ## Docs-Aktualitäts-Sweep (2026-08-28)
 
 Vollständiger Abgleich der `docs/`-Baumstruktur gegen den tatsächlichen aktuellen Code-Stand (nicht gegen den Stand zum jeweiligen Schreibzeitpunkt) — Migrationsanzahl, Testdateien-Anzahl, Zeilenzahlen, Markdown-Link-Ziele.

@@ -6,7 +6,7 @@ import { prisma } from "@/server/db";
 import { szenarioSchema, type SzenarioAenderungFormValues, type SzenarioFormValues } from "./szenario-schema";
 import { ausfuehren, type ActionResult } from "./result";
 
-export type { SzenarioAenderungTyp, SzenarioAenderungFormValues, SzenarioFormValues } from "./szenario-schema";
+export type { SzenarioAenderungFormValues, SzenarioFormValues } from "./szenario-schema";
 
 function parseSzenarioFormValues(values: SzenarioFormValues): SzenarioFormValues {
   const result = szenarioSchema.safeParse(values);
