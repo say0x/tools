@@ -15,6 +15,8 @@ Ausführliche Referenz neben der kurzen Übersicht in der [Haupt-README](../READ
 | [`development/setup.md`](development/setup.md) | Lokale Entwicklung, Tests, Import-Skript |
 | [`security/overview.md`](security/overview.md) | Bedrohungsmodell, Audit-Stand |
 | [`qa/overview.md`](qa/overview.md) | Testphilosophie, Abdeckung, bekannte Lücken |
+| [`qa/audit-log.md`](qa/audit-log.md) | Fortlaufend nummerierter Index aller cross-cutting Audits |
 | [`releases/CHANGELOG.md`](releases/CHANGELOG.md) | Nennenswerte Änderungen je Version |
+| [`development/workflow.md`](development/workflow.md) | PR-/Audit-Workflow, Code-Doku-Konvention, Guardrail-Skripte |
 
-In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/`-Seite dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt.
+In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/`-Seite dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt. Wie an diesem Projekt gearbeitet wird — PR-Ablauf, wann ein Audit ins Audit-Log gehört, welche Guardrail-Skripte es gibt: [`development/workflow.md`](development/workflow.md).
