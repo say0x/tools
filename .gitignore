@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# db backups (siehe scripts/backup-db.sh) — enthalten echte Finanzdaten
+/backups
+
 # testing
 /coverage
 /test-results
