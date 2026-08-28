@@ -30,6 +30,10 @@ jobs:
       - name: Test
         run: npm run test
 
+      # Deterministisch, keine Fehlalarme — siehe docs/development/workflow.md.
+      - name: Doku-Links prüfen
+        run: npm run check:links
+
       # Kein separater "npx tsc --noEmit"-Schritt: next build führt den
       # TypeScript-Check bereits selbst durch ("Running TypeScript ..." in der
       # Build-Ausgabe) — ein eigenständiger tsc-Lauf davor schlägt auf einem

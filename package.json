@@ -17,7 +17,9 @@
     "db:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
-    "import:objekte": "tsx scripts/import-objekte.ts"
+    "import:objekte": "tsx scripts/import-objekte.ts",
+    "check:links": "tsx scripts/check-doc-links.ts",
+    "deadcode": "knip"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
@@ -42,6 +44,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "knip": "^6.33.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",

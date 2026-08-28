@@ -26,6 +26,13 @@ npm run test:e2e    # Playwright, gegen eine laufende Instanz (npm run dev + Pos
 
 Testphilosophie und Abdeckung: [`docs/qa/overview.md`](../qa/overview.md).
 
+## Guardrail-Skripte
+
+```bash
+npm run check:links   # verifiziert alle Markdown-/Doku-Links gegen das Dateisystem — auch Teil der CI
+npm run deadcode      # knip: unbenutzte Exports/Dateien/Dependencies — manuell, siehe docs/development/workflow.md
+```
+
 ## Objekte importieren (`data/import-objekte.json`)
 
 Recherchierte Objekte (z. B. von Immobilienportalen zusammengetragen) lassen sich über eine JSON-Datei einspielen, statt sie einzeln im Formular anzulegen:
@@ -57,5 +64,8 @@ src/app/kaufen-oder-anlegen/   Objekt aus der Bibliothek vs. Alternativanlage de
 src/server/actions/export.ts   Server Action für den JSON-Datenexport (Profil-Seite)
 src/app/page.tsx               Dashboard (Kennzahlen über alle Tools hinweg)
 src/server/data/vermoegen.ts   Geteilte Asset-Aufbereitung (Immobilien-Cashflow, Sparpositionen) für Finanzübersicht + Szenarien
+scripts/check-doc-links.ts     Guardrail: Markdown-/Doku-Link-Check (npm run check:links, Teil der CI)
 docs/                          Ausführliche Referenzdokumentation je Themenblock (siehe docs/README.md)
+docs/development/workflow.md   PR-/Audit-Workflow, Code-Doku-Konvention, Guardrail-Skripte
+docs/qa/audit-log.md           Fortlaufend nummerierter Index aller cross-cutting Audits
 ```

@@ -32,10 +32,11 @@ Diese README gibt den schnellen Einstieg — Tech-Stack, lokale Entwicklung, Dep
 | [`docs/deployment/`](docs/deployment/docker.md) | Docker, Netzwerk, CI |
 | [`docs/development/`](docs/development/setup.md) | Setup, Tests, Import-Skript |
 | [`docs/security/`](docs/security/overview.md) | Bedrohungsmodell, Audit-Stand |
-| [`docs/qa/`](docs/qa/overview.md) | Testphilosophie, Abdeckung |
+| [`docs/qa/`](docs/qa/overview.md) | Testphilosophie, Abdeckung, [Audit-Log](docs/qa/audit-log.md) |
 | [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md) | Änderungshistorie |
+| [`docs/development/workflow.md`](docs/development/workflow.md) | PR-/Audit-Workflow, Code-Doku-Konvention, Guardrail-Skripte |
 
-In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/`-Seite dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt.
+In den jeweiligen Quelldateien steht oben ein Kommentar, welche `docs/`-Seite dazugehört — bei Änderungen an der Logik dort zuerst nachsehen, ob die Doku noch stimmt. Wie an diesem Projekt gearbeitet wird (PR-Ablauf, wann ein Audit ins [Audit-Log](docs/qa/audit-log.md) gehört, Guardrail-Skripte gegen Doku-Drift): [`docs/development/workflow.md`](docs/development/workflow.md).
 
 ## Schnellstart
 

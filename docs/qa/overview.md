@@ -101,4 +101,4 @@ Verifiziert nach jeder Änderung: `npx tsc --noEmit`, `npm run lint`, `npx vites
 
 ## QS-Historie
 
-Statt eines separaten, manuell gepflegten QS-Protokolls dient die GitHub-PR-Historie als QS-Record: jeder gemergte PR trägt seine Test-/Build-/Lint-Ergebnisse in der Beschreibung, dauerhaft einsehbar. Größere QS-Durchläufe (Security-/Code-Qualität-/UX-Audit, Tool-Ökosystem-Analyse) sind zusätzlich als Artefakte dokumentiert und ihre konkreten Funde in [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md) nachvollziehbar.
+Fortlaufend nummerierter Index aller cross-cutting Audits (Security, Datenbank, Code-Qualität, QA, Doku): [`docs/qa/audit-log.md`](audit-log.md). Für Details unterhalb der Audit-Ebene (Test-/Build-/Lint-Ergebnisse einzelner PRs) dient die GitHub-PR-Historie weiterhin als Record; fachlich relevante Änderungen stehen zusätzlich in [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md). Wie ein neuer Audit ins Log kommt und was das für den PR-Workflow bedeutet: [`docs/development/workflow.md`](../development/workflow.md).
