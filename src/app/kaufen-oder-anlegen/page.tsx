@@ -31,7 +31,7 @@ export default async function KaufenOderAnlegenPage({ searchParams }: PageProps<
   const renditeVorschlagProzent =
     besesseneWertpapiere.length > 0
       ? Math.round(
-          (besesseneWertpapiere.reduce((summe, w) => summe + w.renditeProzentJaehrlich, 0) / besesseneWertpapiere.length) * 10
+          (besesseneWertpapiere.reduce((summe, w) => summe + w.renditeProzentJaehrlich.toNumber(), 0) / besesseneWertpapiere.length) * 10
         ) / 10
       : null;
 

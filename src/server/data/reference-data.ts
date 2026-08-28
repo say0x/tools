@@ -30,24 +30,24 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
   ]);
 
   const grunderwerbsteuerByBundesland = Object.fromEntries(
-    BUNDESLAENDER.map((b) => [b, grunderwerbsteuer.find((r) => r.bundesland === b)?.satzProzent ?? 0])
+    BUNDESLAENDER.map((b) => [b, grunderwerbsteuer.find((r) => r.bundesland === b)?.satzProzent.toNumber() ?? 0])
   ) as ReferenceDataSnapshot["grunderwerbsteuerByBundesland"];
 
   const mietpreisByBundeslandLagetyp: Record<string, number> = {};
   for (const row of mietpreise) {
-    mietpreisByBundeslandLagetyp[`${row.bundesland}:${row.lagetyp}`] = row.mietpreisProM2;
+    mietpreisByBundeslandLagetyp[`${row.bundesland}:${row.lagetyp}`] = row.mietpreisProM2.toNumber();
   }
 
   const gewerkKosten = Object.fromEntries(
     GEWERKE.map((g) => {
       const row = gewerkKostenRows.find((r) => r.gewerk === g);
-      return [g, { min: row?.kostenProM2Min ?? 0, max: row?.kostenProM2Max ?? 0 }];
+      return [g, { min: row?.kostenProM2Min.toNumber() ?? 0, max: row?.kostenProM2Max.toNumber() ?? 0 }];
     })
   ) as ReferenceDataSnapshot["gewerkKosten"];
 
   const kaufpreisfaktorReferenzByObjekttypLagetyp: Record<string, number> = {};
   for (const row of kaufpreisfaktoren) {
-    kaufpreisfaktorReferenzByObjekttypLagetyp[`${row.objekttyp}:${row.lagetyp}`] = row.kaufpreisfaktorReferenz;
+    kaufpreisfaktorReferenzByObjekttypLagetyp[`${row.objekttyp}:${row.lagetyp}`] = row.kaufpreisfaktorReferenz.toNumber();
   }
 
   const nutzungsdauerJahreByGewerk = Object.fromEntries(
@@ -61,10 +61,10 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     instandhaltungssaetze: instandhaltungssaetze.map((s) => ({
       von: s.altersklasseVonJahren,
       bis: s.altersklasseBisJahren,
-      satz: s.satzProM2ProJahr,
+      satz: s.satzProM2ProJahr.toNumber(),
     })),
-    notarProzentDefault: kaufnebenkostenDefaults?.notarProzent ?? 1.0,
-    grundbuchProzentDefault: kaufnebenkostenDefaults?.grundbuchProzent ?? 0.5,
+    notarProzentDefault: kaufnebenkostenDefaults?.notarProzent.toNumber() ?? 1.0,
+    grundbuchProzentDefault: kaufnebenkostenDefaults?.grundbuchProzent.toNumber() ?? 0.5,
     kaufpreisfaktorReferenzByObjekttypLagetyp,
     nutzungsdauerJahreByGewerk,
   };
@@ -90,16 +90,16 @@ export async function ladeStandardwerte(): Promise<Standardwerte> {
   const row = await ladeKaufnebenkostenDefaultsRow();
   return {
     bundesland: row?.standardBundesland ?? null,
-    zinssatzProzent: row?.standardZinssatzProzent ?? null,
-    tilgungProzent: row?.standardTilgungProzent ?? null,
+    zinssatzProzent: row?.standardZinssatzProzent?.toNumber() ?? null,
+    tilgungProzent: row?.standardTilgungProzent?.toNumber() ?? null,
     zinsbindungJahre: row?.standardZinsbindungJahre ?? null,
     finanzierungsart: row?.standardFinanzierungsart ?? null,
-    mietsteigerungProzent: row?.standardMietsteigerungProzent ?? null,
-    wertsteigerungProzent: row?.standardWertsteigerungProzent ?? null,
-    kostensteigerungProzent: row?.standardKostensteigerungProzent ?? null,
-    leerstandsquoteProzent: row?.standardLeerstandsquoteProzent ?? null,
-    anschlusszinsAufschlagProzent: row?.standardAnschlusszinsAufschlagProzent ?? null,
-    sondertilgungProzent: row?.standardSondertilgungProzent ?? null,
-    sondertilgungMaxProzent: row?.standardSondertilgungMaxProzent ?? null,
+    mietsteigerungProzent: row?.standardMietsteigerungProzent?.toNumber() ?? null,
+    wertsteigerungProzent: row?.standardWertsteigerungProzent?.toNumber() ?? null,
+    kostensteigerungProzent: row?.standardKostensteigerungProzent?.toNumber() ?? null,
+    leerstandsquoteProzent: row?.standardLeerstandsquoteProzent?.toNumber() ?? null,
+    anschlusszinsAufschlagProzent: row?.standardAnschlusszinsAufschlagProzent?.toNumber() ?? null,
+    sondertilgungProzent: row?.standardSondertilgungProzent?.toNumber() ?? null,
+    sondertilgungMaxProzent: row?.standardSondertilgungMaxProzent?.toNumber() ?? null,
   };
 }

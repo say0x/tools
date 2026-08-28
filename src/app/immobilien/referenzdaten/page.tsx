@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Referenzdaten" };
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuer, mietpreise, gewerkKosten, nutzungsdauer, kaufnebenkostenDefaults, kaufpreisfaktoren, standardwerte] =
+  const [grunderwerbsteuerRows, mietpreiseRows, gewerkKostenRows, nutzungsdauer, kaufnebenkostenDefaults, kaufpreisfaktorenRows, standardwerte] =
     await Promise.all([
       prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
       prisma.referenceMietpreis.findMany(),
@@ -24,6 +24,18 @@ export default async function ReferenzdatenPage() {
       prisma.referenceKaufpreisfaktor.findMany(),
       ladeStandardwerte(),
     ]);
+
+  // Geld-/Prozentfelder kommen als Decimal aus der DB — hier auf number konvertiert, bevor die
+  // Zeilen an die "use client"-Tabellenkomponenten weitergereicht werden (siehe mappers.ts oben
+  // für die ausführliche Begründung, warum Prisma-Decimal-Instanzen dort nicht direkt landen dürfen).
+  const grunderwerbsteuer = grunderwerbsteuerRows.map((r) => ({ ...r, satzProzent: r.satzProzent.toNumber() }));
+  const mietpreise = mietpreiseRows.map((r) => ({ ...r, mietpreisProM2: r.mietpreisProM2.toNumber() }));
+  const gewerkKosten = gewerkKostenRows.map((r) => ({
+    ...r,
+    kostenProM2Min: r.kostenProM2Min.toNumber(),
+    kostenProM2Max: r.kostenProM2Max.toNumber(),
+  }));
+  const kaufpreisfaktoren = kaufpreisfaktorenRows.map((r) => ({ ...r, kaufpreisfaktorReferenz: r.kaufpreisfaktorReferenz.toNumber() }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,8 +55,8 @@ export default async function ReferenzdatenPage() {
       <Card>
         <CardTitle>Notar- &amp; Grundbuch-Standardsätze</CardTitle>
         <KaufnebenkostenDefaultsCard
-          initialNotarProzent={kaufnebenkostenDefaults?.notarProzent ?? 1.0}
-          initialGrundbuchProzent={kaufnebenkostenDefaults?.grundbuchProzent ?? 0.5}
+          initialNotarProzent={kaufnebenkostenDefaults?.notarProzent.toNumber() ?? 1.0}
+          initialGrundbuchProzent={kaufnebenkostenDefaults?.grundbuchProzent.toNumber() ?? 0.5}
         />
       </Card>
 

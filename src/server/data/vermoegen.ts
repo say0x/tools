@@ -1,10 +1,9 @@
 import { differenceInCalendarYears } from "date-fns";
 import { berechneObjekt } from "@/server/calc/engine";
 import type { CalculationResult, ProfileInput, ReferenceDataSnapshot } from "@/server/calc/types";
-import type { Asset, Tagesgeldkonto, Wertpapierposition } from "@/generated/prisma/client";
 import type { Besitzstatus } from "@/lib/asset";
 import type { SparpositionArt } from "@/server/actions/finanzuebersicht-schema";
-import { toPropertyInput, type PropertyWithAsset } from "./mappers";
+import { toPropertyInput, type PropertyWithAsset, type WertpapierpositionWithAsset, type TagesgeldkontoWithAsset } from "./mappers";
 
 // Referenz (Cashflow-only-Philosophie, geteilte Bausteine, Besitzstatus-System): docs/tools/finanzuebersicht-und-szenarien.md
 
@@ -52,11 +51,11 @@ export function immobilienPositionAusErgebnis(
     name: row.asset.name,
     besitzstatus: row.asset.besitzstatus,
     jahreSeitKauf,
-    kaufpreis: row.kaufpreis,
+    kaufpreis: row.kaufpreis.toNumber(),
     eigenkapitalEinsatzBeiKauf: result.finanzierung.eigenkapitalEinsatzEuro,
     cashflowNachSteuerProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.cashflowNachSteuerJahr),
     eigenkapitalanteilHeuteReferenz: heutigerVermoegensverlaufEintrag?.eigenkapitalanteil ?? result.finanzierung.eigenkapitalEinsatzEuro,
-    immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis,
+    immobilienwertHeuteReferenz: heutigerVermoegensverlaufEintrag?.immobilienwert ?? row.kaufpreis.toNumber(),
     eigenkapitalanteilProJahrSeitKauf: result.vermoegensverlauf.map((jahr) => jahr.eigenkapitalanteil),
   };
 }
@@ -97,8 +96,8 @@ export interface SparpositionPosition {
  * ein eigenes Format fürs Bulk-Bearbeitungsformular.
  */
 export function berechneSparpositionPositionen(
-  wertpapiere: (Wertpapierposition & { asset: Asset })[],
-  tagesgeld: (Tagesgeldkonto & { asset: Asset })[]
+  wertpapiere: WertpapierpositionWithAsset[],
+  tagesgeld: TagesgeldkontoWithAsset[]
 ): SparpositionPosition[] {
   return [
     ...wertpapiere.map((w) => ({
@@ -106,20 +105,20 @@ export function berechneSparpositionPositionen(
       name: w.asset.name,
       art: "WERTPAPIERDEPOT" as const,
       besitzstatus: w.asset.besitzstatus,
-      betrag: w.betrag,
-      renditeProzentJaehrlich: w.renditeProzentJaehrlich,
-      sparplanBetragMonatlich: w.sparplanBetragMonatlich,
-      sparplanSteigerungProzentJaehrlich: w.sparplanSteigerungProzentJaehrlich,
+      betrag: w.betrag.toNumber(),
+      renditeProzentJaehrlich: w.renditeProzentJaehrlich.toNumber(),
+      sparplanBetragMonatlich: w.sparplanBetragMonatlich.toNumber(),
+      sparplanSteigerungProzentJaehrlich: w.sparplanSteigerungProzentJaehrlich.toNumber(),
     })),
     ...tagesgeld.map((t) => ({
       assetId: t.assetId,
       name: t.asset.name,
       art: "TAGESGELD" as const,
       besitzstatus: t.asset.besitzstatus,
-      betrag: t.betrag,
-      renditeProzentJaehrlich: t.zinsProzentJaehrlich,
-      sparplanBetragMonatlich: t.sparplanBetragMonatlich,
-      sparplanSteigerungProzentJaehrlich: t.sparplanSteigerungProzentJaehrlich,
+      betrag: t.betrag.toNumber(),
+      renditeProzentJaehrlich: t.zinsProzentJaehrlich.toNumber(),
+      sparplanBetragMonatlich: t.sparplanBetragMonatlich.toNumber(),
+      sparplanSteigerungProzentJaehrlich: t.sparplanSteigerungProzentJaehrlich.toNumber(),
     })),
   ];
 }

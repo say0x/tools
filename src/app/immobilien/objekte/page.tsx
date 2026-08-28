@@ -26,7 +26,7 @@ export default async function ObjektBibliothekPage() {
     return {
       id: row.id,
       name: row.asset.name,
-      kaufpreis: row.kaufpreis,
+      kaufpreis: row.kaufpreis.toNumber(),
       besitzstatus: row.asset.besitzstatus,
       bruttomietrenditeProzent: result.rendite.bruttomietrenditeProzent,
       monatlicherCashflowNachSteuer: result.rendite.monatlicherCashflowNachSteuer,

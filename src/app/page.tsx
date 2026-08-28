@@ -119,17 +119,17 @@ export default async function Home() {
   const sparpositionenImBesitz = [...sparpositionenRows.wertpapiere, ...sparpositionenRows.tagesgeld].filter(
     (p) => p.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN
   );
-  const sparvermoegen = sparpositionenImBesitz.reduce((summe, p) => summe + p.betrag, 0);
+  const sparvermoegen = sparpositionenImBesitz.reduce((summe, p) => summe + p.betrag.toNumber(), 0);
 
   // Notgroschen bewusst nur aus Tagesgeld (sofort verfügbar) — Wertpapierdepots zählen
   // hier nicht mit, da sie erst verkauft werden müssten und im Kurs schwanken können.
   const tagesgeldImBesitz = sparpositionenRows.tagesgeld
     .filter((t) => t.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
-    .reduce((summe, t) => summe + t.betrag, 0);
-  const notgroschenMonate =
-    profilRow && profilRow.fixkostenMonatlich > 0 ? tagesgeldImBesitz / profilRow.fixkostenMonatlich : null;
+    .reduce((summe, t) => summe + t.betrag.toNumber(), 0);
+  const fixkostenMonatlich = profilRow?.fixkostenMonatlich.toNumber() ?? 0;
+  const notgroschenMonate = fixkostenMonatlich > 0 ? tagesgeldImBesitz / fixkostenMonatlich : null;
   const groessteSparposition = sparpositionenImBesitz.reduce(
-    (groesste, p) => (groesste === null || p.betrag > groesste.betrag ? p : groesste),
+    (groesste, p) => (groesste === null || p.betrag.toNumber() > groesste.betrag.toNumber() ? p : groesste),
     null as (typeof sparpositionenImBesitz)[number] | null
   );
 
@@ -168,7 +168,7 @@ export default async function Home() {
     },
   ];
 
-  const keinProfilHinterlegt = !profilRow || profilRow.fixkostenMonatlich === 0;
+  const keinProfilHinterlegt = !profilRow || fixkostenMonatlich === 0;
 
   const fakten = [
     {
@@ -189,7 +189,7 @@ export default async function Home() {
     },
     {
       label: "Größte Sparposition",
-      value: groessteSparposition ? formatEuro(groessteSparposition.betrag) : "—",
+      value: groessteSparposition ? formatEuro(groessteSparposition.betrag.toNumber()) : "—",
       hint: groessteSparposition?.asset.name ?? "noch keine Position erfasst",
     },
     {
