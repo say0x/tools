@@ -337,7 +337,7 @@ export function SzenarioClient({
           )}
 
           {fields.length === 0 && (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Noch keine Änderung — z. B. „Immobilie kaufen“, „Sparrate erhöhen“ oder „Auto kaufen“.
             </p>
           )}
@@ -374,7 +374,7 @@ export function SzenarioClient({
                         ))}
                       </Select>
                       {immobilienZumAufnehmen.length === 0 && (
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-slate-400">
                           Keine Immobilie mit Status „Potenzielle Anschaffung“ oder „Spekulation“ vorhanden.
                         </p>
                       )}
@@ -393,7 +393,7 @@ export function SzenarioClient({
                           ))}
                         </Select>
                         {immobilienZumVerkaufen.length === 0 && (
-                          <p className="mt-1 text-xs text-slate-500">Keine Immobilie mit Status „Besitze ich“ vorhanden.</p>
+                          <p className="mt-1 text-xs text-slate-400">Keine Immobilie mit Status „Besitze ich“ vorhanden.</p>
                         )}
                       </Field>
                       <Field label="Verkaufsjahr" error={errors.aenderungen?.[index]?.jahrAbHeute?.message}>
@@ -417,7 +417,7 @@ export function SzenarioClient({
                           ))}
                         </Select>
                         {sparpositionenBesessen.length === 0 && (
-                          <p className="mt-1 text-xs text-slate-500">Keine Position mit Status „Besitze ich“ vorhanden.</p>
+                          <p className="mt-1 text-xs text-slate-400">Keine Position mit Status „Besitze ich“ vorhanden.</p>
                         )}
                       </Field>
                       <Field label="Neue Sparrate (€/Monat)" error={errors.aenderungen?.[index]?.neueSparrateMonatlich?.message}>
@@ -514,7 +514,7 @@ export function SzenarioClient({
 function Stat({ label, value, accent }: { label: string; value: string; accent?: "positiv" | "negativ" }) {
   return (
     <div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div
         className={`text-lg font-semibold ${
           accent === "positiv" ? "text-emerald-400" : accent === "negativ" ? "text-red-400" : "text-slate-100"

@@ -35,7 +35,7 @@ export function DualUnitInput<T extends FieldValues>({
             onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
             onBlur={field.onBlur}
           />
-          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">
             {unit}
           </span>
         </div>
@@ -46,7 +46,7 @@ export function DualUnitInput<T extends FieldValues>({
             value={proM2}
             onChange={(e) => field.onChange(proM2ZuEuro(e.target.value === "" ? 0 : Number(e.target.value), wohnflaeche))}
           />
-          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">
             €/m²
           </span>
         </div>

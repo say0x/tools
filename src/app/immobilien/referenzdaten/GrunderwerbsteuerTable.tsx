@@ -41,6 +41,7 @@ export function GrunderwerbsteuerTable({ initialRows }: { initialRows: Row[] }) 
               <Input
                 type="number"
                 step="any"
+                aria-label={`${BUNDESLAND_LABELS[row.bundesland]} – Grunderwerbsteuersatz in Prozent`}
                 value={row.satzProzent}
                 onChange={(e) => {
                   const next = [...rows];

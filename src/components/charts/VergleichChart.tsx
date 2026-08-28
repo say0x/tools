@@ -18,7 +18,7 @@ export function VergleichChart({
 
   if (alleWerteNull) {
     return (
-      <div role="img" aria-label={ariaLabel} className="flex h-[240px] items-center justify-center text-sm text-slate-500">
+      <div role="img" aria-label={ariaLabel} className="flex h-[240px] items-center justify-center text-sm text-slate-400">
         Alle Werte liegen bei 0 (oder sind nicht verfügbar) — kein Unterschied sichtbar.
       </div>
     );

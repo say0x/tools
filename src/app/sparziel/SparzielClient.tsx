@@ -116,7 +116,7 @@ export function SparzielClient() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-400">
           Vereinfachung: Sparrate wird jährlich am Jahresanfang gutgeschrieben (keine unterjährige Verzinsung), Rendite konstant über
           den gesamten Zeitraum — reale Kapitalmarktrenditen schwanken.
         </p>
@@ -148,7 +148,7 @@ function Stat({
 }) {
   return (
     <Card>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div
         className={`mt-1 text-xl font-semibold ${
           accent === "positiv" ? "text-emerald-400" : accent === "negativ" ? "text-red-400" : "text-slate-100"
@@ -156,7 +156,7 @@ function Stat({
       >
         {value}
       </div>
-      {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
+      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
     </Card>
   );
 }

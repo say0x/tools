@@ -109,7 +109,7 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
           className="sm:max-w-xs"
         />
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500">Status:</span>
+          <span className="text-xs text-slate-400">Status:</span>
           <FilterButton active={activeBesitzstatus.size === 0} onClick={() => setActiveBesitzstatus(new Set())}>
             Alle
           </FilterButton>
@@ -124,7 +124,7 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500">Ampel:</span>
+          <span className="text-xs text-slate-400">Ampel:</span>
           <FilterButton active={activeAmpel.size === 0} onClick={() => setActiveAmpel(new Set())}>
             Alle
           </FilterButton>
@@ -151,7 +151,7 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
           />
           Alle sichtbaren auswählen
         </label>
-        <p className="text-xs text-slate-500" aria-live="polite">
+        <p className="text-xs text-slate-400" aria-live="polite">
           {gefiltert.length} von {objekte.length} Objekten angezeigt · {selectedIds.size} ausgewählt
         </p>
       </div>
@@ -178,7 +178,7 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
                   <Link href={`/immobilien/objekte/${o.id}`} className="font-medium text-slate-100 hover:underline">
                     {o.name}
                   </Link>
-                  <div className="mt-1 text-sm text-slate-500">{formatEuro(o.kaufpreis)}</div>
+                  <div className="mt-1 text-sm text-slate-400">{formatEuro(o.kaufpreis)}</div>
                   <div className="mt-1.5">
                     <BesitzstatusBadge status={o.besitzstatus} />
                   </div>
@@ -225,7 +225,7 @@ export function ObjekteListClient({ objekte }: { objekte: ObjektListItem[] }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="font-medium text-slate-100">{value}</div>
     </div>
   );

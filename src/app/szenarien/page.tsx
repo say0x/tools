@@ -40,7 +40,7 @@ export default async function SzenarienPage() {
                 <Link href={`/szenarien/${s.id}`} className="font-medium text-slate-100 hover:underline">
                   {s.name}
                 </Link>
-                <div className="mt-1 text-sm text-slate-500">
+                <div className="mt-1 text-sm text-slate-400">
                   Ab {s.startjahr} · {s.aenderungen.length === 0 ? "keine Änderungen" : `${s.aenderungen.length} Änderung(en)`}
                   {s.aenderungen.length > 0 && (
                     <> — {[...new Set(s.aenderungen.map((a) => SZENARIO_AENDERUNG_TYP_LABELS[a.typ]))].join(", ")}</>

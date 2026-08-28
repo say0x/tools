@@ -46,10 +46,11 @@ export function NutzungsdauerTable({ initialRows }: { initialRows: Row[] }) {
                 type="number"
                 step="1"
                 className="w-20"
+                aria-label={`${GEWERK_LABELS[row.gewerk]} – Nutzungsdauer in Jahren`}
                 value={row.nutzungsdauerJahre}
                 onChange={(e) => update(row.id, Number(e.target.value) || 0)}
               />
-              <span className="text-xs text-slate-500">Jahre</span>
+              <span className="text-xs text-slate-400">Jahre</span>
             </div>
           </div>
         ))}

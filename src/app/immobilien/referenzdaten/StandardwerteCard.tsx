@@ -71,7 +71,7 @@ export function StandardwerteCard({ initialWerte }: { initialWerte: Standardwert
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-400">
         Füllt diese Felder bei jedem neuen Objekt vor, damit du verschiedene Objekte mit denselben Annahmen effizient
         vergleichen kannst — bleibt pro Objekt frei überschreibbar. Leer lassen = kein Standard, dann gilt der
         eingebaute Fallback-Wert.

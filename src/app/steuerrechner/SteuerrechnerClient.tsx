@@ -104,7 +104,7 @@ export function SteuerrechnerClient() {
             </div>
           </Field>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-slate-400">
           zvE-Schätzung: Pauschbeträge für Werbungskosten/Sonderausgaben, ~20% pauschale Vorsorgeaufwendungen — für Genauigkeit
           das echte zvE aus dem Steuerbescheid eintragen (Häkchen &quot;manuell&quot;).
         </p>
@@ -157,7 +157,7 @@ export function SteuerrechnerClient() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-slate-500">Der orangene Punkt markiert dein eingegebenes zvE.</p>
+        <p className="mt-2 text-xs text-slate-400">Der orangene Punkt markiert dein eingegebenes zvE.</p>
       </Card>
     </div>
   );
@@ -166,9 +166,9 @@ export function SteuerrechnerClient() {
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <Card>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="mt-1 text-xl font-semibold text-slate-100">{value}</div>
-      {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
+      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
     </Card>
   );
 }

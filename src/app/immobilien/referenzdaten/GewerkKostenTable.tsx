@@ -48,18 +48,20 @@ export function GewerkKostenTable({ initialRows }: { initialRows: Row[] }) {
                 type="number"
                 step="any"
                 className="w-20"
+                aria-label={`${GEWERK_LABELS[row.gewerk]} – Kosten pro m² Minimum in Euro`}
                 value={row.kostenProM2Min}
                 onChange={(e) => update(row.id, { kostenProM2Min: Number(e.target.value) || 0 })}
               />
-              <span className="text-slate-600">–</span>
+              <span className="text-slate-600" aria-hidden="true">–</span>
               <Input
                 type="number"
                 step="any"
                 className="w-20"
+                aria-label={`${GEWERK_LABELS[row.gewerk]} – Kosten pro m² Maximum in Euro`}
                 value={row.kostenProM2Max}
                 onChange={(e) => update(row.id, { kostenProM2Max: Number(e.target.value) || 0 })}
               />
-              <span className="text-xs text-slate-500">€/m²</span>
+              <span className="text-xs text-slate-400">€/m²</span>
             </div>
           </div>
         ))}

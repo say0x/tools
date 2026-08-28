@@ -40,7 +40,7 @@ export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-sm">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-slate-400">
               <th className="pb-2 pr-4 font-medium">Bundesland</th>
               {LAGETYPEN.map((l) => (
                 <th key={l} className="pb-2 pr-4 font-medium">
@@ -62,6 +62,7 @@ export function MietpreisTable({ initialRows }: { initialRows: Row[] }) {
                         type="number"
                         step="any"
                         className="w-24"
+                        aria-label={`${BUNDESLAND_LABELS[b]} – ${LAGETYP_LABELS[l]} – Mietpreis pro m² in Euro`}
                         value={row.mietpreisProM2}
                         onChange={(e) => update(row.id, Number(e.target.value) || 0)}
                       />

@@ -22,10 +22,13 @@ export function AmpelBadge({ status, label }: { status: "GRUEN" | "GELB" | "ROT"
 // waren dadurch nicht auf einen Blick zu unterscheiden.
 const besitzstatusClasses: Record<Besitzstatus, string> = {
   BESITZE_ICH: "bg-violet-500/15 text-violet-400 border-violet-500/30",
-  POTENZIELLE_ANSCHAFFUNG: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  // text-blue-400 lag mit 4.38:1 knapp unter dem WCAG-AA-Schwellwert 4.5:1 (axe-core,
+  // e2e/accessibility.spec.ts) — blue-300 statt der 400er-Stufe wie bei den übrigen Badges,
+  // weil Blau bei gleicher Tailwind-Stufe wahrnehmbar dunkler wirkt als Violet/Emerald/Amber/Rot.
+  POTENZIELLE_ANSCHAFFUNG: "bg-blue-500/15 text-blue-300 border-blue-500/30",
   SPEKULATION: "bg-slate-500/15 text-slate-400 border-slate-500/30",
-  VERKAUFT: "bg-slate-500/15 text-slate-500 border-slate-600/30",
-  ARCHIVIERT: "bg-slate-500/15 text-slate-500 border-slate-600/30",
+  VERKAUFT: "bg-slate-500/15 text-slate-400 border-slate-600/30",
+  ARCHIVIERT: "bg-slate-500/15 text-slate-400 border-slate-600/30",
 };
 
 export function BesitzstatusBadge({ status }: { status: Besitzstatus }) {

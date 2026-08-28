@@ -158,7 +158,7 @@ export function KreditvergleichClient() {
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-sm">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-slate-400">
               <th scope="col" className="pb-3 pr-4 font-medium">
                 Kennzahl
               </th>
@@ -243,7 +243,7 @@ export function KreditvergleichClient() {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-400">
           Sondertilgung reduziert die Restschuld hier zusätzlich zur regulären Tilgung, wirkt sich aber wie im
           Immobilien-Rechner nicht auf die laufende Rate aus (behandelt wie eine zusätzliche Kapitaleinlage).
         </p>

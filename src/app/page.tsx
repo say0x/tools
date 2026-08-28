@@ -238,9 +238,9 @@ export default async function Home() {
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href}>
             <Card className="transition-colors hover:border-slate-700">
-              <div className="text-xs text-slate-500">{stat.label}</div>
+              <div className="text-xs text-slate-400">{stat.label}</div>
               <div className="mt-1 text-xl font-semibold text-slate-100">{stat.value}</div>
-              <div className="mt-1 text-xs text-slate-500">{stat.hint}</div>
+              <div className="mt-1 text-xs text-slate-400">{stat.hint}</div>
             </Card>
           </Link>
         ))}
@@ -268,7 +268,7 @@ export default async function Home() {
           ) : (
             <>
               <VermoegensverteilungChart immobilienEigenkapital={immobilienEigenkapitalReferenz} bargeldUndDepots={sparvermoegen} />
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-400">
                 Immobilien-Eigenkapitalanteil ist eine reine Referenzgröße (Marktwert abzüglich Restschuld) — anders als in der
                 Finanzübersicht zählt er hier zur Verteilung, weil es um die Frage geht, wo dein Vermögen aktuell steckt, nicht um
                 verfügbares Geld.
@@ -314,12 +314,12 @@ export default async function Home() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {fakten.map((fakt) => (
           <Card key={fakt.label} className={fakt.warnung ? "border-amber-900/50 bg-amber-950/10" : undefined}>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
               {fakt.label}
               {fakt.hilfe && <InfoTooltip text={fakt.hilfe} />}
             </div>
             <div className={`mt-1 text-lg font-semibold ${fakt.warnung ? "text-amber-400" : "text-slate-100"}`}>{fakt.value}</div>
-            <div className="mt-1 text-xs text-slate-500">{fakt.hint}</div>
+            <div className="mt-1 text-xs text-slate-400">{fakt.hint}</div>
           </Card>
         ))}
       </div>

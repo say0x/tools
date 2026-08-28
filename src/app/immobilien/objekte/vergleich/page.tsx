@@ -68,7 +68,7 @@ export default async function VergleichPage({ searchParams }: PageProps<"/immobi
           <Card className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="text-left text-slate-500">
+                <tr className="text-left text-slate-400">
                   <th className="sticky left-0 z-10 bg-slate-900 pb-3 pr-4 font-medium">Kennzahl</th>
                   {objekte.map((o) => (
                     <th key={o.id} className="pb-3 pr-4 font-medium text-slate-200">

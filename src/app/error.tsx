@@ -19,7 +19,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           Diese Seite konnte nicht geladen werden. Das kann an einer vorübergehenden Störung liegen — ein erneuter
           Versuch hilft oft schon.
         </p>
-        {error.digest && <p className="mt-2 text-xs text-slate-500">Fehler-ID: {error.digest}</p>}
+        {error.digest && <p className="mt-2 text-xs text-slate-400">Fehler-ID: {error.digest}</p>}
         <Button className="mt-4" onClick={reset}>
           Erneut versuchen
         </Button>

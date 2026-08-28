@@ -82,7 +82,7 @@ export default async function ReferenzdatenPage() {
 
       <Card>
         <CardTitle>Übliche Nutzungsdauer je Gewerk (Jahre)</CardTitle>
-        <p className="mb-4 text-xs text-slate-500">
+        <p className="mb-4 text-xs text-slate-400">
           Ist ein Gewerk laut Baujahr älter als hier hinterlegt, wird das unabhängig vom optischen Zustand als
           Verhandlungsargument ausgewiesen.
         </p>
