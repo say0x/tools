@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generierte Reports, nicht Teil des Quellcodes.
+    "coverage/**",
+    "playwright-report/**",
   ]),
   // Erzwingt mechanisch, was docs/tools/immobilien-rechner.md als Prinzip dokumentiert:
   // src/server/calc/ ist framework-frei (kein React, kein Next.js, kein Prisma) und
