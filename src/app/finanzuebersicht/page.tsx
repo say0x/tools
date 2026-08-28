@@ -30,9 +30,9 @@ export default async function FinanzuebersichtPage() {
     <FinanzuebersichtClient
       immobilien={immobilien}
       sparpositionenInitial={sparpositionen}
-      bruttoEinkommenMonatlichInitial={profilRow?.bruttoEinkommenMonatlich ?? 0}
-      gehaltssteigerungProzentJaehrlichInitial={profilRow?.gehaltssteigerungProzentJaehrlich ?? 2}
-      inflationProzentJaehrlichInitial={profilRow?.inflationProzentJaehrlich ?? 2}
+      bruttoEinkommenMonatlichInitial={profilRow?.bruttoEinkommenMonatlich.toNumber() ?? 0}
+      gehaltssteigerungProzentJaehrlichInitial={profilRow?.gehaltssteigerungProzentJaehrlich.toNumber() ?? 2}
+      inflationProzentJaehrlichInitial={profilRow?.inflationProzentJaehrlich.toNumber() ?? 2}
       maxHorizontJahre={VERMOEGENSVERLAUF_MAX_JAHRE}
       startjahr={heute.getFullYear()}
     />

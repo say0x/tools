@@ -15,30 +15,30 @@ export default async function ProfilPage() {
   const profil = await ladeProfil();
 
   const initialValues = {
-    nettoEinkommenMonatlich: profil?.nettoEinkommenMonatlich ?? PROFIL_DEFAULT_WERTE.nettoEinkommenMonatlich,
-    bruttoEinkommenMonatlich: profil?.bruttoEinkommenMonatlich ?? PROFIL_DEFAULT_WERTE.bruttoEinkommenMonatlich,
+    nettoEinkommenMonatlich: profil?.nettoEinkommenMonatlich.toNumber() ?? PROFIL_DEFAULT_WERTE.nettoEinkommenMonatlich,
+    bruttoEinkommenMonatlich: profil?.bruttoEinkommenMonatlich.toNumber() ?? PROFIL_DEFAULT_WERTE.bruttoEinkommenMonatlich,
     zuVersteuerndesEinkommenJaehrlich:
-      profil?.zuVersteuerndesEinkommenJaehrlich ?? PROFIL_DEFAULT_WERTE.zuVersteuerndesEinkommenJaehrlich,
+      profil?.zuVersteuerndesEinkommenJaehrlich.toNumber() ?? PROFIL_DEFAULT_WERTE.zuVersteuerndesEinkommenJaehrlich,
     zvEOverride: profil?.zvEOverride ?? PROFIL_DEFAULT_WERTE.zvEOverride,
-    fixkostenMonatlich: profil?.fixkostenMonatlich ?? PROFIL_DEFAULT_WERTE.fixkostenMonatlich,
-    vorhandenesEigenkapital: profil?.vorhandenesEigenkapital ?? PROFIL_DEFAULT_WERTE.vorhandenesEigenkapital,
+    fixkostenMonatlich: profil?.fixkostenMonatlich.toNumber() ?? PROFIL_DEFAULT_WERTE.fixkostenMonatlich,
+    vorhandenesEigenkapital: profil?.vorhandenesEigenkapital.toNumber() ?? PROFIL_DEFAULT_WERTE.vorhandenesEigenkapital,
     maxSchuldendienstquoteProzent:
-      profil?.maxSchuldendienstquoteProzent ?? PROFIL_DEFAULT_WERTE.maxSchuldendienstquoteProzent,
+      profil?.maxSchuldendienstquoteProzent.toNumber() ?? PROFIL_DEFAULT_WERTE.maxSchuldendienstquoteProzent,
     mindestLiquiditaetsreserveEuro:
-      profil?.mindestLiquiditaetsreserveEuro ?? PROFIL_DEFAULT_WERTE.mindestLiquiditaetsreserveEuro,
-    mietanrechnungProzent: profil?.mietanrechnungProzent ?? PROFIL_DEFAULT_WERTE.mietanrechnungProzent,
+      profil?.mindestLiquiditaetsreserveEuro.toNumber() ?? PROFIL_DEFAULT_WERTE.mindestLiquiditaetsreserveEuro,
+    mietanrechnungProzent: profil?.mietanrechnungProzent.toNumber() ?? PROFIL_DEFAULT_WERTE.mietanrechnungProzent,
     mindestEigenkapitalrenditeProzent:
-      profil?.mindestEigenkapitalrenditeProzent ?? PROFIL_DEFAULT_WERTE.mindestEigenkapitalrenditeProzent,
-    eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro ?? PROFIL_DEFAULT_WERTE.eigenkapitalPruefungAbEuro,
+      profil?.mindestEigenkapitalrenditeProzent.toNumber() ?? PROFIL_DEFAULT_WERTE.mindestEigenkapitalrenditeProzent,
+    eigenkapitalPruefungAbEuro: profil?.eigenkapitalPruefungAbEuro.toNumber() ?? PROFIL_DEFAULT_WERTE.eigenkapitalPruefungAbEuro,
     cashflowStartverlustMaxProzentKaltmiete:
-      profil?.cashflowStartverlustMaxProzentKaltmiete ?? PROFIL_DEFAULT_WERTE.cashflowStartverlustMaxProzentKaltmiete,
+      profil?.cashflowStartverlustMaxProzentKaltmiete.toNumber() ?? PROFIL_DEFAULT_WERTE.cashflowStartverlustMaxProzentKaltmiete,
     cashflowUmschlagjahr: profil?.cashflowUmschlagjahr ?? PROFIL_DEFAULT_WERTE.cashflowUmschlagjahr,
     liabilities:
       profil?.liabilities.map((l) => ({
         id: l.id,
         bezeichnung: l.bezeichnung,
-        monatlicheRate: l.monatlicheRate,
-        restschuld: l.restschuld,
+        monatlicheRate: l.monatlicheRate.toNumber(),
+        restschuld: l.restschuld.toNumber(),
       })) ?? [],
   };
 

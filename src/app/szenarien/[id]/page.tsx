@@ -39,10 +39,10 @@ export default async function SzenarioPage({ params }: { params: Promise<{ id: s
   const aenderungenInitial: SzenarioAenderungFormValues[] = szenario.aenderungen.map((a) => ({
     typ: a.typ,
     assetId: a.assetId,
-    neueSparrateMonatlich: a.neueSparrateMonatlich,
+    neueSparrateMonatlich: a.neueSparrateMonatlich?.toNumber() ?? null,
     jahrAbHeute: a.jahrAbHeute == null ? null : aktuellesJahr + a.jahrAbHeute,
     bezeichnung: a.bezeichnung,
-    betrag: a.betrag,
+    betrag: a.betrag?.toNumber() ?? null,
   }));
 
   const updateAction = aktualisiereSzenario.bind(null, id);
