@@ -20,6 +20,8 @@ docker compose up -d postgres
 
 ```bash
 npm run test        # Vitest, insb. der Referenzobjekt-Test in src/server/calc/__tests__/engine.test.ts
+npx playwright install   # einmalig, für die E2E-Suite
+npm run test:e2e    # Playwright, gegen eine laufende Instanz (npm run dev + Postgres)
 ```
 
 Testphilosophie und Abdeckung: [`docs/qa/overview.md`](../qa/overview.md).

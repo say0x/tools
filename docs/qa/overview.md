@@ -10,7 +10,7 @@ Priorität nach Risiko, nicht nach Vollständigkeit um ihrer selbst willen: Rech
 - **Datenverarbeitung**: `src/server/data/mappers.test.ts` (Property-Formular → Prisma-Form-Splitting) und `src/server/data/import-dedup.test.ts` (Dedup-Entscheidung des Import-Skripts) — ergänzt im Audit 2026-08-22, vorher ungetestet trotz geteilter Nutzung zwischen UI-Actions und Bulk-Import.
 - **Server Actions**: bewusst nicht flächendeckend getestet — meist dünne Prisma-Orchestrierung über bereits getestete Rechenkern-Funktionen. `property-schema.test.ts` deckt die Zod-Validierung ab.
 - **CI**: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) führt Lint, Tests und Produktions-Build bei jedem Push nach `main` und jedem Pull Request aus.
-- **E2E (Playwright)**: [`e2e/`](../../e2e/) — lokale, opt-in Suite gegen eine echte laufende Instanz (kein Teil der GitHub-Actions-CI, die ohne Postgres/laufenden Server läuft). Deckt Erreichbarkeit + Konsolenfehler-Freiheit jeder Hauptroute (`smoke.spec.ts`), automatisierte a11y-Scans je Hauptroute via axe-core (`accessibility.spec.ts`, WCAG 2 A/AA), Tastatur-/ARIA-Verhalten der Hauptnavigation (`nav.spec.ts`) und eine echte Formular-Interaktion (`steuerrechner.spec.ts`). Voraussetzung: `npm run dev` + lokale Postgres-Instanz laufen auf `http://localhost:3000` (überschreibbar via `E2E_BASE_URL`). Ausführen: `npm run test:e2e`. In Sandboxes ohne `npx playwright install`-Zugriff: `PLAYWRIGHT_CHROMIUM_PATH=<pfad-zu-chromium> npm run test:e2e`.
+- **E2E (Playwright)**: [`e2e/`](../../e2e/) — lokale, opt-in Suite gegen eine echte laufende Instanz (kein Teil der GitHub-Actions-CI, die ohne Postgres/laufenden Server läuft). Deckt Erreichbarkeit + Konsolenfehler-Freiheit jeder Hauptroute (`smoke.spec.ts`), automatisierte a11y-Scans je Hauptroute via axe-core (`accessibility.spec.ts`, WCAG 2 A/AA), Tastatur-/ARIA-Verhalten der Hauptnavigation (`nav.spec.ts`) und eine echte Formular-Interaktion (`steuerrechner.spec.ts`). Läuft gegen alle drei Playwright-Engines (Chromium/Firefox/WebKit, `playwright.config.ts`). Voraussetzung: `npm run dev` + lokale Postgres-Instanz laufen auf `http://localhost:3000` (überschreibbar via `E2E_BASE_URL`) sowie einmalig `npx playwright install`. Ausführen: `npm run test:e2e` (alle drei Engines) oder `npm run test:e2e -- --project=chromium` (eine Engine). In Sandboxes ohne `npx playwright install`-Zugriff: `PLAYWRIGHT_CHROMIUM_PATH=<pfad-zu-chromium> npm run test:e2e -- --project=chromium`.
 
 Ausführen: `npm run test` (siehe [`docs/development/setup.md`](../development/setup.md)).
 
@@ -32,9 +32,22 @@ Vollständiger a11y-Durchlauf über alle Haupttools: automatisierter axe-core-Sc
 
 axe-core deckt nur statisch/DOM-basiert Prüfbares ab (Kontrast, Labels, ARIA-Struktur) — ersetzt keine vollständige Screenreader-Prüfung (NVDA/VoiceOver), die für dieses VPN-only-Einzelnutzer-Tool bewusst nicht durchgeführt wurde.
 
-## Bekannte Lücke: kein Mehrbrowser-Test
+## Performance-Audit (2026-08-28)
 
-Alle bisherigen UI-Prüfungen liefen ausschließlich gegen Chromium — das ist die einzige Browser-Engine, die in der aktuellen Entwicklungsumgebung installiert ist (kein Firefox/WebKit verfügbar, kein Nachinstallieren vorgesehen). Für ein VPN-only-Einzelnutzer-Tool, dessen Nutzer sein eigenes Browser-Setup kennt, ein bewusst niedrig priorisierter Punkt — aber ehrlich als Lücke vermerkt statt stillschweigend als "geprüft" behauptet. Bei Bedarf: lokal mit installiertem Firefox/WebKit nachholen, dann hier den Stand aktualisieren.
+Reale Netzwerk-Transfergrößen je Hauptroute gemessen (Chrome DevTools Protocol, Produktions-Build via `npm run start`, gzip-komprimiert) statt nur den Build-Output zu lesen — Turbopack druckt in Next.js 16 keine Route-Größen-Tabelle mehr wie frühere webpack-Builds.
+
+- **JS-Transfer je Route**: 146–355 KB (gzip). Am schwersten `/finanzuebersicht` (Formular- + Chart-Code auf einer Seite), am leichtesten reine Listen-/Referenzdaten-Seiten ohne Formular oder Chart.
+- **Code-Splitting greift wie beabsichtigt**: Recharts (~107 KB) lädt nur auf Routen mit tatsächlichem Chart (`dynamic(..., { ssr: false })`, aus einer früheren Session), react-hook-form+zod (~76 KB) nur auf Routen mit Formular — beides bestätigt eigenständige, bedarfsgerechte Chunks statt eines aufgeblähten gemeinsamen Bundles.
+- **Kompression & Caching**: `Content-Encoding: gzip` und `Cache-Control: public, max-age=31536000, immutable` auf allen gehashten `_next/static`-Assets — Standard-Next.js-Verhalten, korrekt aktiv.
+- **Ladezeiten**: unter 1,1 s bis „networkidle" auf jeder Route (lokal, ohne CDN).
+
+Kein konkreter Fix nötig — die bereits in einer früheren Session umgesetzte dynamische Chart-Auslagerung reicht aus, um die Bundle-Größen in einem gesunden Bereich zu halten. Für ein internes VPN-only-Einzelnutzer-Tool ohne Mobilfunk-/3G-Nutzer ohnehin kein kritischer Optimierungsdruck.
+
+## Mehrbrowser-Test (2026-08-28)
+
+`playwright.config.ts` definiert die `e2e/`-Suite jetzt für alle drei Engines (Chromium, Firefox, WebKit) statt nur Chromium — `npm run test:e2e` deckt damit reale Rendering-/Verhaltensunterschiede ab, nicht nur einen einzelnen Browser.
+
+**Bekannte Einschränkung dieser Session**: die Entwicklungs-Sandbox, in der dieser Umbau geprüft wurde, blockiert per Netzwerk-Policy den Download der Firefox-/WebKit-Browserbinaries (`npx playwright install firefox webkit` schlägt mit 403 auf `cdn.playwright.dev` fehl) — nur Chromium ist dort vorinstalliert. Die 25 Chromium-Tests liefen deshalb wie gehabt vollständig grün; Firefox/WebKit sind konfiguriert und einsatzbereit, aber in dieser Sandbox nicht selbst ausführbar. Auf einer Maschine mit vollem Internetzugriff (lokal beim Nutzer oder ein CI-Runner) reicht ein einmaliges `npx playwright install`, danach laufen alle drei Engines über `npm run test:e2e`.
 
 ## QS-Historie
 

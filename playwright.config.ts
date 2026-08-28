@@ -12,17 +12,29 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
-    // Optional: für Umgebungen mit vorinstalliertem, nicht-standardmäßig
-    // abgelegtem Chromium (z. B. Sandboxes ohne Internetzugriff für
-    // `playwright install`) statt des von Playwright verwalteten Browsers.
-    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
-      ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } }
-      : {}),
   },
+  // Alle drei Engines, damit reale Browser-Unterschiede (nicht nur Chromium) auffallen —
+  // in Umgebungen mit vollem Internetzugriff vorher `npx playwright install` ausführen.
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Optional: für Umgebungen mit vorinstalliertem, nicht-standardmäßig
+        // abgelegtem Chromium (z. B. Sandboxes ohne Internetzugriff für
+        // `playwright install`) statt des von Playwright verwalteten Browsers.
+        ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
+          ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } }
+          : {}),
+      },
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
     },
   ],
 });
