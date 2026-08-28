@@ -107,5 +107,5 @@ export const FIELD_HILFE = {
 
   // Dashboard
   gesamtvermoegenReferenz:
-    "Immobilien-Eigenkapitalanteil (Marktwert abzüglich Restschuld deiner Objekt-Finanzierungen) plus dein Bargeld & Depots. Eine reine Referenzgröße, kein Nettovermögen: bestehende Kredite, die du unter Profil → „Bestehende Kredite“ eingetragen hast, werden hier nicht abgezogen.",
+    "Immobilien-Eigenkapitalanteil (Marktwert abzüglich Restschuld deiner Objekt-Finanzierungen) plus dein Bargeld & Depots. Diese Zahl ist eine Referenzgröße, kein Nettovermögen für sich genommen. Hast du unter Profil → „Bestehende Kredite“ Kredite mit Restschuld eingetragen, zeigt eine zweite Zeile darunter das Netto-Vermögen (diese Referenzgröße abzüglich der Summe aller Restschulden).",
 } as const;
