@@ -19,14 +19,13 @@ Quelle der Wahrheit ist immer [`prisma/schema.prisma`](../../prisma/schema.prism
 - `id`: `cuid()`, durchgängig.
 - `createdAt`/`updatedAt`: durchgängig, `updatedAt` per `@updatedAt`.
 - `onDelete: Cascade` auf jeder Fremdschlüssel-Relation — ein gelöschtes `Asset` räumt seine gesamte Detailstruktur (Property + Financing + Gewerke + Exit, oder Wertpapierposition/Tagesgeldkonto) sowie jede referenzierende `SzenarioAenderung` mit auf. Keine verwaisten Zeilen strukturell möglich.
-- Geldbeträge: `Float` (Postgres `double precision`), nicht `Decimal`. Bewusste, im Sicherheits-/Datenbank-Audit (2026-08-22) geprüfte Vereinfachung: für ein Investitionsentscheidungs-Tool (kein Cent-genaues Ledger) ausreichend, der Rechenkern rundet durchgängig (`round1`/`round2`). Bei Bedarf für exaktere Buchhaltung: erste Stelle für eine Migration auf `Decimal`.
+- Geld-/Prozentfelder: `Decimal` (Geldbeträge `Decimal(14,2)`, Prozent-/Faktor-Felder `Decimal(7,4)`) — seit der Backend-Audit-Serie (2026-08-28), vorher bewusst `Float`. `wohnflaeche`/`gebaeudeWohnflaecheGesamt` (m², keine Geld-/Prozentgröße) bleiben `Float`. Die App-Schicht (Calc-Engine, Zod-Schemas, Formulare) arbeitet weiterhin mit `number` — die Konvertierung passiert explizit an der Datenzugriffsgrenze (`src/server/data/mappers.ts` u. a.), nicht über eine Prisma-Client-Extension: `$extends`-Result-Overrides hängen jeder Zeile node:util's `inspect.custom`-Symbol an, was React Server Components beim Übergeben an Client-Komponenten als "kein plain object" ablehnen.
 - Keine DB-seitigen `CHECK`-Constraints für Wertebereiche (z. B. `zustand` 1–6) — Validierung liegt vollständig in den Zod-Schemas der Server Actions. Für eine Single-Writer-App (nur diese Next.js-App schreibt je in die DB) ein bewusst akzeptierter Kompromiss, kein Versehen.
 
 ## Bekannte, kleine Lücken (aus dem Audit, nicht kritisch)
 
-- `SzenarioAenderung.assetId` (nullable Fremdschlüssel) hat keinen expliziten `@@index` — bei der aktuellen Datenmenge (Einzelnutzer) folgenlos.
 - Kein Audit-/History-Log über Änderungen hinweg — für ein Einzelnutzer-Tool nicht als nötig bewertet.
 
 ## Migrationen
 
-19 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zum Szenario-System. Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, …) statt generisch nummeriert.
+22 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zur Decimal-Umstellung der Geld-/Prozentfelder. Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, `money_fields_decimal`, …) statt generisch nummeriert.
