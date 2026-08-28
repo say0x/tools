@@ -2,6 +2,61 @@
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/). Nur fachlich relevante Änderungen — nicht jeder Commit. Vollständige Historie: `git log`.
 
+## [0.2.0] — 2026-08-23 bis 2026-08-28
+
+Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eigenen Changelog-Eintrag, und die folgenden 49 PRs (drei vollständige Audit-Serien: Tool-Audits je Rechner, Produkt-/UX-Audits je Rechner, Backend-/DB-Audit) blieben ebenfalls uneinsortiert. Dieser Eintrag holt das nach — chronologisch, nur PR-Titel, keine rückwirkend erfundene Detailtiefe (siehe Prinzip unten unter "Vor diesem Changelog").
+
+- Doku-Vollausbau: ADRs, Ökosystem-Doku, Versionierung, Changelog (#22)
+- Dokumentationslücken geschlossen (PropertyForm-UI, Profil-Tool, form-errors.ts) (#23)
+- Doppelte Engine-Berechnung auf dem Dashboard vermieden (#24)
+- Vitest-Config als natives ESM geladen statt CJS-Warnung zu ignorieren (#25)
+- Kennzahlen-Sidebar aus PropertyForm.tsx extrahiert (#26)
+- Fehlende loading.tsx für 4 dynamische Routen ergänzt (#27)
+- App-weite error.tsx / global-error.tsx ergänzt (#28)
+- Besitzstatus-Änderung in der Finanzübersicht bei Fehler zurückgerollt (#29)
+- EK-Rendite als "n/v" statt irreführender 0% ohne EK-Einsatz (#30)
+- aria-label + role="img" für alle 11 Chart-Komponenten ergänzt (#31)
+- Grünton der "Kredit abbezahlt"-Referenzlinie vereinheitlicht (#32)
+- Leere Vergleichs-Charts abgefangen, Jahres-Achsen entzerrt (#33)
+- Chart-Mark-Spezifikationen an etablierte Dataviz-Richtlinien angeglichen (#34)
+- Kategoriale Chart-Palette gegen CVD-Sicherheit validiert (#35)
+- Besitzstatus-Badge-Farbe von Ampel-Grün entkoppelt (#36)
+- Cashflow-Aufschlüsselung für ein wählbares Jahr (#37)
+- Redundante Cashflow-Charts entfernt (#38)
+- "Rechnet sich das?"-Badge korrigiert, EK-Rendite-Tooltip ergänzt (#39)
+- "Rechnet sich das?" auf Cashflow-Trend statt Jahr-1-Schnappschuss umgestellt (#40)
+- Miete/Einnahmen als eigene Balkenzeile im Cashflow-Vergleich (#41)
+- Finanzübersicht: Sparpositionen beim Speichern upserten statt löschen+neu anlegen (#42)
+- Szenarien: Sparraten-Änderung greift jetzt auch im Default-Startjahr (#43)
+- Steuerrechner: Tarifjahr-Anzeige an tatsächlich verwendeten Tarif gekoppelt (#44)
+- Kreditvergleich: Volltilgungs-Prädikat vereinheitlicht, Doku-Fund korrigiert (#45)
+- Kaufen-oder-Anlegen: verkaufte/archivierte Objekte aus der Auswahl genommen (#46)
+- Profil: Kredite upserten statt löschen+neu anlegen, Backup vervollständigt (#47)
+- Dashboard: doppelte Ampel-/Besitzstatus-Konstanten auf die zentralen Quellen umgestellt (#48)
+- Dashboard: Kaltstart-CTA und Vertrauens-Hinweis für "Vermögen gesamt" (#49)
+- Immobilien-Rechner: direkter Link "Kaufen oder Anlegen?" von der Objekt-Detailseite (#50)
+- Finanzübersicht: Fehlerliste, Ungespeichert-Hinweis und Szenarien-Link angeglichen (#51)
+- Szenarien: Fehlerliste, Ungespeichert-Hinweis, Finanzübersicht-Link und Ladezustand angeglichen (#52)
+- Sparziel-Rechner: Chart-Accessibility, Ergebnis-Akzentfarbe und Finanzübersicht-Link ergänzt (#53)
+- Steuerrechner: Chart-Accessibility, Feld-Hilfetexte und Profil-Link ergänzt (#54)
+- Kreditvergleich: Chart-/Tabellen-Accessibility und Link zu Immobilien-Objekten ergänzt (#55)
+- Kaufen-oder-Anlegen: Chart-Accessibility, Leerzustand-Link, Ladezustand und Nav-Label angeglichen (#56)
+- Profil: Ungespeichert-Hinweis und vollständigen Ladezustand ergänzt (#57)
+- Gesamtsystem: verbleibende Cross-Tool-Lücken aus der UX-Audit-Serie geschlossen (#58)
+- Schema: fehlende Indizes auf Foreign-Key-Spalten ergänzt (#59)
+- Backend: doppelte ReferenceKaufnebenkostenDefaults-Query per `cache()` dedupliziert (#60)
+- PropertyForm: Server-Action-Fehler beim Speichern abgefangen statt Formular crashen zu lassen (#61)
+- Referenzdaten-Admin: Server-Action-Fehler in allen 6 Bearbeiten-Widgets abgefangen (#62)
+- Switch: Accessible Name für alle 6 Nutzungsstellen sichergestellt (#63)
+- Tests: Unit-Tests für die drei ungetesteten Zod-Schemas ergänzt (#64)
+- Schema: Geld- und Prozentfelder von Float auf Decimal umgestellt (#65)
+- Docs: schema.md an Decimal-Umstellung und FK-Index-Fix angepasst (#66)
+- chore: Dependencies auf neueste kompatible Versionen aktualisiert (#67)
+- Accessibility: axe-verifizierte a11y-Fixes + E2E-Suite (Playwright + axe-core) (#68)
+- Performance-Audit, Multi-Browser-E2E und DB-Backup/Restore ergänzt (#69)
+- fix: Server Actions geben `ActionResult` zurück statt Fehler zu werfen (ADR-0008) (#70)
+- Security: HTTP-Security-Header (CSP, X-Frame-Options, u. a.) ergänzt (#71)
+
 ## [0.1.0] — 2026-08-23
 
 Erstes Release mit formaler Versionierung/Changelog. Bündelt die Ergebnisse eines vollständigen Repository-Audits (Security, Datenbank, Code-Qualität, UX) und einer Tool-Ökosystem-Analyse.

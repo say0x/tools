@@ -6,7 +6,7 @@ Priorität nach Risiko, nicht nach Vollständigkeit um ihrer selbst willen: Rech
 
 ## Automatisierte Tests
 
-- **Rechenkern**: 20 Testdateien (Vitest), inklusive `src/server/calc/__tests__/engine.test.ts` als Referenzobjekt-Test (konkrete Zahlen-Assertions auf jedes Ergebnisfeld von `berechneObjekt()`). Deckt Renditekennzahlen, Tilgungsplan, Steuer-Näherungen, Vermögensverlauf, Verhandlungsargumente, Annahmen-Warnungen, Exit-Szenario ab.
+- **Rechenkern**: 18 Testdateien (Vitest), inklusive `src/server/calc/__tests__/engine.test.ts` als Referenzobjekt-Test (konkrete Zahlen-Assertions auf jedes Ergebnisfeld von `berechneObjekt()`). Deckt Renditekennzahlen, Tilgungsplan, Steuer-Näherungen, Vermögensverlauf, Verhandlungsargumente, Annahmen-Warnungen, Exit-Szenario ab.
 - **Datenverarbeitung**: `src/server/data/mappers.test.ts` (Property-Formular → Prisma-Form-Splitting) und `src/server/data/import-dedup.test.ts` (Dedup-Entscheidung des Import-Skripts) — ergänzt im Audit 2026-08-22, vorher ungetestet trotz geteilter Nutzung zwischen UI-Actions und Bulk-Import.
 - **Server Actions**: bewusst nicht flächendeckend getestet — meist dünne Prisma-Orchestrierung über bereits getestete Rechenkern-Funktionen. `property-schema.test.ts` deckt die Zod-Validierung ab.
 - **CI**: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) führt Lint, Tests und Produktions-Build bei jedem Push nach `main` und jedem Pull Request aus.
@@ -48,6 +48,21 @@ Kein konkreter Fix nötig — die bereits in einer früheren Session umgesetzte 
 `playwright.config.ts` definiert die `e2e/`-Suite jetzt für alle drei Engines (Chromium, Firefox, WebKit) statt nur Chromium — `npm run test:e2e` deckt damit reale Rendering-/Verhaltensunterschiede ab, nicht nur einen einzelnen Browser.
 
 **Bekannte Einschränkung dieser Session**: die Entwicklungs-Sandbox, in der dieser Umbau geprüft wurde, blockiert per Netzwerk-Policy den Download der Firefox-/WebKit-Browserbinaries (`npx playwright install firefox webkit` schlägt mit 403 auf `cdn.playwright.dev` fehl) — nur Chromium ist dort vorinstalliert. Die 25 Chromium-Tests liefen deshalb wie gehabt vollständig grün; Firefox/WebKit sind konfiguriert und einsatzbereit, aber in dieser Sandbox nicht selbst ausführbar. Auf einer Maschine mit vollem Internetzugriff (lokal beim Nutzer oder ein CI-Runner) reicht ein einmaliges `npx playwright install`, danach laufen alle drei Engines über `npm run test:e2e`.
+
+## Docs-Aktualitäts-Sweep (2026-08-28)
+
+Vollständiger Abgleich der `docs/`-Baumstruktur gegen den tatsächlichen aktuellen Code-Stand (nicht gegen den Stand zum jeweiligen Schreibzeitpunkt) — Migrationsanzahl, Testdateien-Anzahl, Zeilenzahlen, Markdown-Link-Ziele.
+
+**Gefunden und behoben:**
+- `docs/releases/CHANGELOG.md`: größter Fund. Der Versionsbump auf `0.2.0-20260823` geschah bereits mit PR #22, aber ohne eigenen Changelog-Eintrag — die folgenden 49 gemergten PRs (drei vollständige Audit-Serien) blieben komplett uneinsortiert, obwohl `docs/`s eigenes Prinzip ("jeder gemergte PR ... dauerhaft einsehbar", siehe QS-Historie unten) genau das vorsieht. Neuer `## [0.2.0]`-Abschnitt ergänzt (#22–#71, chronologisch, nur PR-Titel — kein rückwirkend erfundener Detailgrad, analog zum bestehenden Prinzip unter "Vor diesem Changelog"). PR-Nummer-zu-Inhalt-Zuordnung einzeln gegen `git log` verifiziert (nicht aus dem Gedächtnis übernommen).
+- `docs/database/schema.md`: "22 inkrementelle Migrationen" → tatsächlich 23 (`prisma/migrations/` gezählt).
+- `docs/architecture/decisions/0001-framework-freier-rechenkern.md` und `docs/qa/overview.md`: widersprüchliche Testdateien-Zahlen für den Rechenkern (16 bzw. 20) — tatsächlich 18 (`find src/server/calc -name "*.test.ts"` gezählt), beide korrigiert.
+- `docs/tools/immobilien-rechner.md`: `PropertyForm.tsx` mit "832 Zeilen" referenziert, tatsächlich inzwischen 745 Zeilen (weitere Extraktionen seit der letzten Doku-Aktualisierung) — korrigiert. Die historischen Zeilenzahlen im CHANGELOG-Eintrag zu PR #18 ("1072 auf 832 Zeilen") und die "Split 2026-08-23"-Notiz in dieser Datei blieben unverändert, da sie den Stand zum damaligen Zeitpunkt korrekt beschreiben, keine Live-Aussage über den heutigen Stand sind.
+- `eslint.config.mjs`: vier Referenzen auf `docs/immobilien-rechner.md` (Kommentar + drei Lint-Fehlermeldungen) — Datei liegt seit der Doku-Restrukturierung (#12) unter `docs/tools/immobilien-rechner.md`. Betraf reale, dem Nutzer angezeigte ESLint-Fehlermeldungen, nicht nur einen Kommentar.
+
+**Geprüft, keine weiteren Funde:** alle 112 Markdown-Links im Repo (`docs/`, `eslint.config.mjs`, `README.md`) programmatisch gegen das Dateisystem aufgelöst — sonst nichts gebrochen. `docs/architecture/overview.md`, `docs/security/overview.md`, `docs/development/setup.md`, `docs/deployment/docker.md`, `docs/tools/overview.md`, `docs/tools/weitere-rechner.md` gegen den aktuellen Tech-Stack/Datei-/Skript-Bestand abgeglichen — keine weiteren Abweichungen.
+
+Verifiziert nach jeder Änderung: `npx tsc --noEmit`, `npm run lint`, `npx vitest run` (207/207) — alle grün (reine Doku-/Konfig-Änderung, kein Anwendungscode betroffen).
 
 ## QS-Historie
 

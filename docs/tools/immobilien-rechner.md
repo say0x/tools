@@ -189,7 +189,7 @@ Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `Ve
 
 ## Objekt-Formular (UI)
 
-`src/components/forms/PropertyForm.tsx` (832 Zeilen, gemeinsam für Anlegen und Bearbeiten) — zweispaltiges Layout, rechte Spalte sticky:
+`src/components/forms/PropertyForm.tsx` (745 Zeilen, gemeinsam für Anlegen und Bearbeiten) — zweispaltiges Layout, rechte Spalte sticky:
 
 - **Linke Spalte**: eine Card je Themenblock, in dieser Reihenfolge — Objekt (Stammdaten, Status-Badge), Quelle & Notizen, Ansprechpartner/Makler, Kaufnebenkosten (inkl. "Automatisch berechnen"-Button, der alle vier Override-Flags zurücksetzt), Sanierung/Sofortinvestition (bei Modus `GRANULAR` die Gewerke-Liste, siehe unten), Finanzierung, Miete & Wertentwicklung, Laufende Kosten, Steuer, Exit-Szenario.
 - **Rechte Spalte** (nur wenn `wohnflaeche > 0`, sonst Platzhalter-Hinweis): Kennzahlen, "Rechnet sich das?" (Ampel + Begründung), Kapitaleffizienz, Annahmen-Warnungen (nur bei mindestens einem Fund), Verhandlungs-Argumente (nur bei mindestens einem Fund), Charts (`ObjektChartsPanel`, per `next/dynamic` nachgeladen — siehe [Geteilte UI-Bausteine](weitere-rechner.md#geteilte-ui-bausteine)).

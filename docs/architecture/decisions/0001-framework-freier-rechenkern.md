@@ -12,7 +12,7 @@ Praktisch jedes Feature in `tools` hängt an derselben Kette von Finanzberechnun
 
 ## Reason
 
-Reiner Code läuft identisch im Server-Kontext (Server Action) und im Browser (Client Component), ohne Adapter oder Duplikation. Er ist außerdem trivial isoliert testbar (kein Mocking von React oder der Datenbank nötig) — der Rechenkern hat dadurch die mit Abstand höchste Testabdeckung im Repo (16 Testdateien).
+Reiner Code läuft identisch im Server-Kontext (Server Action) und im Browser (Client Component), ohne Adapter oder Duplikation. Er ist außerdem trivial isoliert testbar (kein Mocking von React oder der Datenbank nötig) — der Rechenkern hat dadurch die mit Abstand höchste Testabdeckung im Repo (18 Testdateien).
 
 ## Consequences
 

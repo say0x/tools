@@ -13,7 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
-  // Erzwingt mechanisch, was docs/immobilien-rechner.md als Prinzip dokumentiert:
+  // Erzwingt mechanisch, was docs/tools/immobilien-rechner.md als Prinzip dokumentiert:
   // src/server/calc/ ist framework-frei (kein React, kein Next.js, kein Prisma) und
   // läuft dadurch identisch server- wie clientseitig (z. B. Sparziel-Rechner direkt
   // im Browser). Bisher nur Konvention — ohne diese Regel bricht ein zukünftiger
@@ -27,15 +27,15 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               group: ["react", "react/*", "react-dom", "react-dom/*"],
-              message: "src/server/calc/ ist framework-frei — keine React-Importe (siehe docs/immobilien-rechner.md).",
+              message: "src/server/calc/ ist framework-frei — keine React-Importe (siehe docs/tools/immobilien-rechner.md).",
             },
             {
               group: ["next", "next/*"],
-              message: "src/server/calc/ ist framework-frei — keine Next.js-Importe (siehe docs/immobilien-rechner.md).",
+              message: "src/server/calc/ ist framework-frei — keine Next.js-Importe (siehe docs/tools/immobilien-rechner.md).",
             },
             {
               group: ["@prisma/*", "@/generated/prisma/**", "@/server/db"],
-              message: "src/server/calc/ speichert/liest keine Daten selbst — keine Prisma-Importe (siehe docs/immobilien-rechner.md).",
+              message: "src/server/calc/ speichert/liest keine Daten selbst — keine Prisma-Importe (siehe docs/tools/immobilien-rechner.md).",
             },
           ],
         },
