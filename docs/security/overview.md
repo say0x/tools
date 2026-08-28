@@ -11,7 +11,7 @@ Einzelnutzer-Tool im eigenen Homelab, nur über VPN erreichbar (siehe [ADR-0006]
 - **SQL-Injection**: kein `$queryRaw`/`$executeRaw` im eigenen Code — alle Zugriffe laufen über Prismas parametrisierten Query-Builder.
 - **Logging**: keine sensiblen Daten (Einkommen, Vermögenswerte) in `console.*`-Aufrufen gefunden.
 - **Netzwerk**: `docker-compose.yml` mappt den Postgres-Port bewusst nicht auf den Host (behoben im Audit — vorher unnötig exponiert mit trivialen Zugangsdaten). Der App-Container erreicht Postgres ausschließlich über das Docker-Netz.
-- **Security-Header/CSP**: keine gesetzt (`next.config.ts`). Für das VPN-only-Modell akzeptiert, aber ohne Defense-in-Depth, falls der Perimeter je schwächer wäre als angenommen — bei einer Änderung des Bedrohungsmodells (siehe ADR-0006) nachzuholen.
+- **Security-Header/CSP**: seit 2026-08-28 gesetzt (`next.config.ts`) — Content-Security-Policy, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, restriktives `Permissions-Policy`. Details und Begründung (statische statt Nonce-basierte CSP): [`docs/deployment/docker.md`](../deployment/docker.md#http-security-header).
 
 ## Bekannte, beobachtete Dependency-Advisory
 
