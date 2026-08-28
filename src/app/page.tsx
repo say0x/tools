@@ -141,6 +141,12 @@ export default async function Home() {
     .reduce((summe, p) => summe + p.eigenkapitalanteilHeuteReferenz, 0);
   const gesamtvermoegenReferenz = immobilienEigenkapitalReferenz + sparvermoegen;
 
+  // Bestehende Kredite (Profil → "Bestehende Kredite") fließen bewusst in keine andere
+  // Kennzahl ein (siehe docs/tools/weitere-rechner.md) — hier als einzige Stelle von der
+  // Referenzgröße abgezogen, um zusätzlich zum Brutto-Bild auch ein Netto-Vermögen zu zeigen.
+  const gesamtSchuldenRestschuld = profile.liabilities.reduce((summe, l) => summe + l.restschuld, 0);
+  const gesamtvermoegenNetto = gesamtvermoegenReferenz - gesamtSchuldenRestschuld;
+
   const stats = [
     {
       label: "Immobilien im Besitz",
@@ -181,22 +187,28 @@ export default async function Home() {
             : "kein Tagesgeld erfasst"
           : "Tagesgeld ÷ Fixkosten/Monat aus dem Profil",
       warnung: notgroschenMonate !== null && notgroschenMonate < 3,
+      netto: null as number | null,
     },
     {
       label: "Ø Bruttorendite",
       value: durchschnittlicheBruttorendite === null ? "—" : `${formatNumber(durchschnittlicheBruttorendite, 1)}%`,
       hint: "über alle Objekte im Besitz",
+      netto: null as number | null,
     },
     {
       label: "Größte Sparposition",
       value: groessteSparposition ? formatEuro(groessteSparposition.betrag.toNumber()) : "—",
       hint: groessteSparposition?.asset.name ?? "noch keine Position erfasst",
+      netto: null as number | null,
     },
     {
       label: "Vermögen gesamt (Referenz)",
       value: formatEuro(gesamtvermoegenReferenz),
       hint: "Immobilien-EK-Anteil + Bargeld & Depots",
       hilfe: FIELD_HILFE.gesamtvermoegenReferenz,
+      // Nur zeigen, wenn es einen Unterschied macht — bei keinen erfassten Krediten
+      // wäre eine zweite, identische Zahl nur Redundanz statt zusätzlicher Information.
+      netto: gesamtSchuldenRestschuld > 0 ? gesamtvermoegenNetto : null,
     },
   ];
 
@@ -320,6 +332,11 @@ export default async function Home() {
             </div>
             <div className={`mt-1 text-lg font-semibold ${fakt.warnung ? "text-amber-400" : "text-slate-100"}`}>{fakt.value}</div>
             <div className="mt-1 text-xs text-slate-400">{fakt.hint}</div>
+            {fakt.netto !== null && (
+              <div className="mt-1 text-xs text-slate-500">
+                Netto (abzgl. Restschulden): <span className="text-slate-300">{formatEuro(fakt.netto)}</span>
+              </div>
+            )}
           </Card>
         ))}
       </div>
