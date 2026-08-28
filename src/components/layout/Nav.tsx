@@ -63,7 +63,7 @@ export function Nav() {
           tools<span className="text-blue-500">.</span>
         </Link>
 
-        <nav className="hidden gap-1 sm:flex sm:items-center">
+        <nav aria-label="Hauptnavigation" className="hidden gap-1 sm:flex sm:items-center">
           {primaryLinks.map((link) => (
             <Link key={link.href} href={link.href} aria-current={isActive(link.href) ? "page" : undefined} className={linkClass(isActive(link.href))}>
               {link.label}
@@ -130,7 +130,7 @@ export function Nav() {
       </div>
 
       {mobileOpen && (
-        <nav className="flex flex-col gap-1 border-t border-slate-800 px-6 py-3 sm:hidden">
+        <nav aria-label="Hauptnavigation (mobil)" className="flex flex-col gap-1 border-t border-slate-800 px-6 py-3 sm:hidden">
           {allLinks.map((link, i) => (
             <Link
               key={link.href}

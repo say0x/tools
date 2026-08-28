@@ -130,11 +130,11 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
 
         <div className="mt-4 flex flex-wrap gap-6 rounded-md bg-slate-950/60 p-4">
           <div>
-            <div className="text-xs text-slate-500">Grenzsteuersatz (live)</div>
+            <div className="text-xs text-slate-400">Grenzsteuersatz (live)</div>
             <div className="text-lg font-semibold text-slate-100">{formatNumber(grenzsteuersatz)} %</div>
           </div>
           <div>
-            <div className="text-xs text-slate-500">Verfügbares Budget (€/Monat)</div>
+            <div className="text-xs text-slate-400">Verfügbares Budget (€/Monat)</div>
             <div className="text-lg font-semibold text-slate-100">{formatEuro(verfuegbaresBudget)}</div>
           </div>
         </div>
@@ -258,7 +258,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
           </Button>
         </div>
 
-        {fields.length === 0 && <p className="text-sm text-slate-500">Keine bestehenden Kredite erfasst.</p>}
+        {fields.length === 0 && <p className="text-sm text-slate-400">Keine bestehenden Kredite erfasst.</p>}
 
         <div className="flex flex-col gap-3">
           {fields.map((field, index) => (

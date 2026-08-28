@@ -44,7 +44,7 @@ export function PropertyKennzahlenSidebar({
   if (!result) {
     return (
       <Card>
-        <p className="text-sm text-slate-500">Wohnfläche &gt; 0 eingeben, um Kennzahlen live zu sehen.</p>
+        <p className="text-sm text-slate-400">Wohnfläche &gt; 0 eingeben, um Kennzahlen live zu sehen.</p>
       </Card>
     );
   }
@@ -79,7 +79,7 @@ export function PropertyKennzahlenSidebar({
           {result.dealBreaker.meldung}
         </p>
         {result.affordability.begruendung.map((b, i) => (
-          <p key={i} className="mt-2 text-xs text-slate-500">
+          <p key={i} className="mt-2 text-xs text-slate-400">
             {b}
           </p>
         ))}
@@ -91,7 +91,7 @@ export function PropertyKennzahlenSidebar({
           <AmpelBadge status={result.kapitaleffizienz.ampel} />
         </div>
         {result.kapitaleffizienz.begruendung.map((b, i) => (
-          <p key={i} className="text-xs text-slate-500">
+          <p key={i} className="text-xs text-slate-400">
             {b}
           </p>
         ))}
@@ -100,7 +100,7 @@ export function PropertyKennzahlenSidebar({
       {result.annahmenWarnungen.length > 0 && (
         <Card className="border-amber-900/50 bg-amber-950/10">
           <CardTitle>Diese Annahmen schönen das Ergebnis</CardTitle>
-          <p className="mb-3 text-xs text-slate-500">
+          <p className="mb-3 text-xs text-slate-400">
             Technisch gültige, aber unrealistisch günstige Eingaben — kein Fehler, aber ein Grund, das Ergebnis mit
             Vorsicht zu lesen.
           </p>
@@ -121,7 +121,7 @@ export function PropertyKennzahlenSidebar({
       {result.verhandlungsargumente.length > 0 && (
         <Card>
           <CardTitle>Verhandlungs-Argumente</CardTitle>
-          <p className="mb-3 text-xs text-slate-500">
+          <p className="mb-3 text-xs text-slate-400">
             Automatisch aus deinen Angaben abgeleitet — Fakten für ein Gespräch mit Verkäufer oder Makler.
           </p>
           <div className="flex flex-col gap-3">

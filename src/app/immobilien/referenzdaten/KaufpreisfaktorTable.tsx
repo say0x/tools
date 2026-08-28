@@ -37,14 +37,14 @@ export function KaufpreisfaktorTable({ initialRows }: { initialRows: Row[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-400">
         Vergleichswert für die Verhandlungs-Argumente auf der Objektseite. Bruttomietrendite ergibt sich als Kehrwert
         (100 / Kaufpreisfaktor) und wird automatisch angezeigt.
       </p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-sm">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-slate-400">
               <th className="pb-2 pr-4 font-medium">Objekttyp</th>
               {LAGETYPEN.map((l) => (
                 <th key={l} className="pb-2 pr-4 font-medium">
@@ -67,10 +67,11 @@ export function KaufpreisfaktorTable({ initialRows }: { initialRows: Row[] }) {
                           type="number"
                           step="any"
                           className="w-20"
+                          aria-label={`${OBJEKTTYP_LABELS[o]} – ${LAGETYP_LABELS[l]} – Kaufpreisfaktor-Referenz`}
                           value={row.kaufpreisfaktorReferenz}
                           onChange={(e) => update(row.id, Number(e.target.value) || 0)}
                         />
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-slate-400">
                           {row.kaufpreisfaktorReferenz > 0 ? `≈ ${(100 / row.kaufpreisfaktorReferenz).toFixed(1)}%` : ""}
                         </span>
                       </div>

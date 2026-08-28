@@ -80,7 +80,7 @@ export function KaufenOderAnlegenClient({
             <Input type="number" step="any" value={renditeProzent} onChange={(e) => setRenditeProzent(Number(e.target.value) || 0)} />
           </Field>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-slate-400">
           Eigenkapital-Einsatz beim Kauf: {formatEuro(objekt.eigenkapitalEinsatzEuro)} — dieselbe Summe wird hier als
           Einmalanlage zum Vergleich angesetzt (kein zusätzlicher Sparplan).
         </p>
@@ -88,14 +88,14 @@ export function KaufenOderAnlegenClient({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card>
-          <div className="text-xs text-slate-500">Immobilie nach {horizontJahre} Jahren</div>
+          <div className="text-xs text-slate-400">Immobilie nach {horizontJahre} Jahren</div>
           <div className="mt-1 text-xl font-semibold text-slate-100">{formatEuro(letzterPunkt.immobilie)}</div>
-          <div className="mt-1 text-xs text-slate-500">Eigenkapitalanteil + aufgelaufener Cashflow nach Steuer</div>
+          <div className="mt-1 text-xs text-slate-400">Eigenkapitalanteil + aufgelaufener Cashflow nach Steuer</div>
         </Card>
         <Card>
-          <div className="text-xs text-slate-500">Alternativanlage nach {horizontJahre} Jahren</div>
+          <div className="text-xs text-slate-400">Alternativanlage nach {horizontJahre} Jahren</div>
           <div className="mt-1 text-xl font-semibold text-slate-100">{formatEuro(letzterPunkt.alternativanlage)}</div>
-          <div className="mt-1 text-xs text-slate-500">{formatEuro(objekt.eigenkapitalEinsatzEuro)} zu {renditeProzent}% p. a.</div>
+          <div className="mt-1 text-xs text-slate-400">{formatEuro(objekt.eigenkapitalEinsatzEuro)} zu {renditeProzent}% p. a.</div>
         </Card>
       </div>
 
@@ -142,7 +142,7 @@ export function KaufenOderAnlegenClient({
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-400">
           Vereinfachung: die Immobilien-Seite reinvestiert den laufenden Cashflow nicht weiter (er läuft nur als Barsumme
           mit), die Alternativanlage-Seite verzinst durchgehend mit der gewählten Rendite — beide Seiten ignorieren Steuern
           auf einen möglichen Verkaufserlös bzw. auf Kursgewinne.

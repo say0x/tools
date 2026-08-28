@@ -213,7 +213,7 @@ export function GewerkeSubform({
               <>
                 {" "}
                 · für später eingeplant: <span className="text-slate-200">{formatEuro(result.gewerke.summeSpaeterEuro)}</span>{" "}
-                <span className="text-slate-500">(nicht in der Sofortinvestition enthalten, über die Instandhaltungsrücklage vorgesehen)</span>
+                <span className="text-slate-400">(nicht in der Sofortinvestition enthalten, über die Instandhaltungsrücklage vorgesehen)</span>
               </>
             )}
           </p>

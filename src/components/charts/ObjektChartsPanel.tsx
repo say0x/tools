@@ -74,7 +74,7 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
           cashflowVorSteuerMonatlich={cashflowVorSteuerMonatlich}
           cashflowNachSteuerMonatlich={cashflowNachSteuerMonatlich}
         />
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-400">
           Effektive Kaltmiete Jahr {ausgewaehltesJahr}: {formatEuro(mieteMonatlich)}/Monat, aufgeteilt auf Zins, Tilgung,
           laufende Kosten und den verbleibenden Cashflow (Zeile &quot;Vor Steuer&quot;) bzw. zusätzlich die Steuerlast (Zeile
           &quot;Nach Steuer&quot; — wächst der Cashflow-Balken statt dessen, war es eine Steuererstattung). Miete und laufende
@@ -109,7 +109,7 @@ export function ObjektChartsPanel({ result }: { result: CalculationResult }) {
           </div>
         </div>
         <VermoegensChart data={sichtbareDaten} meilensteine={result.meilensteine} />
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-400">
           Betrachtungszeitraum: {betrachtungszeitraum} {betrachtungszeitraum === 1 ? "Jahr" : "Jahre"}
           {result.meilensteine.volltilgungJahr != null &&
             ` · Kredit abbezahlt in Jahr ${result.meilensteine.volltilgungJahr}`}

@@ -93,6 +93,7 @@ export function FinanzuebersichtClient({
   const [immobilienStatus, setImmobilienStatus] = useState<Record<string, Besitzstatus>>(() =>
     Object.fromEntries(immobilien.map((imm) => [imm.id, imm.besitzstatus]))
   );
+  const [offeneImmobilien, setOffeneImmobilien] = useState<Record<string, boolean>>({});
 
   const {
     register,
@@ -256,12 +257,12 @@ export function FinanzuebersichtClient({
               Objekte verwalten →
             </Link>
           </div>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-400">
             {ausgewaehlteAnzahl} von {immobilien.length} Objekt(en) mit Status „Besitze ich&quot;. Nur diese zählen mit
             ihrem Cashflow nach Steuer in die Finanzübersicht — der Immobilienwert selbst ist nur eine Referenz.
           </p>
           {immobilien.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Noch keine Immobilien erfasst. <Link href="/immobilien/objekte/neu" className="text-blue-400 hover:underline">Jetzt anlegen</Link>.
             </p>
           ) : (
@@ -269,83 +270,90 @@ export function FinanzuebersichtClient({
               {immobilien.map((imm) => {
                 const cashflowJaehrlich = aktuellerJahresCashflow(imm);
                 const status = immobilienStatus[imm.id] ?? imm.besitzstatus;
+                const offen = !!offeneImmobilien[imm.id];
                 return (
                   <div
                     key={imm.id}
-                    className={`flex items-start gap-3 rounded-md border px-4 py-3 ${
+                    className={`flex flex-col gap-2 rounded-md border px-4 py-3 ${
                       status === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN ? "border-slate-700 bg-slate-950/40" : "border-slate-800 opacity-80"
                     }`}
                   >
-                    <details className="group flex-1">
-                      <summary className="flex cursor-pointer list-none flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <Link
-                            href={`/immobilien/objekte/${imm.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="font-medium text-slate-100 hover:underline"
-                          >
-                            {imm.name}
-                          </Link>
-                          <div className="text-xs text-slate-500">
-                            {imm.jahreSeitKauf < 0
-                              ? `Kauf geplant in ${Math.abs(imm.jahreSeitKauf)} Jahr(en)`
-                              : imm.jahreSeitKauf === 0
-                                ? "Kauf in diesem Jahr"
-                                : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
-                          </div>
+                    {/* Bewusst kein <details>/<summary> mehr: der Objekt-Link stand vorher innerhalb von
+                        <summary>, was axe-core als "nested-interactive" meldet (ein interaktives Element
+                        — der Link — innerhalb eines anderen — summary — verwirrt Screenreader/Tastatur-Fokus).
+                        Link und Toggle-Button stehen jetzt als Geschwister nebeneinander. */}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <Link href={`/immobilien/objekte/${imm.id}`} className="font-medium text-slate-100 hover:underline">
+                          {imm.name}
+                        </Link>
+                        <div className="text-xs text-slate-400">
+                          {imm.jahreSeitKauf < 0
+                            ? `Kauf geplant in ${Math.abs(imm.jahreSeitKauf)} Jahr(en)`
+                            : imm.jahreSeitKauf === 0
+                              ? "Kauf in diesem Jahr"
+                              : `Seit ${imm.jahreSeitKauf} Jahr(en) im Portfolio`}
                         </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <BesitzstatusBadge status={status} />
-                          <div className="text-left sm:text-right">
-                            Cashflow n. Steuer:{" "}
-                            <span className="font-medium text-slate-100">
-                              {cashflowJaehrlich === null ? "—" : `${formatEuro(cashflowJaehrlich / 12)}/Monat`}
-                            </span>
-                          </div>
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                          </svg>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOffeneImmobilien((prev) => ({ ...prev, [imm.id]: !prev[imm.id] }))}
+                        aria-expanded={offen}
+                        className="flex items-center gap-3 text-sm"
+                      >
+                        <BesitzstatusBadge status={status} />
+                        <div className="text-left sm:text-right">
+                          Cashflow n. Steuer:{" "}
+                          <span className="font-medium text-slate-100">
+                            {cashflowJaehrlich === null ? "—" : `${formatEuro(cashflowJaehrlich / 12)}/Monat`}
+                          </span>
                         </div>
-                      </summary>
-                      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-slate-800 pt-3">
-                        <label className="flex items-center gap-2 text-sm text-slate-400" onClick={(e) => e.stopPropagation()}>
-                          Status ändern
-                          <Select
-                            value={status}
-                            onChange={(e) => aendereImmobilienStatus(imm, e.target.value as Besitzstatus)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-auto"
-                          >
-                            {BESITZSTAENDE.map((s) => (
-                              <option key={s} value={s}>
-                                {BESITZSTATUS_LABELS[s]}
-                              </option>
-                            ))}
-                          </Select>
-                          <InfoTooltip text={BESITZSTATUS_HILFE[status]} />
-                        </label>
-                      </div>
-                      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-sm sm:grid-cols-4">
-                        <DetailStat label="Kaufpreis" value={formatEuro(imm.kaufpreis)} />
-                        <DetailStat label="Marktwert heute (Referenz)" value={formatEuro(imm.immobilienwertHeuteReferenz)} />
-                        <DetailStat label="EK-Anteil heute (Referenz)" value={formatEuro(imm.eigenkapitalanteilHeuteReferenz)} />
-                        <DetailStat
-                          label="Cashflow n. Steuer/Jahr"
-                          value={cashflowJaehrlich === null ? "—" : formatEuro(cashflowJaehrlich)}
-                        />
-                      </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        Kaufpreis, Marktwert und EK-Anteil sind reine Referenzwerte — sie stecken im Objekt und zählen
-                        nicht in die Finanzübersicht-Summe. Nur der Cashflow nach Steuer fließt ein, und nur bei Status
-                        „Besitze ich&quot;.
-                      </p>
-                    </details>
+                        <svg
+                          viewBox="0 0 24 24"
+                          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${offen ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    {offen && (
+                      <>
+                        <div className="flex flex-wrap items-center gap-3 border-t border-slate-800 pt-3">
+                          <label className="flex items-center gap-2 text-sm text-slate-400">
+                            Status ändern
+                            <Select
+                              value={status}
+                              onChange={(e) => aendereImmobilienStatus(imm, e.target.value as Besitzstatus)}
+                              className="w-auto"
+                            >
+                              {BESITZSTAENDE.map((s) => (
+                                <option key={s} value={s}>
+                                  {BESITZSTATUS_LABELS[s]}
+                                </option>
+                              ))}
+                            </Select>
+                            <InfoTooltip text={BESITZSTATUS_HILFE[status]} />
+                          </label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3 text-sm sm:grid-cols-4">
+                          <DetailStat label="Kaufpreis" value={formatEuro(imm.kaufpreis)} />
+                          <DetailStat label="Marktwert heute (Referenz)" value={formatEuro(imm.immobilienwertHeuteReferenz)} />
+                          <DetailStat label="EK-Anteil heute (Referenz)" value={formatEuro(imm.eigenkapitalanteilHeuteReferenz)} />
+                          <DetailStat
+                            label="Cashflow n. Steuer/Jahr"
+                            value={cashflowJaehrlich === null ? "—" : formatEuro(cashflowJaehrlich)}
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          Kaufpreis, Marktwert und EK-Anteil sind reine Referenzwerte — sie stecken im Objekt und zählen
+                          nicht in die Finanzübersicht-Summe. Nur der Cashflow nach Steuer fließt ein, und nur bei Status
+                          „Besitze ich&quot;.
+                        </p>
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -365,14 +373,14 @@ export function FinanzuebersichtClient({
               + Position hinzufügen
             </Button>
           </div>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-400">
             Jede Position verzinst sich automatisch jährlich mit ihrer eigenen Rendite/Zins (Zinseszins) — plus dem
             optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten Steigerung wächst. Nur
             Positionen mit Status „Besitze ich&quot; zählen in die Finanzübersicht-Summe.
           </p>
 
           {fields.length === 0 && (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Noch keine Position erfasst — z. B. ein Aktien-/ETF-Depot oder ein Tagesgeldkonto.
             </p>
           )}
@@ -476,7 +484,7 @@ export function FinanzuebersichtClient({
         </div>
 
         {positionen.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             Noch keine Positionen mit Status „Besitze ich&quot; — Wertpapiere/Tagesgeld hinzufügen oder eine Immobilie oben
             entsprechend markieren, um den Verlauf zu sehen.
           </p>
@@ -488,7 +496,7 @@ export function FinanzuebersichtClient({
       {positionen.length > 1 && (
         <Card>
           <CardTitle>Positionen im Vergleich (nominal)</CardTitle>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-400">
             Bei Immobilien: akkumulierter Cashflow nach Steuer ab heute — nicht der Immobilienwert.
           </p>
           <VergleichVermoegensChart
@@ -505,7 +513,7 @@ export function FinanzuebersichtClient({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="text-lg font-semibold text-slate-100">{value}</div>
     </div>
   );
@@ -514,7 +522,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="font-medium text-slate-200">{value}</div>
     </div>
   );

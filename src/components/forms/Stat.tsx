@@ -13,12 +13,12 @@ export function Stat({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1 text-xs text-slate-500">
+      <div className="flex items-center gap-1 text-xs text-slate-400">
         {label}
         {hilfe && <InfoTooltip text={hilfe} />}
       </div>
       <div className="font-medium text-slate-100">{value}</div>
-      {subValue && <div className="text-xs text-slate-500">{subValue}</div>}
+      {subValue && <div className="text-xs text-slate-400">{subValue}</div>}
     </div>
   );
 }

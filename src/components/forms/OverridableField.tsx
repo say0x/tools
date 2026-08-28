@@ -47,12 +47,12 @@ export function OverridableField<T extends FieldValues>({
     <Field label={label}>
       <div className="flex items-center gap-2">
         <Input type="number" step={step} disabled={!override} {...register(valueField, { valueAsNumber: true })} />
-        <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+        <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400">
           <Switch bare {...register(overrideField)} />
           manuell
         </label>
       </div>
-      {formel && !override && <p className="text-xs text-slate-500">{formel}</p>}
+      {formel && !override && <p className="text-xs text-slate-400">{formel}</p>}
     </Field>
   );
 }

@@ -219,7 +219,7 @@ export function PropertyForm({
 
         <Card>
           <CardTitle>Quelle &amp; Notizen</CardTitle>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-400">
             Reine Notizfelder, fließen nicht in die Berechnung ein.
           </p>
           <div className="grid grid-cols-1 gap-4">
@@ -238,7 +238,7 @@ export function PropertyForm({
 
         <Card>
           <CardTitle>Ansprechpartner / Makler</CardTitle>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-400">
             Reine Notizfelder, fließen nicht in die Berechnung ein.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -631,7 +631,7 @@ export function PropertyForm({
             >
               <div className="flex items-center gap-2">
                 <Input type="number" step="any" {...register("versicherungJaehrlich", { valueAsNumber: true })} />
-                <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+                <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400">
                   <Switch bare {...register("versicherungUmlagefaehig")} />
                   umlagefähig
                   <InfoTooltip text={FIELD_HILFE.versicherungUmlagefaehig} />

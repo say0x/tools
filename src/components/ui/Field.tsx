@@ -26,8 +26,12 @@ export function Field({
       >
         {children}
       </div>
-      {hint && !error && <span className="text-xs text-slate-500">{hint}</span>}
-      {error && <span className="text-xs text-red-400">{error}</span>}
+      {hint && !error && <span className="text-xs text-slate-400">{hint}</span>}
+      {error && (
+        <span role="alert" className="text-xs text-red-400">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
