@@ -5,7 +5,7 @@ import { berechneGewerkeAuswertung } from "./costs/gewerke";
 import { berechneExitSzenario } from "./exit/exit-szenario";
 import { berechneEmpfohleneInstandhaltungsruecklage } from "./costs/instandhaltungsruecklage";
 import { berechneKaufnebenkosten } from "./costs/kaufnebenkosten";
-import { berechneFinanzierung, berechneGesamtinvestition } from "./financing/darlehen";
+import { berechneFinanzierung } from "./financing/darlehen";
 import { berechneTilgungsplan } from "./financing/tilgungsplan";
 import { berechneBreakevenKaufpreis } from "./rendite/breakeven";
 import { berechneDealBreaker } from "./rendite/dealbreaker";
@@ -219,5 +219,3 @@ export function berechneObjekt(
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
-
-export { berechneGesamtinvestition };

@@ -42,5 +42,3 @@ export async function exportiereAlleDaten() {
     };
   });
 }
-
-export type ExportedDaten = Extract<Awaited<ReturnType<typeof exportiereAlleDaten>>, { success: true }>["data"];
