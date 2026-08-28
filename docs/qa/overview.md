@@ -12,7 +12,15 @@ Priorität nach Risiko, nicht nach Vollständigkeit um ihrer selbst willen: Rech
 - **CI**: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) führt Lint, Tests und Produktions-Build bei jedem Push nach `main` und jedem Pull Request aus.
 - **E2E (Playwright)**: [`e2e/`](../../e2e/) — lokale, opt-in Suite gegen eine echte laufende Instanz (kein Teil der GitHub-Actions-CI, die ohne Postgres/laufenden Server läuft). Deckt Erreichbarkeit + Konsolenfehler-Freiheit jeder Hauptroute (`smoke.spec.ts`), automatisierte a11y-Scans je Hauptroute via axe-core (`accessibility.spec.ts`, WCAG 2 A/AA), Tastatur-/ARIA-Verhalten der Hauptnavigation (`nav.spec.ts`) und eine echte Formular-Interaktion (`steuerrechner.spec.ts`). Läuft gegen alle drei Playwright-Engines (Chromium/Firefox/WebKit, `playwright.config.ts`). Voraussetzung: `npm run dev` + lokale Postgres-Instanz laufen auf `http://localhost:3000` (überschreibbar via `E2E_BASE_URL`) sowie einmalig `npx playwright install`. Ausführen: `npm run test:e2e` (alle drei Engines) oder `npm run test:e2e -- --project=chromium` (eine Engine). In Sandboxes ohne `npx playwright install`-Zugriff: `PLAYWRIGHT_CHROMIUM_PATH=<pfad-zu-chromium> npm run test:e2e -- --project=chromium`.
 
-Ausführen: `npm run test` (siehe [`docs/development/setup.md`](../development/setup.md)).
+Ausführen: `npm run test` (siehe [`docs/development/setup.md`](../development/setup.md)). Coverage-Report: `npm run test:coverage` (`@vitest/coverage-v8`).
+
+## Test-Coverage (2026-08-28)
+
+Erstmals gemessen statt nur an der Testanzahl ("207 Tests") festgemacht. Gesamtwert bewusst niedrig (~24% Statements) — das ist kein Alarmsignal, sondern folgt direkt aus der oben beschriebenen Philosophie: `server/calc/**` (Rechenkern) liegt bei 95–100% Statements, UI-Komponenten/Seiten sind laut Philosophie bewusst nicht unit-getestet (dafür jetzt die `e2e/`-Suite) und ziehen den Durchschnitt stark nach unten, ohne eine echte Lücke zu sein.
+
+Eine echte, bisher übersehene Lücke fand sich in `server/data/`: `mappers.ts` und `vermoegen.ts` transformieren Prisma-Decimal-Zeilen in die von Calc-Engine/Formularen erwartete `number`-Form (`.toNumber()`-Konvertierung) bzw. berechnen die Positions-/Index-Logik für Finanzübersicht und Szenarien (`immobilienPositionAusErgebnis`) — beides echte, fehleranfällige Logik (ein vergessenes `.toNumber()` bleibt TypeScript-"kompatibel", bricht aber erst zur Laufzeit; die Jahres-Index-Suche im Vermögensverlauf hat mehrere Grenzfälle: Kauf in der Zukunft, Kauf im laufenden Jahr, Kauf länger her als der berechnete Verlauf reicht), aber komplett ungetestet (0% bzw. nur `splitPropertyData` abgedeckt). Ergänzt: `mappers.test.ts` (jetzt 100% Statements) und neu `vermoegen.test.ts`.
+
+**Bewusst nicht nachgezogen**: `server/data/reference-data.ts` (`ladeReferenceDataSnapshot`/`ladeStandardwerte`) — strukturell ähnlich (Decimal-Konvertierung + Fallback-Defaults), aber direkte `prisma.*.findMany()`-Aufrufe ohne bestehende Mocking-Infrastruktur in der Suite; und `server/actions/*.ts` — bereits als "bewusst nicht flächendeckend getestet" dokumentiert (dünne Prisma-Orchestrierung über bereits getestete Rechenkern-Funktionen).
 
 ## Manuelle QS (diese Session)
 
