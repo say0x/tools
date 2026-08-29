@@ -3,6 +3,7 @@ import { PROFIL_DEFAULT_WERTE } from "@/server/data/mappers";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProfileForm } from "./ProfileForm";
 import { ExportButton } from "./ExportButton";
+import { RestoreButton } from "./RestoreButton";
 
 // Liest live aus der DB — nicht build-zeitig statisch prerendern (die DB ist
 // beim `next build` in Docker nicht erreichbar, und der Stand wäre ohnehin
@@ -56,10 +57,19 @@ export default async function ProfilPage() {
         <CardTitle>Daten-Backup</CardTitle>
         <p className="mb-4 text-sm text-slate-400">
           Lädt einen lesbaren JSON-Snapshot aller selbst eingegebenen Daten herunter (Objekte, Sparpositionen, Profil,
-          Szenarien, Referenzdaten) — reine Sicherungskopie, kein Wiedereinspiel-Mechanismus. Sinnvoll, weil es kein
-          App-Login und keine Cloud-Synchronisation gibt.
+          Szenarien, Referenzdaten). Sinnvoll, weil es kein App-Login und keine Cloud-Synchronisation gibt — die
+          einzige Persistenz ist das Docker-Volume.
         </p>
         <ExportButton />
+
+        <hr className="my-4 border-slate-800" />
+
+        <p className="mb-4 text-sm text-slate-400">
+          Spielt ein zuvor heruntergeladenes Backup wieder ein — <strong>ersetzt dabei vollständig</strong> Objekte,
+          Profil, Sparpositionen und Szenarien durch den Stand im Backup (Referenzdaten/Standardwerte bleiben
+          unangetastet). Zeigt vor dem Ausführen eine Vorschau und verlangt eine Freitext-Bestätigung.
+        </p>
+        <RestoreButton />
       </Card>
     </div>
   );
