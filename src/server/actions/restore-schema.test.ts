@@ -77,6 +77,11 @@ function rawProfil(overrides: Record<string, unknown> = {}) {
     cashflowUmschlagjahr: 10,
     gehaltssteigerungProzentJaehrlich: 2,
     inflationProzentJaehrlich: 2,
+    bundesland: "NORDRHEIN_WESTFALEN",
+    kirchensteuerpflichtig: false,
+    beschaeftigungsstatus: "ANGESTELLT",
+    gesetzlichKrankenversichert: true,
+    kinderlos: false,
     liabilities: [] as unknown[],
     ...overrides,
   };

@@ -92,6 +92,11 @@ async function fuehreRestoreAus(tx: Parameters<Parameters<typeof prisma.$transac
         cashflowUmschlagjahr: values.cashflowUmschlagjahr,
         gehaltssteigerungProzentJaehrlich: gehaltInflation.gehaltssteigerungProzentJaehrlich,
         inflationProzentJaehrlich: gehaltInflation.inflationProzentJaehrlich,
+        bundesland: values.bundesland,
+        kirchensteuerpflichtig: values.kirchensteuerpflichtig,
+        beschaeftigungsstatus: values.beschaeftigungsstatus,
+        gesetzlichKrankenversichert: values.gesetzlichKrankenversichert,
+        kinderlos: values.kinderlos,
       },
     });
     if (values.liabilities.length > 0) {

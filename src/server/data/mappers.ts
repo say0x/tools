@@ -129,6 +129,18 @@ export const PROFIL_DEFAULT_WERTE = {
   cashflowUmschlagjahr: 10,
 } as const;
 
+// Separat von PROFIL_DEFAULT_WERTE: diese Felder gehören nicht zu ProfileInput
+// (dem Rechenkern-Typ, siehe calc/types.ts) — nur zum Steuerrechner relevant,
+// werden aber ebenfalls von src/app/profil/page.tsx (Formular-Vorbelegung) und
+// src/app/steuerrechner/page.tsx (Vorbelegung aus dem Profil) importiert.
+export const PROFIL_STEUER_DEFAULT_WERTE = {
+  bundesland: "NORDRHEIN_WESTFALEN",
+  kirchensteuerpflichtig: false,
+  beschaeftigungsstatus: "ANGESTELLT",
+  gesetzlichKrankenversichert: true,
+  kinderlos: false,
+} as const;
+
 export function toProfileInput(row: UserProfileWithLiabilities | null): ProfileInput {
   if (!row) {
     return { ...PROFIL_DEFAULT_WERTE, liabilities: [] };

@@ -8,13 +8,20 @@ import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, 
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
-import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { berechneEinkommensteuer, berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { resolveEstgZone } from "@/server/calc/tax/estg-zonen";
+import { berechneSolidaritaetszuschlag } from "@/server/calc/tax/soli";
+import { berechneKirchensteuer, kirchensteuersatzProzent } from "@/server/calc/tax/kirchensteuer";
+import { berechneSozialabgaben } from "@/server/calc/tax/sozialabgaben";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
+import { BUNDESLAENDER, type Bundesland } from "@/server/calc/types";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { BESCHAEFTIGUNGSSTATUS_LABELS, BUNDESLAND_LABELS } from "@/lib/labels";
+import { BESCHAEFTIGUNGSSTATUS } from "@/server/actions/profile-schema";
 
 const JAHR = new Date().getFullYear();
 // Für Jahre ohne eigenen Tabelleneintrag fällt resolveEstgZone() auf den jüngsten
@@ -25,10 +32,28 @@ const TARIFJAHR = resolveEstgZone(JAHR).jahr;
 const KURVE_MAX_ZVE = 300000;
 const KURVE_SCHRITTE = 60;
 
-export function SteuerrechnerClient() {
+export function SteuerrechnerClient({
+  bundeslandInitial,
+  kirchensteuerpflichtigInitial,
+  beschaeftigungsstatusInitial,
+  gesetzlichKrankenversichertInitial,
+  kinderlosInitial,
+}: {
+  bundeslandInitial: Bundesland;
+  kirchensteuerpflichtigInitial: boolean;
+  beschaeftigungsstatusInitial: (typeof BESCHAEFTIGUNGSSTATUS)[number];
+  gesetzlichKrankenversichertInitial: boolean;
+  kinderlosInitial: boolean;
+}) {
   const [bruttoJaehrlich, setBruttoJaehrlich] = useState(60000);
   const [zvEOverride, setZvEOverride] = useState(false);
   const [zvEManuell, setZvEManuell] = useState(45000);
+
+  const [bundesland, setBundesland] = useState<Bundesland>(bundeslandInitial);
+  const [kirchensteuerpflichtig, setKirchensteuerpflichtig] = useState(kirchensteuerpflichtigInitial);
+  const [beschaeftigungsstatus, setBeschaeftigungsstatus] = useState(beschaeftigungsstatusInitial);
+  const [gesetzlichKrankenversichert, setGesetzlichKrankenversichert] = useState(gesetzlichKrankenversichertInitial);
+  const [kinderlos, setKinderlos] = useState(kinderlosInitial);
 
   const zvEGeschaetzt = useMemo(() => schaetzeZvEAusBrutto(bruttoJaehrlich), [bruttoJaehrlich]);
   const zvE = zvEOverride ? zvEManuell : zvEGeschaetzt;
@@ -36,7 +61,19 @@ export function SteuerrechnerClient() {
   const einkommensteuer = useMemo(() => berechneEinkommensteuer(zvE, JAHR), [zvE]);
   const grenzsteuersatz = useMemo(() => berechneGrenzsteuersatz(zvE, JAHR), [zvE]);
   const durchschnittssteuersatz = zvE > 0 ? (einkommensteuer / zvE) * 100 : 0;
-  const nettoNachEinkommensteuer = zvE - einkommensteuer;
+
+  const soli = useMemo(() => berechneSolidaritaetszuschlag(einkommensteuer, JAHR), [einkommensteuer]);
+  const kirchensteuer = useMemo(
+    () => berechneKirchensteuer(einkommensteuer, bundesland, kirchensteuerpflichtig),
+    [einkommensteuer, bundesland, kirchensteuerpflichtig]
+  );
+  const sozialabgaben = useMemo(
+    () => berechneSozialabgaben(bruttoJaehrlich, JAHR, { beschaeftigungsstatus, gesetzlichKrankenversichert, kinderlos, bundesland }),
+    [bruttoJaehrlich, beschaeftigungsstatus, gesetzlichKrankenversichert, kinderlos, bundesland]
+  );
+
+  const abzuegeGesamt = einkommensteuer + soli + kirchensteuer + sozialabgaben.summe;
+  const nettoNachAllenAbzuegen = zvE - einkommensteuer - soli - kirchensteuer - sozialabgaben.summe;
 
   const kurve = useMemo(
     () =>
@@ -110,19 +147,117 @@ export function SteuerrechnerClient() {
         </p>
       </Card>
 
+      <Card>
+        <CardTitle>Steuerliche Angaben</CardTitle>
+        <p className="mb-4 text-sm text-slate-400">
+          Aus dem Profil vorbelegt, hier frei änderbar — für Solidaritätszuschlag, Kirchensteuer und Sozialabgaben unten.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label={
+              <>
+                Bundesland <InfoTooltip text={FIELD_HILFE.bundeslandSteuer} />
+              </>
+            }
+          >
+            <Select value={bundesland} onChange={(e) => setBundesland(e.target.value as Bundesland)}>
+              {BUNDESLAENDER.map((b) => (
+                <option key={b} value={b}>
+                  {BUNDESLAND_LABELS[b]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field
+            label={
+              <>
+                Beschäftigungsstatus <InfoTooltip text={FIELD_HILFE.beschaeftigungsstatus} />
+              </>
+            }
+          >
+            <Select
+              value={beschaeftigungsstatus}
+              onChange={(e) => setBeschaeftigungsstatus(e.target.value as (typeof BESCHAEFTIGUNGSSTATUS)[number])}
+            >
+              {BESCHAEFTIGUNGSSTATUS.map((b) => (
+                <option key={b} value={b}>
+                  {BESCHAEFTIGUNGSSTATUS_LABELS[b]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <Switch bare checked={kirchensteuerpflichtig} onChange={(e) => setKirchensteuerpflichtig(e.target.checked)} />
+            Kirchensteuerpflichtig
+            <InfoTooltip text={FIELD_HILFE.kirchensteuerpflichtig} />
+          </label>
+          {beschaeftigungsstatus === "ANGESTELLT" && (
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <Switch
+                bare
+                checked={gesetzlichKrankenversichert}
+                onChange={(e) => setGesetzlichKrankenversichert(e.target.checked)}
+              />
+              Gesetzlich krankenversichert
+              <InfoTooltip text={FIELD_HILFE.gesetzlichKrankenversichert} />
+            </label>
+          )}
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <Switch bare checked={kinderlos} onChange={(e) => setKinderlos(e.target.checked)} />
+            Kinderlos (ab 23 Jahre)
+            <InfoTooltip text={FIELD_HILFE.kinderlos} />
+          </label>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Zu versteuerndes Einkommen" value={formatEuro(zvE)} />
         <Stat label="Einkommensteuer (Jahr)" value={formatEuro(einkommensteuer)} hint={`Tarif ${TARIFJAHR}`} />
         <Stat label="Grenzsteuersatz" value={`${formatNumber(grenzsteuersatz, 1)}%`} hint="Steuer auf den nächsten Euro" />
         <Stat label="Durchschnittssteuersatz" value={`${formatNumber(durchschnittssteuersatz, 1)}%`} hint="Einkommensteuer ÷ zvE" />
+        <Stat label="Solidaritätszuschlag (Jahr)" value={formatEuro(soli)} />
+        <Stat
+          label="Kirchensteuer (Jahr)"
+          value={formatEuro(kirchensteuer)}
+          hint={kirchensteuerpflichtig ? `${BUNDESLAND_LABELS[bundesland]}: ${kirchensteuersatzProzent(bundesland)}%` : "nicht kirchensteuerpflichtig"}
+        />
+        <Stat
+          label="Sozialabgaben (Jahr, AN-Anteil)"
+          value={formatEuro(sozialabgaben.summe)}
+          hint={beschaeftigungsstatus === "SELBSTSTAENDIG" ? "keine Pflichtbeiträge" : "vom Brutto, nicht vom zvE"}
+        />
+        <Stat label="Netto nach allen Abzügen" value={formatEuro(nettoNachAllenAbzuegen)} hint="zvE abzüglich aller vier Abzüge oben" />
       </div>
 
+      {beschaeftigungsstatus === "ANGESTELLT" && sozialabgaben.summe > 0 && (
+        <Card>
+          <CardTitle>Sozialabgaben im Detail</CardTitle>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Stat label="Rentenversicherung" value={formatEuro(sozialabgaben.rentenversicherung)} />
+            <Stat label="Arbeitslosenversicherung" value={formatEuro(sozialabgaben.arbeitslosenversicherung)} />
+            <Stat
+              label="Krankenversicherung"
+              value={gesetzlichKrankenversichert ? formatEuro(sozialabgaben.krankenversicherung) : "privat"}
+            />
+            <Stat
+              label="Pflegeversicherung"
+              value={gesetzlichKrankenversichert ? formatEuro(sozialabgaben.pflegeversicherung) : "privat"}
+            />
+          </div>
+        </Card>
+      )}
+
       <Card>
-        <CardTitle>Nach Einkommensteuer</CardTitle>
+        <CardTitle>Nach allen Abzügen</CardTitle>
         <p className="text-sm text-slate-400">
-          Vom zu versteuernden Einkommen bleiben nach Einkommensteuer{" "}
-          <span className="font-medium text-slate-100">{formatEuro(nettoNachEinkommensteuer)}</span> im Jahr — ohne
-          Solidaritätszuschlag, Kirchensteuer oder Sozialabgaben, die hier nicht modelliert sind.
+          Vom zu versteuernden Einkommen bleiben nach Einkommensteuer, Solidaritätszuschlag, Kirchensteuer und Sozialabgaben{" "}
+          <span className="font-medium text-slate-100">{formatEuro(nettoNachAllenAbzuegen)}</span> im Jahr
+          (Gesamtabzüge: {formatEuro(abzuegeGesamt)}).
+        </p>
+        <p className="mt-3 text-xs text-slate-400">
+          Vereinfachungen: nur Grundtabelle (kein Ehegatten-Splitting), keine Kinderfreibeträge, Pflegeversicherung ohne
+          Staffelung nach Kinderzahl, privat Versicherte ohne individuelle Prämie, Selbstständige ohne freiwillige Beiträge —
+          Modell-Richtwert, keine Steuerberatung oder Lohnabrechnung.
         </p>
       </Card>
 
@@ -157,7 +292,10 @@ export function SteuerrechnerClient() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-slate-400">Der orangene Punkt markiert dein eingegebenes zvE.</p>
+        <p className="mt-2 text-xs text-slate-400">
+          Der orangene Punkt markiert dein eingegebenes zvE. Zeigt nur den Grenzsteuersatz der Einkommensteuer, ohne
+          Soli/Kirchensteuer/Sozialabgaben.
+        </p>
       </Card>
     </div>
   );

@@ -35,6 +35,11 @@ export const FINANZIERUNGSART_LABELS: Record<string, string> = {
   MANUELL: "Manuell — eigene EK-Quote",
 };
 
+export const BESCHAEFTIGUNGSSTATUS_LABELS: Record<string, string> = {
+  ANGESTELLT: "Angestellt",
+  SELBSTSTAENDIG: "Selbstständig",
+};
+
 export const GEWERK_LABELS: Record<string, string> = {
   DACH: "Dach",
   FENSTER: "Fenster",

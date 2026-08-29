@@ -36,6 +36,11 @@ export async function upsertProfile(values: ProfileFormValues): Promise<ActionRe
       eigenkapitalPruefungAbEuro: data.eigenkapitalPruefungAbEuro,
       cashflowStartverlustMaxProzentKaltmiete: data.cashflowStartverlustMaxProzentKaltmiete,
       cashflowUmschlagjahr: data.cashflowUmschlagjahr,
+      bundesland: data.bundesland,
+      kirchensteuerpflichtig: data.kirchensteuerpflichtig,
+      beschaeftigungsstatus: data.beschaeftigungsstatus,
+      gesetzlichKrankenversichert: data.gesetzlichKrankenversichert,
+      kinderlos: data.kinderlos,
     };
 
     await prisma.$transaction(async (tx) => {

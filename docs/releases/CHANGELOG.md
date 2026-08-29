@@ -68,6 +68,7 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - fix: `upgrade-insecure-requests` aus der CSP entfernt — brach das Laden von CSS/JS bei direktem HTTP-Zugriff (ohne den HTTPS-Reverse-Proxy) komplett (#81)
 - Kreditvergleich: beliebig viele Kredite statt fest zwei (#82)
 - Szenarien: fünfter Änderungstyp „Immobilie statt Alternativanlage" — Opportunitätskosten-Vergleich wie in Kaufen-oder-Anlegen?, jetzt auch im Szenario-System (#83)
+- Steuerrechner: Solidaritätszuschlag, Kirchensteuer und Sozialabgaben ergänzt (bisher nur §32a-Einkommensteuer) — neue steuerliche Angaben im Profil (Bundesland, Kirchensteuerpflicht, Beschäftigungsstatus, gesetzlich krankenversichert, kinderlos) als Vorbelegung (#84)
 
 ## [0.1.0] — 2026-08-23
 

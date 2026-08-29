@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -7,15 +8,19 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Switch } from "@/components/ui/Switch";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { OverridableField } from "@/components/forms/OverridableField";
 import { berechneGrenzsteuersatz } from "@/server/calc/tax/grenzsteuersatz";
 import { schaetzeZvEAusBrutto } from "@/server/calc/tax/zve-schaetzung";
+import { BUNDESLAENDER } from "@/server/calc/types";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { BESCHAEFTIGUNGSSTATUS_LABELS, BUNDESLAND_LABELS } from "@/lib/labels";
 import { flattenFormErrors } from "@/lib/form-errors";
 import { type ProfileFormValues, upsertProfile } from "@/server/actions/profile";
-import { profileSchema } from "@/server/actions/profile-schema";
+import { BESCHAEFTIGUNGSSTATUS, profileSchema } from "@/server/actions/profile-schema";
 
 export function ProfileForm({ initialValues }: { initialValues: ProfileFormValues }) {
   const [isPending, startTransition] = useTransition();
@@ -41,6 +46,7 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
   const zvE = useWatch({ control, name: "zuVersteuerndesEinkommenJaehrlich" });
   const netto = useWatch({ control, name: "nettoEinkommenMonatlich" });
   const fixkosten = useWatch({ control, name: "fixkostenMonatlich" });
+  const beschaeftigungsstatus = useWatch({ control, name: "beschaeftigungsstatus" });
 
   const zvESchaetzung = useMemo(() => schaetzeZvEAusBrutto((Number(brutto) || 0) * 12), [brutto]);
   const grenzsteuersatz = useMemo(() => berechneGrenzsteuersatz(Number(zvE) || 0, new Date().getFullYear()), [zvE]);
@@ -137,6 +143,68 @@ export function ProfileForm({ initialValues }: { initialValues: ProfileFormValue
             <div className="text-xs text-slate-400">Verfügbares Budget (€/Monat)</div>
             <div className="text-lg font-semibold text-slate-100">{formatEuro(verfuegbaresBudget)}</div>
           </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="mb-1 flex items-center justify-between">
+          <CardTitle className="mb-0">Steuerliche Angaben</CardTitle>
+          <Link href="/steuerrechner" className="text-sm text-blue-400 hover:underline">
+            Auswirkung im Steuerrechner ansehen →
+          </Link>
+        </div>
+        <p className="mb-4 text-sm text-slate-400">
+          Für Solidaritätszuschlag, Kirchensteuer und Sozialabgaben im Steuerrechner — einmal hier hinterlegt statt
+          bei jedem Besuch neu ausgewählt.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            label={
+              <>
+                Bundesland <InfoTooltip text={FIELD_HILFE.bundeslandSteuer} />
+              </>
+            }
+          >
+            <Select {...register("bundesland")}>
+              {BUNDESLAENDER.map((b) => (
+                <option key={b} value={b}>
+                  {BUNDESLAND_LABELS[b]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field
+            label={
+              <>
+                Beschäftigungsstatus <InfoTooltip text={FIELD_HILFE.beschaeftigungsstatus} />
+              </>
+            }
+          >
+            <Select {...register("beschaeftigungsstatus")}>
+              {BESCHAEFTIGUNGSSTATUS.map((b) => (
+                <option key={b} value={b}>
+                  {BESCHAEFTIGUNGSSTATUS_LABELS[b]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <Switch bare {...register("kirchensteuerpflichtig")} />
+            Kirchensteuerpflichtig
+            <InfoTooltip text={FIELD_HILFE.kirchensteuerpflichtig} />
+          </label>
+          {beschaeftigungsstatus === "ANGESTELLT" && (
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <Switch bare {...register("gesetzlichKrankenversichert")} />
+              Gesetzlich krankenversichert
+              <InfoTooltip text={FIELD_HILFE.gesetzlichKrankenversichert} />
+            </label>
+          )}
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <Switch bare {...register("kinderlos")} />
+            Kinderlos (ab 23 Jahre)
+            <InfoTooltip text={FIELD_HILFE.kinderlos} />
+          </label>
         </div>
       </Card>
 

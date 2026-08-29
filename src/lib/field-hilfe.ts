@@ -98,6 +98,14 @@ export const FIELD_HILFE = {
     "Wie stark der Cashflow nach Steuer in Jahr 1 höchstens im Minus sein darf, relativ zur Kaltmiete — z. B. 30% bei 1.000€ Kaltmiete erlaubt bis zu -300€/Monat. Ein Objekt darf am Anfang negativ starten, aber nicht unbegrenzt. Überschreitet der Jahr-1-Verlust diese Grenze, springt „Rechnet sich das?“ unabhängig vom weiteren Verlauf auf Rot.",
   cashflowUmschlagjahr:
     "Bis zu welchem Jahr der Cashflow nach Steuer spätestens ins Plus gedreht haben muss, damit „Rechnet sich das?“ Grün werden kann. Ein Objekt, das laut Prognose z. B. erst danach positiv wird, gilt als zu langsam und wird auf Rot gesetzt — selbst wenn der Jahr-1-Verlust für sich genommen im Rahmen war.",
+  bundeslandSteuer:
+    "Bestimmt den Kirchensteuersatz (8% in Bayern und Baden-Württemberg, 9% in allen anderen Bundesländern) sowie in der Pflegeversicherung den Arbeitnehmeranteil (Sachsen zahlt mehr, als Ausgleich für den zusätzlichen Feiertag Buß- und Bettag).",
+  kirchensteuerpflichtig: "Ob Kirchensteuer anfällt — 8% bzw. 9% der Einkommensteuer, je nach Bundesland (siehe oben).",
+  beschaeftigungsstatus:
+    "Sozialabgaben (Renten-/Kranken-/Pflege-/Arbeitslosenversicherung) fallen nur für sozialversicherungspflichtig Angestellte an. Als Selbstständige/r gibt es keine automatischen Pflichtbeiträge — freiwillige Beiträge variieren zu stark, um sie hier generisch abzubilden.",
+  gesetzlichKrankenversichert:
+    "Nur relevant bei Angestellten: privat Krankenversicherte zahlen individuelle Prämien statt eines gesetzlichen Prozentsatzes — Kranken- und Pflegeversicherung werden dann nicht berechnet, Renten-/Arbeitslosenversicherung bleiben unverändert.",
+  kinderlos: "Kinderlose ab 23 Jahre zahlen einen Zuschlag zur Pflegeversicherung (0,6 Prozentpunkte zusätzlich).",
 
   // Kennzahlen-Anzeige (Objekt-Detail)
   ekRenditeKennzahl:
