@@ -8,7 +8,9 @@ import { BESITZSTAENDE } from "@/lib/asset";
 export const SPARPOSITION_ARTEN = ["WERTPAPIERDEPOT", "TAGESGELD"] as const;
 export type SparpositionArt = (typeof SPARPOSITION_ARTEN)[number];
 
-const sparpositionSchema = z.object({
+// Exportiert, damit restore-schema.ts dieselben Wertebereiche für die
+// Backup-Wiederherstellung wiederverwenden kann statt sie ein zweites Mal zu duplizieren.
+export const sparpositionSchema = z.object({
   // Gesetzt für bestehende Positionen (Asset.id), fehlt bei neu angelegten Zeilen im Formular —
   // speichereFinanzuebersicht() nutzt das, um bestehende Positionen zu aktualisieren statt sie
   // zu löschen und neu anzulegen (siehe dortiger Kommentar).

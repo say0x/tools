@@ -38,8 +38,12 @@ Referenz für die freistehenden Zusatz-Tools sowie Dashboard und Daten-Backup. A
 ## Daten-Backup (`/profil`, unterer Bereich)
 
 - `exportiereAlleDaten` (`src/server/actions/export.ts`) lädt einen JSON-Snapshot aller selbst eingegebenen Daten herunter (Objekte, Sparpositionen, Profil, Szenarien, Referenzdaten).
-- Reine Sicherungskopie ohne Wiedereinspiel-Mechanismus — für Immobilien gibt es dafür den separaten Import-Weg über `data/import-objekte.json` + `npm run import:objekte` (siehe Haupt-README).
 - Sinnvoll, weil es kein App-Login und keine Cloud-Synchronisation gibt (Docker-Volume ist die einzige Persistenz).
+- **Wiedereinspiel-Mechanismus** (`RestoreButton.tsx`, `src/server/actions/restore.ts` + `restore-schema.ts`): spielt einen zuvor heruntergeladenen Export wieder ein.
+  - **Umfang bewusst enger als der Export**: nur Objekte, Profil, Sparpositionen und Szenarien — NICHT die separat unter `/immobilien/referenzdaten` administrierten Referenzwerte/Standardwerte (ein versehentliches Zurücksetzen dieser selten geänderten Admin-Daten wäre unnötiges Risiko). Der Export enthält sie weiterhin, ein Restore ignoriert sie einfach.
+  - **Voller Ersatz, kein Merge**: der komplette Datenbestand der oben genannten Bereiche wird gelöscht und exakt aus dem Backup neu angelegt (inkl. Original-IDs — sonst würden `SzenarioAenderung.assetId`-Referenzen brechen und `/immobilien/objekte/[id]`- bzw. `/szenarien/[id]`-Links sich ändern). Was seit dem Backup-Zeitpunkt neu eingegeben wurde, geht dabei verloren — das ist Absicht, kein Merge-Konflikt-Handling.
+  - **Zweistufig abgesichert**, weil potenziell destruktiv: erst eine rein lesende Vorschau (Zählungen aktuell vs. Backup, Backup-Zeitstempel), dann eine exakte Freitext-Bestätigung ("DATEN ERSETZEN"), bevor überhaupt etwas gelöscht wird. Die Wertebereichs-Validierung nutzt bewusst dieselben Zod-Schemas wie die normalen Formulare (`propertySchema`, `profileSchema`, `szenarioSchema`, `sparpositionSchema`) statt eigene Grenzen zu duplizieren.
+  - Für Immobilien gibt es weiterhin den separaten, unabhängigen Import-Weg über `data/import-objekte.json` + `npm run import:objekte` (siehe Haupt-README) — der bleibt bestehen, deckt aber nur Immobilien ab, nicht das komplette Backup.
 
 ## Dashboard (`/`, Startseite)
 
