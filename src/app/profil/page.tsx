@@ -1,5 +1,5 @@
 import { ladeProfil } from "@/server/actions/profile";
-import { PROFIL_DEFAULT_WERTE } from "@/server/data/mappers";
+import { PROFIL_DEFAULT_WERTE, PROFIL_STEUER_DEFAULT_WERTE } from "@/server/data/mappers";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProfileForm } from "./ProfileForm";
 import { ExportButton } from "./ExportButton";
@@ -34,6 +34,11 @@ export default async function ProfilPage() {
     cashflowStartverlustMaxProzentKaltmiete:
       profil?.cashflowStartverlustMaxProzentKaltmiete.toNumber() ?? PROFIL_DEFAULT_WERTE.cashflowStartverlustMaxProzentKaltmiete,
     cashflowUmschlagjahr: profil?.cashflowUmschlagjahr ?? PROFIL_DEFAULT_WERTE.cashflowUmschlagjahr,
+    bundesland: profil?.bundesland ?? PROFIL_STEUER_DEFAULT_WERTE.bundesland,
+    kirchensteuerpflichtig: profil?.kirchensteuerpflichtig ?? PROFIL_STEUER_DEFAULT_WERTE.kirchensteuerpflichtig,
+    beschaeftigungsstatus: profil?.beschaeftigungsstatus ?? PROFIL_STEUER_DEFAULT_WERTE.beschaeftigungsstatus,
+    gesetzlichKrankenversichert: profil?.gesetzlichKrankenversichert ?? PROFIL_STEUER_DEFAULT_WERTE.gesetzlichKrankenversichert,
+    kinderlos: profil?.kinderlos ?? PROFIL_STEUER_DEFAULT_WERTE.kinderlos,
     liabilities:
       profil?.liabilities.map((l) => ({
         id: l.id,

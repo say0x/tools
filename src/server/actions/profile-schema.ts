@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { BUNDESLAENDER } from "@/server/calc/types";
+
+export const BESCHAEFTIGUNGSSTATUS = ["ANGESTELLT", "SELBSTSTAENDIG"] as const;
 
 const liabilitySchema = z.object({
   // null bei neu hinzugefügten Krediten (noch kein DB-Eintrag) — steuert in
@@ -52,6 +55,14 @@ export const profileSchema = z.object({
     .min(1, "Umschlagjahr muss mindestens 1 sein")
     .max(50, "Umschlagjahr darf höchstens 50 sein"),
   liabilities: z.array(liabilitySchema),
+
+  // Für den Steuerrechner (Solidaritätszuschlag, Kirchensteuer, Sozialabgaben) —
+  // siehe Kommentar bei den gleichnamigen Feldern in schema.prisma.
+  bundesland: z.enum(BUNDESLAENDER),
+  kirchensteuerpflichtig: z.boolean(),
+  beschaeftigungsstatus: z.enum(BESCHAEFTIGUNGSSTATUS),
+  gesetzlichKrankenversichert: z.boolean(),
+  kinderlos: z.boolean(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

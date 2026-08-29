@@ -104,10 +104,33 @@ model UserProfile {
   /// "real"-Linie im Vermögensverlauf-Chart abgezinst wird.
   inflationProzentJaehrlich         Decimal @default(2) @db.Decimal(7, 4)
 
+  // Für den Steuerrechner (Solidaritätszuschlag, Kirchensteuer, Sozialabgaben)
+  // — stabile persönliche Fakten, einmal hier hinterlegt statt im Steuerrechner
+  // selbst, der sie nur als editierbare Vorbelegung übernimmt (das dort
+  // eingegebene Einkommen bleibt weiterhin unabhängig vom Profil).
+  bundesland             Bundesland @default(NORDRHEIN_WESTFALEN)
+  kirchensteuerpflichtig Boolean    @default(false)
+  /// Sozialabgaben (Renten-/Kranken-/Pflege-/Arbeitslosenversicherung) gelten
+  /// nur für sozialversicherungspflichtig Angestellte — Selbstständige zahlen
+  /// keine automatischen Pflichtbeiträge (freiwillige Beiträge variieren zu
+  /// stark, um sie hier generisch abzubilden).
+  beschaeftigungsstatus       Beschaeftigungsstatus @default(ANGESTELLT)
+  /// Nur relevant bei ANGESTELLT: privat Versicherte zahlen individuelle
+  /// Prämien statt eines gesetzlichen Prozentsatzes, hier nicht modellierbar.
+  gesetzlichKrankenversichert Boolean               @default(true)
+  /// Kinderlosenzuschlag zur Pflegeversicherung (ab 23 Jahre) — hier bewusst
+  /// binär statt mit Geburtsdatum/Kinderzahl-Staffelung modelliert.
+  kinderlos                   Boolean               @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   liabilities UserLiability[]
+}
+
+enum Beschaeftigungsstatus {
+  ANGESTELLT
+  SELBSTSTAENDIG
 }
 
 /// Bestehende Kredite/Verbindlichkeiten des Nutzers, einzeln statt als Summe,

@@ -11,7 +11,7 @@ import {
 } from "@/server/calc/types";
 import { BESITZSTAENDE } from "@/lib/asset";
 import { propertySchema, type PropertyFormValues } from "./property-schema";
-import { profileSchema, type ProfileFormValues } from "./profile-schema";
+import { BESCHAEFTIGUNGSSTATUS, profileSchema, type ProfileFormValues } from "./profile-schema";
 import { szenarioSchema, type SzenarioFormValues } from "./szenario-schema";
 import { sparpositionSchema, type SparpositionFormValues } from "./finanzuebersicht-schema";
 import { SZENARIO_AENDERUNG_TYPEN } from "./szenario-schema";
@@ -149,6 +149,11 @@ const rawProfilSchema = z.object({
   cashflowUmschlagjahr: z.number(),
   gehaltssteigerungProzentJaehrlich: decimal,
   inflationProzentJaehrlich: decimal,
+  bundesland: z.enum(BUNDESLAENDER),
+  kirchensteuerpflichtig: z.boolean(),
+  beschaeftigungsstatus: z.enum(BESCHAEFTIGUNGSSTATUS),
+  gesetzlichKrankenversichert: z.boolean(),
+  kinderlos: z.boolean(),
   liabilities: z.array(rawLiabilitySchema),
 });
 export type RawProfil = z.infer<typeof rawProfilSchema>;
@@ -308,6 +313,11 @@ function zuProfileFormValues(raw: RawProfil): ProfileFormValues {
     eigenkapitalPruefungAbEuro: raw.eigenkapitalPruefungAbEuro,
     cashflowStartverlustMaxProzentKaltmiete: raw.cashflowStartverlustMaxProzentKaltmiete,
     cashflowUmschlagjahr: raw.cashflowUmschlagjahr,
+    bundesland: raw.bundesland,
+    kirchensteuerpflichtig: raw.kirchensteuerpflichtig,
+    beschaeftigungsstatus: raw.beschaeftigungsstatus,
+    gesetzlichKrankenversichert: raw.gesetzlichKrankenversichert,
+    kinderlos: raw.kinderlos,
     liabilities: raw.liabilities.map((l) => ({ id: l.id, bezeichnung: l.bezeichnung, monatlicheRate: l.monatlicheRate, restschuld: l.restschuld })),
   };
 }

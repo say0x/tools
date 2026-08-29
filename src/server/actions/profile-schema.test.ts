@@ -28,6 +28,11 @@ function validValues(): ProfileFormValues {
     eigenkapitalPruefungAbEuro: 20_000,
     cashflowStartverlustMaxProzentKaltmiete: 20,
     cashflowUmschlagjahr: 5,
+    bundesland: "NORDRHEIN_WESTFALEN",
+    kirchensteuerpflichtig: false,
+    beschaeftigungsstatus: "ANGESTELLT",
+    gesetzlichKrankenversichert: true,
+    kinderlos: false,
     liabilities: [validLiability()],
   };
 }
