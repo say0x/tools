@@ -7,14 +7,15 @@ const prisma = new PrismaClient({ adapter });
 // Alle Werte in dieser Datei sind Startwerte/Platzhalter, keine Live-Daten.
 // Sie sind über die Referenzdaten-Seite im UI jederzeit editierbar. Vor
 // produktivem Einsatz insbesondere die Grunderwerbsteuersätze gegen eine
-// aktuelle Quelle prüfen (ändern sich per Landesgesetz).
+// aktuelle Quelle prüfen (ändern sich per Landesgesetz) — zuletzt geprüft
+// 2026-08-29, Bremen zum 1.7.2025 von 5,0% auf 5,5% angehoben.
 
 const grunderwerbsteuer: Record<Bundesland, number> = {
   BAYERN: 3.5,
   SACHSEN: 5.5,
   HAMBURG: 5.5,
   BADEN_WUERTTEMBERG: 5.0,
-  BREMEN: 5.0,
+  BREMEN: 5.5,
   NIEDERSACHSEN: 5.0,
   RHEINLAND_PFALZ: 5.0,
   SACHSEN_ANHALT: 5.0,

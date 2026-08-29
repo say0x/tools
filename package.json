@@ -17,6 +17,7 @@
     "db:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
+    "db:reset-user-data": "tsx scripts/reset-user-data.ts",
     "import:objekte": "tsx scripts/import-objekte.ts",
     "check:links": "tsx scripts/check-doc-links.ts",
     "deadcode": "knip"

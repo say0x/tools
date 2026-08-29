@@ -29,6 +29,10 @@ services:
     environment:
       DATABASE_URL: postgresql://tools:tools@postgres:5432/tools
       NODE_ENV: production
+      # Opt-in, standardmäßig aus — siehe docs/deployment/docker.md. Nur über eine
+      # lokale .env-Datei (von Compose automatisch geladen, nicht Teil des Repos)
+      # oder eine exportierte Shell-Variable auf "true" setzen, nie hier fest verdrahten.
+      RESET_USER_DATA_ON_DEPLOY: ${RESET_USER_DATA_ON_DEPLOY:-false}
     ports:
       - "3000:3000"
 
