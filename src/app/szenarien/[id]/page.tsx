@@ -43,7 +43,19 @@ export default async function SzenarioPage({ params }: { params: Promise<{ id: s
     jahrAbHeute: a.jahrAbHeute == null ? null : aktuellesJahr + a.jahrAbHeute,
     bezeichnung: a.bezeichnung,
     betrag: a.betrag?.toNumber() ?? null,
+    alternativanlageRenditeProzent: a.alternativanlageRenditeProzent?.toNumber() ?? null,
   }));
+
+  // Vorschlag für die Alternativanlage-Rendite bei IMMOBILIE_STATT_ALTERNATIVANLAGE aus den
+  // echten, bereits besessenen Wertpapierdepots — dieselbe Herleitung wie in
+  // src/app/kaufen-oder-anlegen/page.tsx, statt einen Schätzwert neu eintippen zu lassen.
+  const besesseneWertpapiere = sparpositionenRows.wertpapiere.filter((w) => w.asset.besitzstatus === "BESITZE_ICH");
+  const renditeVorschlagProzent =
+    besesseneWertpapiere.length > 0
+      ? Math.round(
+          (besesseneWertpapiere.reduce((summe, w) => summe + w.renditeProzentJaehrlich.toNumber(), 0) / besesseneWertpapiere.length) * 10
+        ) / 10
+      : null;
 
   const updateAction = aktualisiereSzenario.bind(null, id);
 
@@ -72,6 +84,7 @@ export default async function SzenarioPage({ params }: { params: Promise<{ id: s
         sparpositionen={sparpositionen}
         maxHorizontJahre={VERMOEGENSVERLAUF_MAX_JAHRE}
         aktuellesJahr={aktuellesJahr}
+        renditeVorschlagProzent={renditeVorschlagProzent}
       />
     </div>
   );

@@ -10,6 +10,7 @@ function leereAenderung(overrides: Partial<SzenarioAenderungFormValues> = {}): S
     jahrAbHeute: null,
     bezeichnung: null,
     betrag: null,
+    alternativanlageRenditeProzent: null,
     ...overrides,
   };
 }
@@ -141,6 +142,40 @@ describe("szenarioSchema — Änderungstyp EINMALIGE_ANSCHAFFUNG", () => {
       leereAenderung({ typ: "EINMALIGE_ANSCHAFFUNG", bezeichnung: "Neues Auto", betrag: 25_000, jahrAbHeute: 3, assetId: null }),
     ]);
     expect(szenarioSchema.safeParse(values).success).toBe(true);
+  });
+});
+
+describe("szenarioSchema — Änderungstyp IMMOBILIE_STATT_ALTERNATIVANLAGE", () => {
+  it("verlangt eine assetId", () => {
+    const values = validValues([
+      leereAenderung({ typ: "IMMOBILIE_STATT_ALTERNATIVANLAGE", assetId: null, alternativanlageRenditeProzent: 6 }),
+    ]);
+    const result = szenarioSchema.safeParse(values);
+    expect(result.success).toBe(false);
+    expect(pathOf(result, "assetId")?.message).toMatch(/Objekt auswählen/);
+  });
+
+  it("verlangt eine Alternativanlage-Rendite", () => {
+    const values = validValues([
+      leereAenderung({ typ: "IMMOBILIE_STATT_ALTERNATIVANLAGE", assetId: "cmt7asset0000000000000000", alternativanlageRenditeProzent: null }),
+    ]);
+    const result = szenarioSchema.safeParse(values);
+    expect(result.success).toBe(false);
+    expect(pathOf(result, "alternativanlageRenditeProzent")?.message).toMatch(/Rendite der Alternativanlage/);
+  });
+
+  it("akzeptiert assetId und Alternativanlage-Rendite zusammen (auch 0%)", () => {
+    const values = validValues([
+      leereAenderung({ typ: "IMMOBILIE_STATT_ALTERNATIVANLAGE", assetId: "cmt7asset0000000000000000", alternativanlageRenditeProzent: 0 }),
+    ]);
+    expect(szenarioSchema.safeParse(values).success).toBe(true);
+  });
+
+  it("lehnt eine Alternativanlage-Rendite außerhalb des realistischen Bereichs ab", () => {
+    const values = validValues([
+      leereAenderung({ typ: "IMMOBILIE_STATT_ALTERNATIVANLAGE", assetId: "cmt7asset0000000000000000", alternativanlageRenditeProzent: 51 }),
+    ]);
+    expect(szenarioSchema.safeParse(values).success).toBe(false);
   });
 });
 

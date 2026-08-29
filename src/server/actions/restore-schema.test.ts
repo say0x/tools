@@ -242,7 +242,7 @@ describe("validiereBackup — Szenario-Referenzen", () => {
   it("akzeptiert eine Szenario-Änderung, die ein im Backup enthaltenes Objekt referenziert", () => {
     const result = validiereBackup(
       validBackup({
-        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "IMMOBILIE_AUFNEHMEN", assetId: "asset-objekt-1", neueSparrateMonatlich: null, jahrAbHeute: null, bezeichnung: null, betrag: null }] })],
+        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "IMMOBILIE_AUFNEHMEN", assetId: "asset-objekt-1", neueSparrateMonatlich: null, jahrAbHeute: null, bezeichnung: null, betrag: null, alternativanlageRenditeProzent: null }] })],
       })
     );
     expect(result.success).toBe(true);
@@ -251,7 +251,7 @@ describe("validiereBackup — Szenario-Referenzen", () => {
   it("akzeptiert eine Szenario-Änderung, die eine im Backup enthaltene Sparposition referenziert", () => {
     const result = validiereBackup(
       validBackup({
-        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "SPARRATE_AENDERN", assetId: "asset-sparposition-1", neueSparrateMonatlich: 200, jahrAbHeute: null, bezeichnung: null, betrag: null }] })],
+        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "SPARRATE_AENDERN", assetId: "asset-sparposition-1", neueSparrateMonatlich: 200, jahrAbHeute: null, bezeichnung: null, betrag: null, alternativanlageRenditeProzent: null }] })],
       })
     );
     expect(result.success).toBe(true);
@@ -260,7 +260,7 @@ describe("validiereBackup — Szenario-Referenzen", () => {
   it("lehnt eine Szenario-Änderung ab, die ein nicht im Backup enthaltenes Objekt/Position referenziert", () => {
     const result = validiereBackup(
       validBackup({
-        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "IMMOBILIE_AUFNEHMEN", assetId: "unbekannte-id", neueSparrateMonatlich: null, jahrAbHeute: null, bezeichnung: null, betrag: null }] })],
+        szenarien: [rawSzenario({ aenderungen: [{ id: "aenderung-1", typ: "IMMOBILIE_AUFNEHMEN", assetId: "unbekannte-id", neueSparrateMonatlich: null, jahrAbHeute: null, bezeichnung: null, betrag: null, alternativanlageRenditeProzent: null }] })],
       })
     );
     expect(result.success).toBe(false);

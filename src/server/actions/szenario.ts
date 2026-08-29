@@ -25,6 +25,7 @@ function zuAenderungData(a: SzenarioAenderungFormValues) {
     jahrAbHeute: a.jahrAbHeute,
     bezeichnung: a.bezeichnung,
     betrag: a.betrag,
+    alternativanlageRenditeProzent: a.alternativanlageRenditeProzent,
   };
 }
 

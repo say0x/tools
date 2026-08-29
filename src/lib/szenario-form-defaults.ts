@@ -17,5 +17,6 @@ export function leereSzenarioAenderung(): SzenarioAenderungFormValues {
     jahrAbHeute: null,
     bezeichnung: null,
     betrag: null,
+    alternativanlageRenditeProzent: null,
   };
 }

@@ -28,7 +28,7 @@ Kategorien: **A** Duplikat (zusammenlegen prüfen) · **B** starke Überschneidu
 | Sparziel-Rechner ↔ Finanzübersicht/Szenarien-Sparpositionen | C | Identische Engine, Sparziel ohne DB-Bezug für schnelle Was-wäre-wenn-Fragen. |
 | Kreditvergleich ↔ Immobilien-Rechner-Finanzierung | C | Identische Engine, Kreditvergleich bewusst ohne Objektbezug (z. B. Anschlussfinanzierungs-Vergleich ohne Objekt zu bearbeiten). |
 | Steuerrechner ↔ Profil-Grenzsteuersatz | C | Identische Engine, bewusst unabhängig vom hinterlegten Profil für hypothetische Einkommensfragen. |
-| Kaufen-oder-Anlegen? ↔ Szenario-System | B | Beide vergleichen Vermögensverläufe über Zeit, aber die vier Szenario-Änderungsarten können keinen echten Opportunitätskosten-Vergleich ("Kauf X *statt* Alternativanlage Y") ausdrücken. Denkbare Weiterentwicklung: ein fünfter Änderungstyp, der beides verbindet — kein akuter Bedarf, nur auf Wunsch. |
+| Kaufen-oder-Anlegen? ↔ Szenario-System | C | Beide vergleichen Vermögensverläufe über Zeit; der Änderungstyp `IMMOBILIE_STATT_ALTERNATIVANLAGE` bringt den Opportunitätskosten-Vergleich ("Kauf X *statt* Alternativanlage Y") ins Szenario-System, bewusst als eigener Typ statt Kaufen-oder-Anlegen? zu ersetzen — Kaufen-oder-Anlegen? bleibt der schnelle DB-lose Rechner ohne Szenario-Overhead. |
 | Alle übrigen Paare | D | Eigenständiger, nicht überlappender fachlicher Zweck. |
 
 Keine Kategorie-A-Duplikate im gesamten Repo gefunden.

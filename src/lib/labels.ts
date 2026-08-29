@@ -87,6 +87,7 @@ export const SZENARIO_AENDERUNG_TYP_LABELS: Record<string, string> = {
   IMMOBILIE_VERKAUFEN: "Immobilie verkaufen",
   SPARRATE_AENDERN: "Sparrate ändern",
   EINMALIGE_ANSCHAFFUNG: "Einmalige Anschaffung",
+  IMMOBILIE_STATT_ALTERNATIVANLAGE: "Immobilie kaufen (statt Alternativanlage)",
 };
 
 export const SZENARIO_AENDERUNG_TYP_HILFE: Record<string, string> = {
@@ -97,4 +98,6 @@ export const SZENARIO_AENDERUNG_TYP_HILFE: Record<string, string> = {
   SPARRATE_AENDERN: "Die monatliche Sparrate einer vorhandenen Wertpapier-/Tagesgeld-Position ändert sich ab dem Startjahr des Szenarios.",
   EINMALIGE_ANSCHAFFUNG:
     "Eine frei benannte einmalige Ausgabe (z. B. ein Auto) zu einem gewählten Jahr — reduziert das verfügbare Geld einmalig, ohne dass dafür ein eigenes Objekt angelegt werden muss.",
+  IMMOBILIE_STATT_ALTERNATIVANLAGE:
+    "Wie „Immobilie kaufen“, rechnet aber zusätzlich den Opportunitätskosten-Vergleich mit ein: das beim Kauf eingesetzte Eigenkapital wird gedanklich ab heute (nicht erst ab dem Kaufdatum) zur gewählten Rendite in eine Alternativanlage gesteckt — nur der dadurch entgangene Gewinn wird vom Immobilien-Cashflow abgezogen.",
 };

@@ -48,6 +48,7 @@ export function SzenarioClient({
   sparpositionen,
   maxHorizontJahre,
   aktuellesJahr,
+  renditeVorschlagProzent,
 }: {
   onSubmit: (values: SzenarioFormValues) => Promise<ActionResult>;
   nameInitial: string;
@@ -58,6 +59,8 @@ export function SzenarioClient({
   sparpositionen: SparpositionPosition[];
   maxHorizontJahre: number;
   aktuellesJahr: number;
+  /** Ø-Rendite der besessenen Wertpapierdepots, falls vorhanden — sonst null (Fallback: 6%). Für IMMOBILIE_STATT_ALTERNATIVANLAGE. */
+  renditeVorschlagProzent: number | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const [gespeichert, setGespeichert] = useState(false);
@@ -76,6 +79,7 @@ export function SzenarioClient({
     handleSubmit,
     setError,
     clearErrors,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<SzenarioFormValues>({
     defaultValues: { name: nameInitial, startjahr: startjahrInitial, notizen: notizenInitial, aenderungen: aenderungenInitial },
@@ -192,6 +196,43 @@ export function SzenarioClient({
           name: a.bezeichnung?.trim() || "Anschaffung",
           verlauf: berechneEinmaligeAnschaffungVerlauf({ betrag: a.betrag, jahrAbHeute: a.jahrAbHeute - aktuellesJahr }, horizontEffektiv),
         });
+      } else if (a.typ === "IMMOBILIE_STATT_ALTERNATIVANLAGE" && a.assetId && a.alternativanlageRenditeProzent != null) {
+        const imm = immobilien.find((i) => i.assetId === a.assetId);
+        if (imm) {
+          betroffeneIds.push(imm.assetId);
+          const immobilienVerlauf = berechneImmobilienCashflowverlauf(
+            {
+              cashflowNachSteuerProJahrSeitKauf: imm.cashflowNachSteuerProJahrSeitKauf,
+              jahreSeitKauf: imm.jahreSeitKauf,
+              eigenkapitalEinsatzBeiKauf: imm.eigenkapitalEinsatzBeiKauf,
+            },
+            horizontEffektiv
+          );
+          // Alternativanlage wächst ab HEUTE (nicht erst ab dem Kaufdatum) mit der gewählten
+          // Rendite — dieselbe Modellierung wie in Kaufen-oder-Anlegen?. Nur der dadurch
+          // entgangene GEWINN (Verlauf abzüglich des eingesetzten Betrags selbst) wird
+          // gegengerechnet: der Betrag selbst steckt schon als Abfluss im Immobilien-Cashflow
+          // oben, ein Abzug des vollen Alternativanlage-Verlaufs würde ihn doppelt abziehen.
+          // Bei 0% Alternativanlage-Rendite ist der entgangene Gewinn 0 — das Ergebnis ist dann
+          // identisch zu IMMOBILIE_AUFNEHMEN ohne Vergleich, wie es sein muss.
+          const alternativanlageVerlauf = berechneSparpositionsverlauf(
+            {
+              betrag: imm.eigenkapitalEinsatzBeiKauf,
+              renditeProzentJaehrlich: a.alternativanlageRenditeProzent,
+              sparplanBetragMonatlich: 0,
+              sparplanSteigerungProzentJaehrlich: 0,
+            },
+            horizontEffektiv
+          );
+          const nettoVerlauf = immobilienVerlauf.map(
+            (wert, i) => Math.round((wert - (alternativanlageVerlauf[i] - imm.eigenkapitalEinsatzBeiKauf)) * 100) / 100
+          );
+          mitSzenario.set(imm.assetId, {
+            id: imm.assetId,
+            name: `${imm.name} (statt Alternativanlage)`,
+            verlauf: nettoVerlauf,
+          });
+        }
       }
     });
 
@@ -216,7 +257,7 @@ export function SzenarioClient({
       if (imm.besitzstatus === "BESITZE_ICH") immobilienImSzenario.set(imm.assetId, imm);
     }
     aenderungenWatched.forEach((a) => {
-      if (a?.typ === "IMMOBILIE_AUFNEHMEN" && a.assetId) {
+      if ((a?.typ === "IMMOBILIE_AUFNEHMEN" || a?.typ === "IMMOBILIE_STATT_ALTERNATIVANLAGE") && a.assetId) {
         const imm = immobilien.find((i) => i.assetId === a.assetId);
         if (imm) immobilienImSzenario.set(imm.assetId, imm);
       }
@@ -350,7 +391,21 @@ export function SzenarioClient({
                 <div key={field.id} className="rounded-md border border-slate-800 p-3">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <label className="flex flex-1 items-center gap-2 text-sm text-slate-300">
-                      <Select {...register(`aenderungen.${index}.typ` as const)} className="max-w-xs">
+                      <Select
+                        {...register(`aenderungen.${index}.typ` as const, {
+                          onChange: (e) => {
+                            // Rendite-Vorschlag wirklich eintragen, nicht nur im Hint-Text
+                            // versprechen (der Nutzer soll ihn direkt sehen und ggf. anpassen).
+                            if (
+                              e.target.value === "IMMOBILIE_STATT_ALTERNATIVANLAGE" &&
+                              watched.aenderungen?.[index]?.alternativanlageRenditeProzent == null
+                            ) {
+                              setValue(`aenderungen.${index}.alternativanlageRenditeProzent`, renditeVorschlagProzent ?? 6);
+                            }
+                          },
+                        })}
+                        className="max-w-xs"
+                      >
                         {SZENARIO_AENDERUNG_TYPEN.map((t) => (
                           <option key={t} value={t}>
                             {SZENARIO_AENDERUNG_TYP_LABELS[t]}
@@ -442,6 +497,41 @@ export function SzenarioClient({
                       </Field>
                       <Field label="Jahr" error={errors.aenderungen?.[index]?.jahrAbHeute?.message}>
                         <Input type="number" {...register(`aenderungen.${index}.jahrAbHeute` as const, { valueAsNumber: true })} />
+                      </Field>
+                    </div>
+                  )}
+
+                  {typ === "IMMOBILIE_STATT_ALTERNATIVANLAGE" && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <Field label="Immobilie" error={errors.aenderungen?.[index]?.assetId?.message}>
+                        <Select {...register(`aenderungen.${index}.assetId` as const)}>
+                          <option value="">— auswählen —</option>
+                          {immobilienZumAufnehmen.map((imm) => (
+                            <option key={imm.assetId} value={imm.assetId}>
+                              {imm.name} ({formatEuro(imm.kaufpreis)})
+                            </option>
+                          ))}
+                        </Select>
+                        {immobilienZumAufnehmen.length === 0 && (
+                          <p className="mt-1 text-xs text-slate-400">
+                            Keine Immobilie mit Status „Potenzielle Anschaffung“ oder „Spekulation“ vorhanden.
+                          </p>
+                        )}
+                      </Field>
+                      <Field
+                        label="Erwartete Rendite Alternativanlage (%/Jahr)"
+                        error={errors.aenderungen?.[index]?.alternativanlageRenditeProzent?.message}
+                        hint={
+                          renditeVorschlagProzent != null
+                            ? `Vorbelegt mit der Ø-Rendite deiner besessenen Wertpapierdepots (${renditeVorschlagProzent}%) — frei änderbar.`
+                            : "z. B. ein breit gestreutes ETF-Depot"
+                        }
+                      >
+                        <Input
+                          type="number"
+                          step="any"
+                          {...register(`aenderungen.${index}.alternativanlageRenditeProzent` as const, { valueAsNumber: true })}
+                        />
                       </Field>
                     </div>
                   )}
