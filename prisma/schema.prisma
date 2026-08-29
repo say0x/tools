@@ -504,6 +504,11 @@ enum SzenarioAenderungTyp {
   SPARRATE_AENDERN
   /// Frei benannte einmalige Ausgabe zu einem gewählten Jahr (z. B. Autokauf) — reduziert das verfügbare Geld einmalig, ohne dass dafür ein eigenes Asset/Tool nötig ist.
   EINMALIGE_ANSCHAFFUNG
+  /// Wie IMMOBILIE_AUFNEHMEN, rechnet aber zusätzlich den Opportunitätskosten-Vergleich gegen eine Alternativanlage
+  /// mit ein: das beim Kauf eingesetzte Eigenkapital wird stattdessen ab heute (nicht erst ab dem Kaufdatum) zu
+  /// alternativanlageRenditeProzent verzinst gedacht, und nur der dadurch entgangene Gewinn (nicht der volle
+  /// Alternativanlage-Betrag, der wäre sonst doppelt abgezogen) wird vom Immobilien-Cashflow abgezogen.
+  IMMOBILIE_STATT_ALTERNATIVANLAGE
 }
 
 model Szenario {
@@ -540,6 +545,9 @@ model SzenarioAenderung {
   /// EINMALIGE_ANSCHAFFUNG: Bezeichnung (z. B. "Auto") und Betrag.
   bezeichnung String?
   betrag      Decimal? @db.Decimal(14, 2)
+
+  /// IMMOBILIE_STATT_ALTERNATIVANLAGE: erwartete jährliche Rendite (%) der Alternativanlage, gegen die das beim Kauf eingesetzte Eigenkapital verglichen wird.
+  alternativanlageRenditeProzent Decimal? @db.Decimal(7, 4)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

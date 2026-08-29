@@ -180,6 +180,7 @@ const rawAenderungSchema = z.object({
   jahrAbHeute: z.number().nullable(),
   bezeichnung: z.string().nullable(),
   betrag: decimalNullable,
+  alternativanlageRenditeProzent: decimalNullable,
 });
 
 const rawSzenarioSchema = z.object({
@@ -336,6 +337,7 @@ function zuSzenarioFormValues(raw: RawSzenario): SzenarioFormValues {
       jahrAbHeute: a.jahrAbHeute,
       bezeichnung: a.bezeichnung,
       betrag: a.betrag,
+      alternativanlageRenditeProzent: a.alternativanlageRenditeProzent,
     })),
   };
 }

@@ -48,7 +48,7 @@ Jede Wertpapier-/Tagesgeld-Position wächst unterjährig (monatliche Verzinsung,
 
 ## Szenarien (`/szenarien`)
 
-Ein Szenario ist **Basiszustand** (alle Assets mit Status `BESITZE_ICH`, unverändert aus der DB) + eine Liste von **Änderungen**, die NUR zur Laufzeit im Browser auf eine Kopie der Inputs angewendet werden — Speichern eines Szenarios verändert niemals `Property`/`Wertpapierposition`/`Tagesgeldkonto`. Vier Änderungsarten (`src/server/actions/szenario-schema.ts`):
+Ein Szenario ist **Basiszustand** (alle Assets mit Status `BESITZE_ICH`, unverändert aus der DB) + eine Liste von **Änderungen**, die NUR zur Laufzeit im Browser auf eine Kopie der Inputs angewendet werden — Speichern eines Szenarios verändert niemals `Property`/`Wertpapierposition`/`Tagesgeldkonto`. Fünf Änderungsarten (`src/server/actions/szenario-schema.ts`):
 
 | Typ | Effekt |
 |---|---|
@@ -56,6 +56,7 @@ Ein Szenario ist **Basiszustand** (alle Assets mit Status `BESITZE_ICH`, unverä
 | `IMMOBILIE_VERKAUFEN` | Cashflow einer besessenen Immobilie endet ab einem gewählten Jahr, der heutige Marktwert fließt als einmaliger Verkaufserlös zu — Restschuld-Ablösung und Steuern beim Verkauf sind dabei nicht eingerechnet. |
 | `SPARRATE_AENDERN` | Monatliche Sparrate einer Wertpapier-/Tagesgeld-Position springt ab dem Szenario-Startjahr auf einen neuen Betrag, die reguläre jährliche Steigerung läuft ab dann auf Basis der neuen Rate weiter. |
 | `EINMALIGE_ANSCHAFFUNG` | Frei benannte einmalige Ausgabe zu einem Jahr, z. B. ein Autokauf — bewusst ohne eigenes Fahrzeug-Tool, da der Betrag danach nicht weiterverfolgt werden muss. |
+| `IMMOBILIE_STATT_ALTERNATIVANLAGE` | Wie `IMMOBILIE_AUFNEHMEN`, rechnet aber zusätzlich den entgangenen Gewinn einer Alternativanlage (frei wählbare Rendite, vorbelegt mit der Ø-Rendite der besessenen Wertpapierdepots) gegen — der Verlauf des Objekts wird um den Gewinn (nicht den vollen Verlauf) der Alternativanlage auf den eingesetzten EK-Betrag reduziert, die Alternativanlage wächst dabei ab heute statt erst ab dem Kaufdatum. Bei 0% Rendite identisch zu `IMMOBILIE_AUFNEHMEN`. |
 
 Betreffen mehrere Änderungen dasselbe Asset, gewinnt die letzte in der Liste — die UI weist mit einem Hinweis darauf hin, statt die Änderungen stillschweigend zu kombinieren. "Immobilienpreise steigen jährlich um X%" (eine globale Wertsteigerungs-Annahme statt einer Asset-bezogenen Änderung) ist aktuell keine eigene Änderungsart, da Wertsteigerung ohne einen geplanten Verkauf ohnehin keinen Effekt auf den Cashflow hat.
 
@@ -63,7 +64,7 @@ Der Vergleichs-Chart (`SzenarioVergleichChart.tsx`) rechnet ausschließlich nomi
 
 ### Immobilienwert-Referenzlinie im Szenario-Vergleich
 
-Enthält das Szenario mindestens eine Immobilie (Basiszustand-Objekt und/oder per `IMMOBILIE_AUFNEHMEN` hinzugefügt), zeigt der Chart zusätzlich eine dritte, gepunktete Linie "Immobilienwert (Referenz, im Szenario)":
+Enthält das Szenario mindestens eine Immobilie (Basiszustand-Objekt und/oder per `IMMOBILIE_AUFNEHMEN`/`IMMOBILIE_STATT_ALTERNATIVANLAGE` hinzugefügt), zeigt der Chart zusätzlich eine dritte, gepunktete Linie "Immobilienwert (Referenz, im Szenario)":
 
 - Berechnung: summierter EK-Anteil-Verlauf (`berechneImmobilienEigenkapitalverlauf`) aller im "mit Szenario"-Zustand vorhandenen Immobilien, in `SzenarioClient.tsx`.
 - Nach einem `IMMOBILIE_VERKAUFEN` im Szenario zählt der Wert des verkauften Objekts ab dem Verkaufsjahr nicht mehr mit (der Erlös steckt bereits im Cashflow).
