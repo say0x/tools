@@ -276,11 +276,11 @@ model PropertyFinancing {
   zinsbindungJahre               Int   @default(10)
   finanzierungsart                Finanzierungsart @default(FINANZIERUNG_110)
   eigenkapitalquoteManuellProzent Decimal? @db.Decimal(7, 4)
-  /// Anschlussfinanzierung nach Ablauf der Zinsbindung: der neue Zinssatz wird
-  /// als (zinssatzProzent + anschlusszinsAufschlagProzent) angenommen, ab da mit
-  /// gleichem Tilgungssatz neu auf die dann aktuelle Restschuld berechnet.
-  /// Bewusste Vereinfachung: nur EIN Zinssprung wird simuliert, keine
-  /// wiederkehrende Anschlussfinanzierung bei mehrfachem Zinsbindungsablauf.
+  /// Anschlussfinanzierung nach jedem Ablauf der Zinsbindung: der neue Zinssatz
+  /// wird als (zuletzt gültiger Zins + anschlusszinsAufschlagProzent) angenommen,
+  /// ab da mit gleichem Tilgungssatz neu auf die dann aktuelle Restschuld berechnet.
+  /// Läuft die Zinsbindung im Betrachtungszeitraum mehrfach ab, wird dieser
+  /// Aufschlag bei jeder Anschlussfinanzierung erneut angewandt (kumulativ).
   anschlusszinsAufschlagProzent  Decimal @default(1) @db.Decimal(7, 4)
   /// Geplante jährliche Sondertilgung, in % der ursprünglichen Darlehenssumme
   /// (nicht der jeweils aktuellen Restschuld — entspricht der üblichen

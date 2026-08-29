@@ -2,12 +2,12 @@ import { VERMOEGENSVERLAUF_MAX_JAHRE } from "../constants";
 import type { TilgungsplanJahr } from "../types";
 
 /**
- * Annuitätendarlehen, Jahresraster. Nach Ablauf der Zinsbindung (zinsbindungJahre)
- * wird EINMALIG eine Anschlussfinanzierung simuliert: neuer Zins = zinssatzProzent
- * + anschlusszinsAufschlagProzent, die Annuität wird mit gleichem Tilgungssatz auf
- * die dann aktuelle Restschuld neu berechnet. Vereinfachende Annahme: nur dieser
- * eine Zinssprung wird abgebildet, keine wiederkehrende Anschlussfinanzierung bei
- * mehrfachem Zinsbindungsablauf innerhalb des Betrachtungszeitraums.
+ * Annuitätendarlehen, Jahresraster. Nach jedem Ablauf der Zinsbindung (zinsbindungJahre,
+ * 2×zinsbindungJahre, 3×zinsbindungJahre, …) wird eine Anschlussfinanzierung simuliert:
+ * der Zins steigt gegenüber dem zuletzt gültigen Zins erneut um anschlusszinsAufschlagProzent
+ * (kumulativ über mehrere Zinsbindungsabläufe hinweg — dieselbe "künftiger Zins unbekannt,
+ * X Prozentpunkte mehr"-Annahme wird bei jeder Anschlussfinanzierung erneut angewandt), die
+ * Annuität wird mit gleichem Tilgungssatz auf die dann aktuelle Restschuld neu berechnet.
  *
  * Zusätzlich kann eine jährliche Sondertilgung angesetzt werden: ein fester
  * Betrag (sondertilgungProzent % der URSPRÜNGLICHEN Darlehenssumme — die
@@ -41,11 +41,21 @@ export function berechneTilgungsplan(
   let annuitaet = darlehenssummeEuro * ((zinssatzProzent + anfaenglicheTilgungProzent) / 100);
 
   for (let jahr = 1; jahr <= horizontJahre && restschuld > 0.01; jahr++) {
+    // Zinsbindungsablauf: jahr = zinsbindungJahre+1, dann erneut alle zinsbindungJahre
+    // Jahre danach (2×+1, 3×+1, …). Number.isFinite schließt den Default Infinity aus,
+    // ohne den (jahr - zinsbindungJahre - 1) % zinsbindungJahre-Ausdruck mit Infinity
+    // auszuwerten (JS-Modulo mit Infinity wäre zwar wohldefiniert, aber unnötig fragil).
+    const istZinsbindungsablauf =
+      Number.isFinite(zinsbindungJahre) &&
+      zinsbindungJahre > 0 &&
+      jahr > zinsbindungJahre &&
+      (jahr - zinsbindungJahre - 1) % zinsbindungJahre === 0;
+
     // Annuität nur neu ansetzen, wenn sich der Zins tatsächlich ändert — bei
     // Aufschlag 0 bleibt der Tilgungsplan sonst identisch zum durchgehenden
     // Darlehen (kein künstlicher Knick durch bloßes Neu-Ansetzen der Formel).
-    if (jahr === zinsbindungJahre + 1 && anschlusszinsAufschlagProzent !== 0) {
-      zinssatzAktuell = zinssatzProzent + anschlusszinsAufschlagProzent;
+    if (istZinsbindungsablauf && anschlusszinsAufschlagProzent !== 0) {
+      zinssatzAktuell = zinssatzAktuell + anschlusszinsAufschlagProzent;
       annuitaet = restschuld * ((zinssatzAktuell + anfaenglicheTilgungProzent) / 100);
     }
 

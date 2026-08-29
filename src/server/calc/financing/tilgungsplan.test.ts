@@ -30,7 +30,7 @@ describe("berechneTilgungsplan", () => {
 
   describe("Anschlussfinanzierung nach Ablauf der Zinsbindung", () => {
     it("hebt den Zins ab dem Jahr nach Zinsbindungsende um den Aufschlag an und setzt die Annuität auf Basis der dann aktuellen Restschuld neu an", () => {
-      const plan = berechneTilgungsplan(100000, 4, 2, 3, 1, 2);
+      const plan = berechneTilgungsplan(100000, 4, 2, 2, 1, 2);
 
       // Jahr 1 (innerhalb Zinsbindung): unverändert wie ohne Anschlussfinanzierung.
       expect(plan[0]).toEqual({ jahr: 1, restschuldStart: 100000, zinszahlung: 4000, tilgungszahlung: 2000, restschuldEnde: 98000, zinssatzProzent: 4, sondertilgungBetrag: 0 });
@@ -38,9 +38,6 @@ describe("berechneTilgungsplan", () => {
       // Jahr 2: Zinsbindung abgelaufen (zinsbindungJahre=1) -> neuer Zins 4+2=6%,
       // neue Annuität = 98000 * (6+2)/100 = 7840.
       expect(plan[1]).toEqual({ jahr: 2, restschuldStart: 98000, zinszahlung: 5880, tilgungszahlung: 1960, restschuldEnde: 96040, zinssatzProzent: 6, sondertilgungBetrag: 0 });
-
-      // Jahr 3: bleibt beim neuen Zins/der neuen Annuität (nur EIN Zinssprung simuliert).
-      expect(plan[2]).toEqual({ jahr: 3, restschuldStart: 96040, zinszahlung: 5762.4, tilgungszahlung: 2077.6, restschuldEnde: 93962.4, zinssatzProzent: 6, sondertilgungBetrag: 0 });
     });
 
     it("verändert bei Aufschlag 0 den Tilgungsplan nicht gegenüber einem durchgehenden Darlehen ohne Anschlussfinanzierung", () => {
@@ -49,10 +46,22 @@ describe("berechneTilgungsplan", () => {
       expect(mitZinsbindung).toEqual(ohneZinsbindung);
     });
 
-    it("simuliert nur einen einzigen Zinssprung, auch wenn die Zinsbindung mehrfach in den Horizont passen würde", () => {
+    it("simuliert bei mehrfachem Zinsbindungsablauf innerhalb des Betrachtungszeitraums mehrere aufeinanderfolgende Zinssprünge (kumulativer Aufschlag)", () => {
+      // Zinsbindung nur 1 Jahr -> jedes Jahr ab Jahr 2 ein neuer Sprung um +2 Punkte
+      // gegenüber dem zuletzt gültigen Zins: 4 -> 6 -> 8 -> 10.
       const plan = berechneTilgungsplan(100000, 4, 2, 4, 1, 2);
-      // Jahre 2-4 bleiben alle beim einmalig gesetzten Anschlusszins von 6%.
-      expect(plan.slice(1).every((j) => j.zinssatzProzent === 6)).toBe(true);
+      expect(plan.map((j) => j.zinssatzProzent)).toEqual([4, 6, 8, 10]);
+    });
+
+    it("löst eine Anschlussfinanzierung nur bei tatsächlichem Ablauf der (mehrjährigen) Zinsbindung aus, nicht in jedem Jahr dazwischen", () => {
+      // Zinsbindung 2 Jahre -> Sprünge erst nach Jahr 2 und nach Jahr 4, nicht dazwischen.
+      const plan = berechneTilgungsplan(100000, 4, 2, 6, 2, 1);
+      expect(plan.map((j) => j.zinssatzProzent)).toEqual([4, 4, 5, 5, 6, 6]);
+    });
+
+    it("löst innerhalb der ersten Zinsbindung noch keine Anschlussfinanzierung aus, wenn der Horizont die zweite Zinsbindungsperiode nicht mehr erreicht", () => {
+      const plan = berechneTilgungsplan(100000, 4, 2, 3, 5, 2);
+      expect(plan.map((j) => j.zinssatzProzent)).toEqual([4, 4, 4]);
     });
   });
 
