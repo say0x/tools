@@ -8,7 +8,7 @@ Referenz für die freistehenden Zusatz-Tools sowie Dashboard und Daten-Backup. A
 - Nutzt direkt `berechneSparpositionsverlauf` (`src/server/calc/rendite/portfolioverlauf.ts`) — dieselbe Formel wie in Finanzübersicht/Szenarien, nur ohne Persistenz.
 - Gibt Kapital nach 10/20 Jahren sowie das erste Jahr aus, in dem ein frei wählbarer Zielbetrag erreicht wird (`findeJahrBisZielbetrag`, `src/server/calc/rendite/sparziel.ts`).
 - Horizont ist auf 40 Jahre begrenzt, danach heißt es "nicht in 40 Jahren" statt zu extrapolieren.
-- Gleiche Vereinfachung wie die Sparpositionen in der Finanzübersicht: Sparrate wird jährlich am Jahresanfang gutgeschrieben (kein unterjähriger Zinseszins), Rendite bleibt über den gesamten Zeitraum konstant.
+- Gleiche Rechenlogik wie die Sparpositionen in der Finanzübersicht: unterjähriger Zinseszins (monatliche Verzinsung + monatliche Sparrate), Rendite bleibt über den gesamten Zeitraum konstant.
 
 ## Steuerrechner (`/steuerrechner`)
 

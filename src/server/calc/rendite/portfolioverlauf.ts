@@ -21,11 +21,17 @@ export interface SparratenAenderung {
 
 /**
  * Jahresreihe für eine einzelne Wertpapier-/Tagesgeld-Position, ab heute
- * (Index 0 = aktueller Betrag). Vereinfachung: Sparplanraten werden jährlich
- * am Jahresanfang gutgeschrieben und wachsen dann mit der Position mit
- * (keine unterjährige/monatliche Verzinsung). Optional lässt sich (fürs
- * Szenario-System) ein einmaliger Sprung der Sparrate ab einem Jahr angeben —
- * die reguläre jährliche Steigerung läuft ab dann auf Basis der neuen Rate weiter.
+ * (Index 0 = aktueller Betrag). Verzinst unterjährig: der Jahreszins wird auf
+ * einen effektiven Monatszins umgerechnet ((1+rendite)^(1/12)-1, nicht einfach
+ * /12 — sonst käme über 12 Monate weniger als der angegebene Jahreszins
+ * heraus), und die monatliche Sparrate wird jeden Monat einzeln verzinst statt
+ * einmal jährlich gesammelt gutgeschrieben zu werden. Näher an der Realität
+ * (Sparpläne laufen monatlich), aber bei üblichen Sparraten nur ein kleiner
+ * Unterschied zur vorherigen jährlichen Vereinfachung. Optional lässt sich
+ * (fürs Szenario-System) ein einmaliger Sprung der Sparrate ab einem Jahr
+ * angeben — die reguläre jährliche Steigerung läuft ab dann auf Basis der
+ * neuen Rate weiter, greift aber weiterhin erst zum jeweiligen Jahreswechsel
+ * (keine unterjährige Sparraten-Steigerung).
  */
 export function berechneSparpositionsverlauf(
   input: SparpositionVerlaufInput,
@@ -34,7 +40,8 @@ export function berechneSparpositionsverlauf(
 ): number[] {
   const reihe: number[] = [round2(input.betrag)];
   let saldo = input.betrag;
-  let sparrateJaehrlich = input.sparplanBetragMonatlich * 12;
+  let sparrateMonatlich = input.sparplanBetragMonatlich;
+  const monatsrendite = Math.pow(1 + input.renditeProzentJaehrlich / 100, 1 / 12) - 1;
   // abJahr ist laut Vertrag 1-basiert, kann aber 0 oder negativ hereinkommen (Szenario-
   // Startjahr = aktuelles Jahr oder in der Vergangenheit) — ohne diese Klemmung würde
   // "jahr === abJahr" nie zutreffen (die Schleife startet bei 1) und die neue Sparrate
@@ -43,11 +50,13 @@ export function berechneSparpositionsverlauf(
 
   for (let jahr = 1; jahr <= horizontJahre; jahr++) {
     if (sparratenAenderung && jahr === effektivesAbJahr) {
-      sparrateJaehrlich = sparratenAenderung.neueSparrateMonatlich * 12;
+      sparrateMonatlich = sparratenAenderung.neueSparrateMonatlich;
     }
-    saldo = saldo * (1 + input.renditeProzentJaehrlich / 100) + sparrateJaehrlich;
+    for (let monat = 0; monat < 12; monat++) {
+      saldo = saldo * (1 + monatsrendite) + sparrateMonatlich;
+    }
     reihe.push(round2(saldo));
-    sparrateJaehrlich = sparrateJaehrlich * (1 + input.sparplanSteigerungProzentJaehrlich / 100);
+    sparrateMonatlich = sparrateMonatlich * (1 + input.sparplanSteigerungProzentJaehrlich / 100);
   }
 
   return reihe;

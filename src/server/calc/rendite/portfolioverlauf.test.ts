@@ -9,7 +9,11 @@ import {
 } from "./portfolioverlauf";
 
 describe("berechneSparpositionsverlauf", () => {
-  it("verzinst einen Einmalbetrag ohne Sparplan jährlich mit Zinseszins", () => {
+  it("verzinst einen Einmalbetrag ohne Sparplan mit demselben Jahresendstand wie reine jährliche Verzinsung", () => {
+    // Ohne Sparplan macht es keinen Unterschied, ob man einmal jährlich oder monatlich mit dem
+    // daraus hergeleiteten effektiven Monatszins verzinst — der Jahresendstand ist identisch.
+    // Damit wird hier implizit auch geprüft, dass (1+rendite)^(1/12) tatsächlich der korrekte
+    // "12. Wurzel"-Monatszins ist und nicht z.B. eine einfache Division durch 12.
     const reihe = berechneSparpositionsverlauf(
       { betrag: 10000, renditeProzentJaehrlich: 10, sparplanBetragMonatlich: 0, sparplanSteigerungProzentJaehrlich: 0 },
       3
@@ -17,15 +21,26 @@ describe("berechneSparpositionsverlauf", () => {
     expect(reihe).toEqual([10000, 11000, 12100, 13310]);
   });
 
-  it("addiert den jährlichen Sparplanbetrag nach der Verzinsung des laufenden Saldos", () => {
+  it("verzinst die monatliche Sparrate unterjährig, statt sie erst am Jahresende ungeachtet des Einzahlungszeitpunkts gutzuschreiben", () => {
     const reihe = berechneSparpositionsverlauf(
       { betrag: 1000, renditeProzentJaehrlich: 5, sparplanBetragMonatlich: 100, sparplanSteigerungProzentJaehrlich: 0 },
       2
     );
-    // Jahr 1: 1000*1.05 + 1200 = 2250
-    expect(reihe[1]).toBe(2250);
-    // Jahr 2: 2250*1.05 + 1200 = 3562.5
-    expect(reihe[2]).toBe(3562.5);
+    // Jeder der 12 Monatsbeiträge verzinst sich anteilig mit — mehr als bei rein jährlicher
+    // Verzinsung (dort: 1000*1.05+1200=2250 bzw. 2250*1.05+1200=3562.5), da die früh im Jahr
+    // eingezahlten Monatsraten bereits einen Teil des Jahres mitwachsen.
+    expect(reihe[1]).toBeCloseTo(2277.26, 2);
+    expect(reihe[1]).toBeGreaterThan(2250);
+    expect(reihe[2]).toBeCloseTo(3618.38, 2);
+    expect(reihe[2]).toBeGreaterThan(3562.5);
+  });
+
+  it("bleibt bei 0% Rendite unverändert zur reinen Summe der Sparraten (Verzinsungs-Timing ist bei 0% Zins irrelevant)", () => {
+    const reihe = berechneSparpositionsverlauf(
+      { betrag: 0, renditeProzentJaehrlich: 0, sparplanBetragMonatlich: 500, sparplanSteigerungProzentJaehrlich: 0 },
+      2
+    );
+    expect(reihe).toEqual([0, 6000, 12000]);
   });
 
   it("lässt die jährliche Sparrate mit sparplanSteigerungProzentJaehrlich wachsen", () => {

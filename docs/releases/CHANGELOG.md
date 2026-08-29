@@ -64,6 +64,7 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - Dashboard: Netto-Vermögen neben der Brutto-Referenzgröße gezeigt (#77)
 - Tilgungsplan: wiederkehrende statt nur einmaliger Anschlussfinanzierung simuliert (#78)
 - Daten-Backup: Wiedereinspiel-Mechanismus für den JSON-Export ergänzt (voller Ersatz, Vorschau + Freitext-Bestätigung) (#79)
+- Sparpositionen (Finanzübersicht, Szenarien, Sparziel-Rechner): unterjähriger statt jährlicher Zinseszins (#80)
 
 ## [0.1.0] — 2026-08-23
 
