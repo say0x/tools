@@ -2,9 +2,9 @@
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/). Nur fachlich relevante Änderungen — nicht jeder Commit. Vollständige Historie: `git log`.
 
-## [0.2.0] — 2026-08-23 bis 2026-08-28
+## [0.2.0] — 2026-08-23 bis 2026-08-29
 
-Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eigenen Changelog-Eintrag, und die folgenden 49 PRs (drei vollständige Audit-Serien: Tool-Audits je Rechner, Produkt-/UX-Audits je Rechner, Backend-/DB-Audit) blieben ebenfalls uneinsortiert. Dieser Eintrag holt das nach — chronologisch, nur PR-Titel, keine rückwirkend erfundene Detailtiefe (siehe Prinzip unten unter "Vor diesem Changelog").
+Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eigenen Changelog-Eintrag, und die folgenden 49 PRs (drei vollständige Audit-Serien: Tool-Audits je Rechner, Produkt-/UX-Audits je Rechner, Backend-/DB-Audit) blieben ebenfalls uneinsortiert. Dieser Eintrag holt das nach — chronologisch, nur PR-Titel, keine rückwirkend erfundene Detailtiefe (siehe Prinzip unten unter "Vor diesem Changelog"). #72–#76 fehlten trotz der mit #75/#76 eingeführten Pflicht-Regel ebenfalls noch (siehe [Audit-Log](../qa/audit-log.md)) — hier nachgetragen, statt die Lücke ein zweites Mal stehen zu lassen.
 
 - Doku-Vollausbau: ADRs, Ökosystem-Doku, Versionierung, Changelog (#22)
 - Dokumentationslücken geschlossen (PropertyForm-UI, Profil-Tool, form-errors.ts) (#23)
@@ -56,6 +56,13 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - Performance-Audit, Multi-Browser-E2E und DB-Backup/Restore ergänzt (#69)
 - fix: Server Actions geben `ActionResult` zurück statt Fehler zu werfen (ADR-0008) (#70)
 - Security: HTTP-Security-Header (CSP, X-Frame-Options, u. a.) ergänzt (#71)
+- QS: Test-Coverage gemessen, echte Lücke in server/data/ geschlossen (#72)
+- Type-Safety-Audit dokumentiert — keine Funde (#73)
+- Dead-Code-Sweep — verifizierte tote Exports und Dependencies entfernt (#74)
+- Docs-Aktualitäts-Sweep — CHANGELOG-Lücke, Zahlen- und Link-Drift behoben (#75)
+- Projekt-Governance: Audit-Log, Workflow-Doku, Guardrail-Skripte (#76)
+- Dashboard: Netto-Vermögen neben der Brutto-Referenzgröße gezeigt (#77)
+- Tilgungsplan: wiederkehrende statt nur einmaliger Anschlussfinanzierung simuliert (#78)
 
 ## [0.1.0] — 2026-08-23
 
