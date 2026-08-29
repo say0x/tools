@@ -371,9 +371,9 @@ export function FinanzuebersichtClient({
             </Button>
           </div>
           <p className="mb-4 text-xs text-slate-400">
-            Jede Position verzinst sich automatisch jährlich mit ihrer eigenen Rendite/Zins (Zinseszins) — plus dem
-            optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten Steigerung wächst. Nur
-            Positionen mit Status „Besitze ich&quot; zählen in die Finanzübersicht-Summe.
+            Jede Position verzinst sich automatisch unterjährig mit ihrer eigenen Rendite/Zins (monatlicher
+            Zinseszins) — plus dem optionalen Sparplan, der ebenfalls automatisch jedes Jahr mit der hinterlegten
+            Steigerung wächst. Nur Positionen mit Status „Besitze ich&quot; zählen in die Finanzübersicht-Summe.
           </p>
 
           {fields.length === 0 && (

@@ -117,8 +117,8 @@ export function SparzielClient() {
           </ResponsiveContainer>
         </div>
         <p className="mt-2 text-xs text-slate-400">
-          Vereinfachung: Sparrate wird jährlich am Jahresanfang gutgeschrieben (keine unterjährige Verzinsung), Rendite konstant über
-          den gesamten Zeitraum — reale Kapitalmarktrenditen schwanken.
+          Verzinst unterjährig (monatliche Sparrate, monatlicher Zinseszins), Rendite konstant über den gesamten
+          Zeitraum — reale Kapitalmarktrenditen schwanken.
         </p>
       </Card>
     </div>

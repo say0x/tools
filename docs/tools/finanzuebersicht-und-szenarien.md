@@ -44,7 +44,7 @@ Das Kaufdatum einer Immobilie ist frei editierbar (Default: heute) und darf auch
 
 ## Finanzübersicht (`/finanzuebersicht`)
 
-Jede Wertpapier-/Tagesgeld-Position wächst jährlich (kein unterjähriger Zinseszins) mit ihrer eigenen Rendite/Zins plus einem optionalen, jährlich wachsenden Sparplan; die reale Linie rechnet mit einer frei konfigurierbaren Inflationsrate ab (kein separat modelliertes CPI). Gehalt und Gehaltssteigerung sind rein informativ (Kontext-Anzeige + Vorschlagswert für neue Sparplan-Steigerungen) und fließen nicht automatisch in die Sparraten ein — diese werden bewusst als feste €-Beträge je Position hinterlegt.
+Jede Wertpapier-/Tagesgeld-Position wächst unterjährig (monatliche Verzinsung, effektiver Monatszins aus der Jahresrendite hergeleitet) mit ihrer eigenen Rendite/Zins plus einem monatlichen Sparplan, der einmal pro Jahr um einen konfigurierbaren Prozentsatz steigt (die Steigerung selbst greift nur zum Jahreswechsel, nicht unterjährig); die reale Linie rechnet mit einer frei konfigurierbaren Inflationsrate ab (kein separat modelliertes CPI). Gehalt und Gehaltssteigerung sind rein informativ (Kontext-Anzeige + Vorschlagswert für neue Sparplan-Steigerungen) und fließen nicht automatisch in die Sparraten ein — diese werden bewusst als feste €-Beträge je Position hinterlegt.
 
 ## Szenarien (`/szenarien`)
 
