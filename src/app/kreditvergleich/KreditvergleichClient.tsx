@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Button } from "@/components/ui/Button";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
@@ -44,11 +45,41 @@ const STANDARD_KREDITE: KreditInput[] = [
   },
 ];
 
+// Ab dem 27. Angebot (Z) wird auf "Angebot 27" o. ä. umgestellt statt mit einem
+// zweiten Buchstaben weiterzuzählen — für einen Vergleichsrechner ein Randfall,
+// der keine eigene AA/AB/...-Logik rechtfertigt.
+function naechsterKreditname(anzahlBestehend: number): string {
+  const buchstabe = String.fromCharCode(65 + anzahlBestehend);
+  return anzahlBestehend < 26 ? `Angebot ${buchstabe}` : `Angebot ${anzahlBestehend + 1}`;
+}
+
+function leererKredit(anzahlBestehend: number): KreditInput {
+  return {
+    name: naechsterKreditname(anzahlBestehend),
+    darlehenssummeEuro: 300000,
+    zinssatzProzent: 3.5,
+    anfaenglicheTilgungProzent: 2,
+    zinsbindungJahre: 10,
+    anschlusszinsAufschlagProzent: 1,
+    sondertilgungProzent: 0,
+  };
+}
+
 export function KreditvergleichClient() {
   const [kredite, setKredite] = useState<KreditInput[]>(STANDARD_KREDITE);
 
   const updateKredit = (index: number, patch: Partial<KreditInput>) => {
     setKredite((prev) => prev.map((k, i) => (i === index ? { ...k, ...patch } : k)));
+  };
+
+  const addKredit = () => {
+    setKredite((prev) => [...prev, leererKredit(prev.length)]);
+  };
+
+  // Mindestens ein Kredit bleibt immer stehen — bei 0 Krediten hätten Tabelle und
+  // Diagramm keine Spalten/Linien mehr, das wäre ein bedeutungsloser Leerzustand.
+  const removeKredit = (index: number) => {
+    setKredite((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
   };
 
   const ergebnisse = useMemo(
@@ -87,15 +118,28 @@ export function KreditvergleichClient() {
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-end">
+        <Button type="button" variant="secondary" size="sm" onClick={addKredit}>
+          + Kredit hinzufügen
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {kredite.map((k, i) => (
           <Card key={i}>
-            <input
-              value={k.name}
-              onChange={(e) => updateKredit(i, { name: e.target.value })}
-              className="mb-4 w-full rounded-md border-none bg-transparent text-base font-semibold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              aria-label={`Name Kredit ${i + 1}`}
-            />
+            <div className="mb-4 flex items-center gap-2">
+              <input
+                value={k.name}
+                onChange={(e) => updateKredit(i, { name: e.target.value })}
+                className="w-full rounded-md border-none bg-transparent text-base font-semibold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                aria-label={`Name Kredit ${i + 1}`}
+              />
+              {kredite.length > 1 && (
+                <Button type="button" variant="danger" size="sm" onClick={() => removeKredit(i)}>
+                  Entfernen
+                </Button>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Darlehenssumme (€)">
                 <Input
