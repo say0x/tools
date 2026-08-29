@@ -12,6 +12,15 @@ import type { NextConfig } from "next";
 // externes CSS auskommen muss). Alles andere bleibt streng: keine Plugins, kein
 // Framing, keine externen Bild-/Font-/Verbindungsziele (die App lädt ohnehin nichts
 // von Drittanbietern — next/font hostet Google Fonts zur Build-Zeit selbst).
+//
+// KEIN upgrade-insecure-requests: die App wird nicht nur über den HTTPS-Reverse-
+// Proxy (tools.sayox.de, siehe ADR-0006), sondern teils auch direkt per HTTP im
+// lokalen Netz erreicht (z. B. http://<host-ip>:3000). Dieses Directive weist den
+// Browser an, JEDE Unterressourcen-Anfrage (CSS/JS/Fonts) unabhängig vom Ladeweg
+// der Seite selbst von http auf https hochzustufen — bei direktem HTTP-Zugriff
+// ohne TLS auf Port 3000 schlägt das fehl und die Seite lädt komplett ungestyled
+// (alle CSS-/JS-Requests brechen ab). Über den HTTPS-Proxy ändert das Fehlen des
+// Directives nichts (dort gibt es ohnehin keine http-Unterressourcen).
 const isDev = process.env.NODE_ENV === "development";
 
 const cspHeader = `
@@ -25,7 +34,6 @@ const cspHeader = `
   base-uri 'self';
   form-action 'self';
   frame-ancestors 'none';
-  upgrade-insecure-requests;
 `
   .replace(/\s{2,}/g, " ")
   .trim();
