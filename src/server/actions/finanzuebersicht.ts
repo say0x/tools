@@ -2,15 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/server/db";
+import { getActiveUserId } from "@/server/session";
 import { finanzuebersichtSchema, type FinanzuebersichtFormValues } from "./finanzuebersicht-schema";
 import { ausfuehren, type ActionResult } from "./result";
 
 export type { FinanzuebersichtFormValues, SparpositionFormValues } from "./finanzuebersicht-schema";
 
 export async function ladeSparpositionen() {
+  const userId = await getActiveUserId();
   const [wertpapiere, tagesgeld] = await Promise.all([
-    prisma.wertpapierposition.findMany({ include: { asset: true }, orderBy: { createdAt: "asc" } }),
-    prisma.tagesgeldkonto.findMany({ include: { asset: true }, orderBy: { createdAt: "asc" } }),
+    prisma.wertpapierposition.findMany({ where: { asset: { userId } }, include: { asset: true }, orderBy: { createdAt: "asc" } }),
+    prisma.tagesgeldkonto.findMany({ where: { asset: { userId } }, include: { asset: true }, orderBy: { createdAt: "asc" } }),
   ]);
   return { wertpapiere, tagesgeld };
 }
@@ -34,9 +36,10 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
       throw new Error(`Ungültige Eingabe: ${meldung}`);
     }
     const data = result.data;
+    const userId = await getActiveUserId();
 
     await prisma.$transaction(async (tx) => {
-      const bestehend = await tx.userProfile.findFirst();
+      const bestehend = await tx.userProfile.findFirst({ where: { userId } });
       const profileData = {
         bruttoEinkommenMonatlich: data.bruttoEinkommenMonatlich,
         gehaltssteigerungProzentJaehrlich: data.gehaltssteigerungProzentJaehrlich,
@@ -45,11 +48,11 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
       if (bestehend) {
         await tx.userProfile.update({ where: { id: bestehend.id }, data: profileData });
       } else {
-        await tx.userProfile.create({ data: profileData });
+        await tx.userProfile.create({ data: { ...profileData, userId } });
       }
 
       const bestehendeAssets = await tx.asset.findMany({
-        where: { type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } },
+        where: { userId, type: { in: ["WERTPAPIERDEPOT", "TAGESGELD"] } },
         select: { id: true, type: true },
       });
       const bestehendeAssetsById = new Map(bestehendeAssets.map((a) => [a.id, a]));
@@ -66,7 +69,7 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
                 renditeProzentJaehrlich: position.renditeProzentJaehrlich,
                 sparplanBetragMonatlich: position.sparplanBetragMonatlich,
                 sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-                asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus } },
+                asset: { create: { type: "WERTPAPIERDEPOT", name: position.name, besitzstatus: position.besitzstatus, userId } },
               },
             });
           } else {
@@ -76,7 +79,7 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
                 zinsProzentJaehrlich: position.renditeProzentJaehrlich,
                 sparplanBetragMonatlich: position.sparplanBetragMonatlich,
                 sparplanSteigerungProzentJaehrlich: position.sparplanSteigerungProzentJaehrlich,
-                asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus } },
+                asset: { create: { type: "TAGESGELD", name: position.name, besitzstatus: position.besitzstatus, userId } },
               },
             });
           }
@@ -138,7 +141,7 @@ export async function speichereFinanzuebersicht(values: FinanzuebersichtFormValu
       // Im Formular entfernte Positionen löschen (kaskadiert auf evtl. verweisende SzenarioAenderung).
       const zuLoeschendeIds = bestehendeAssets.map((a) => a.id).filter((id) => !uebernommeneIds.has(id));
       if (zuLoeschendeIds.length > 0) {
-        await tx.asset.deleteMany({ where: { id: { in: zuLoeschendeIds } } });
+        await tx.asset.deleteMany({ where: { id: { in: zuLoeschendeIds }, userId } });
       }
     });
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/server/db";
+import { getActiveUserId } from "@/server/session";
 import { BESITZSTAENDE, type Besitzstatus } from "@/lib/asset";
 import { ausfuehren, type ActionResult } from "./result";
 
@@ -19,7 +20,9 @@ export async function setAssetBesitzstatus(assetId: string, besitzstatus: Besitz
     if (!BESITZSTAENDE.includes(besitzstatus)) {
       throw new Error(`Ungültiger Besitzstatus: ${besitzstatus}`);
     }
-    await prisma.asset.update({ where: { id: assetId }, data: { besitzstatus } });
+    const userId = await getActiveUserId();
+    const { count } = await prisma.asset.updateMany({ where: { id: assetId, userId }, data: { besitzstatus } });
+    if (count === 0) throw new Error("Asset nicht gefunden.");
     revalidatePath("/finanzuebersicht");
     revalidatePath("/immobilien/objekte");
   });

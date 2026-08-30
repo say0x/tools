@@ -4,7 +4,7 @@
  * oder sonst über den Namen dedupliziert — ein erneuter Lauf legt keine
  * Duplikate an, sondern überspringt bereits importierte Einträge.
  *
- * Aufruf: npm run import:objekte
+ * Aufruf: IMPORT_USER_ID=<id> npm run import:objekte
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -22,6 +22,19 @@ const prisma = new PrismaClient({ adapter });
 const DATEI_PFAD = path.join(__dirname, "../data/import-objekte.json");
 
 async function main() {
+  // Kein Request/Cookie-Kontext in einem CLI-Skript vorhanden, aus dem sich
+  // (wie bei den Server Actions über getActiveUserId()) ein User ableiten
+  // ließe — deshalb hier eine Pflicht-Env-Var statt eines automatischen Fallbacks.
+  const userId = process.env.IMPORT_USER_ID;
+  if (!userId) {
+    const nutzer = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+    console.error("IMPORT_USER_ID ist nicht gesetzt. Verfügbare Test-User:");
+    for (const u of nutzer) console.error(`  ${u.id}  ${u.name}`);
+    console.error("Aufruf: IMPORT_USER_ID=<id> npm run import:objekte");
+    process.exitCode = 1;
+    return;
+  }
+
   if (!fs.existsSync(DATEI_PFAD)) {
     console.log(`Keine Import-Datei gefunden unter ${DATEI_PFAD} — nichts zu tun.`);
     return;
@@ -40,8 +53,14 @@ async function main() {
 
     const bereitsVorhanden =
       "quelleUrl" in dedupKriterium
-        ? await prisma.property.findFirst({ where: { quelleUrl: dedupKriterium.quelleUrl }, include: { asset: true } })
-        : await prisma.property.findFirst({ where: { asset: { name: dedupKriterium.name } }, include: { asset: true } });
+        ? await prisma.property.findFirst({
+            where: { quelleUrl: dedupKriterium.quelleUrl, asset: { userId } },
+            include: { asset: true },
+          })
+        : await prisma.property.findFirst({
+            where: { asset: { name: dedupKriterium.name, userId } },
+            include: { asset: true },
+          });
 
     if (bereitsVorhanden) {
       console.log(`⏭  Übersprungen (bereits vorhanden): ${name}`);
@@ -62,7 +81,7 @@ async function main() {
     await prisma.property.create({
       data: {
         ...property,
-        asset: { create: { type: "IMMOBILIE", name: assetName, besitzstatus } },
+        asset: { create: { type: "IMMOBILIE", name: assetName, besitzstatus, userId } },
         financing: { create: financing },
         exit: { create: exit },
         gewerke: { createMany: { data: gewerke } },
