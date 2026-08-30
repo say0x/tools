@@ -1,6 +1,6 @@
 # ADR-0006 — Kein App-Level-Login, Absicherung über VPN-only-Netzwerk
 
-**Status**: Accepted
+**Status**: Accepted (die Multi-Tenancy-Prämisse — `UserProfile` als Singleton — ist durch [ADR-0009](0009-lokales-mehrbenutzer-datenmodell.md) überholt; kein App-Level-Login und der VPN-only-Perimeter bleiben unverändert gültig)
 
 ## Context
 

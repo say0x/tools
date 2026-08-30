@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
+import { getActiveUserId } from "@/server/session";
 import { PROPERTY_INCLUDE, splitPropertyData } from "@/server/data/mappers";
 import { propertySchema, type PropertyFormValues } from "./property-schema";
 import { ausfuehren, type ActionResult } from "./result";
@@ -23,11 +24,12 @@ export async function erstelleObjekt(values: PropertyFormValues): Promise<Action
   return ausfuehren(async () => {
     const data = parsePropertyFormValues(values);
     const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
+    const userId = await getActiveUserId();
 
     const created = await prisma.property.create({
       data: {
         ...property,
-        asset: { create: { type: "IMMOBILIE", name, besitzstatus } },
+        asset: { create: { type: "IMMOBILIE", name, besitzstatus, userId } },
         financing: { create: financing },
         exit: { create: exit },
         gewerke: { createMany: { data: gewerke } },
@@ -43,9 +45,10 @@ export async function aktualisiereObjekt(id: string, values: PropertyFormValues)
   return ausfuehren(async () => {
     const data = parsePropertyFormValues(values);
     const { name, besitzstatus, property, financing, gewerke, exit } = splitPropertyData(data);
+    const userId = await getActiveUserId();
 
     await prisma.$transaction(async (tx) => {
-      const existing = await tx.property.findUniqueOrThrow({ where: { id } });
+      const existing = await tx.property.findFirstOrThrow({ where: { id, asset: { userId } } });
 
       await tx.asset.update({ where: { id: existing.assetId }, data: { name, besitzstatus } });
       await tx.property.update({ where: { id }, data: property });
@@ -72,21 +75,24 @@ export async function aktualisiereObjekt(id: string, values: PropertyFormValues)
 }
 
 export async function loescheObjekt(id: string) {
-  const property = await prisma.property.findUniqueOrThrow({ where: { id } });
+  const userId = await getActiveUserId();
+  const property = await prisma.property.findFirstOrThrow({ where: { id, asset: { userId } } });
   await prisma.asset.delete({ where: { id: property.assetId } }); // cascade löscht Property + Relationen
   revalidatePath("/immobilien/objekte");
 }
 
 /** Mehrfachlöschen für die Objekt-Bibliothek (Mehrfachauswahl-Checkboxen). */
 export async function loescheObjekte(ids: string[]) {
-  const properties = await prisma.property.findMany({ where: { id: { in: ids } }, select: { assetId: true } });
+  const userId = await getActiveUserId();
+  const properties = await prisma.property.findMany({ where: { id: { in: ids }, asset: { userId } }, select: { assetId: true } });
   await prisma.asset.deleteMany({ where: { id: { in: properties.map((p) => p.assetId) } } }); // cascade löscht Property + Relationen
   revalidatePath("/immobilien/objekte");
 }
 
 export async function dupliziereObjekt(id: string) {
-  const original = await prisma.property.findUniqueOrThrow({
-    where: { id },
+  const userId = await getActiveUserId();
+  const original = await prisma.property.findFirstOrThrow({
+    where: { id, asset: { userId } },
     include: { ...PROPERTY_INCLUDE, asset: true },
   });
 
@@ -139,7 +145,7 @@ export async function dupliziereObjekt(id: string) {
       ansprechpartnerNotizen: original.ansprechpartnerNotizen,
       notizen: original.notizen,
       quelleUrl: original.quelleUrl,
-      asset: { create: { type: "IMMOBILIE", name: `${basisname} (Kopie)`, besitzstatus: original.asset.besitzstatus } },
+      asset: { create: { type: "IMMOBILIE", name: `${basisname} (Kopie)`, besitzstatus: original.asset.besitzstatus, userId } },
       financing: original.financing
         ? {
             create: {

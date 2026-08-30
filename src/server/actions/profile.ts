@@ -2,13 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/server/db";
+import { getActiveUserId } from "@/server/session";
 import { profileSchema, type ProfileFormValues } from "./profile-schema";
 import { ausfuehren, type ActionResult } from "./result";
 
 export type { ProfileFormValues } from "./profile-schema";
 
 export async function ladeProfil() {
-  return prisma.userProfile.findFirst({ include: { liabilities: true } });
+  const userId = await getActiveUserId();
+  return prisma.userProfile.findFirst({ where: { userId }, include: { liabilities: true } });
 }
 
 export async function upsertProfile(values: ProfileFormValues): Promise<ActionResult> {
@@ -20,9 +22,11 @@ export async function upsertProfile(values: ProfileFormValues): Promise<ActionRe
     }
     const data = result.data;
 
-    const bestehend = await prisma.userProfile.findFirst();
+    const userId = await getActiveUserId();
+    const bestehend = await prisma.userProfile.findFirst({ where: { userId } });
 
     const profileData = {
+      userId,
       nettoEinkommenMonatlich: data.nettoEinkommenMonatlich,
       bruttoEinkommenMonatlich: data.bruttoEinkommenMonatlich,
       zuVersteuerndesEinkommenJaehrlich: data.zuVersteuerndesEinkommenJaehrlich,

@@ -20,12 +20,13 @@ const secondaryLinks = [
   { href: "/kreditvergleich", label: "Kreditvergleich" },
   { href: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen?" },
   { href: "/profil", label: "Profil" },
+  { href: "/nutzer", label: "Nutzer" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];
 
 const allLinks = [...primaryLinks, ...secondaryLinks];
 
-export function Nav() {
+export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -62,6 +63,8 @@ export function Nav() {
         <Link href="/" className="text-lg font-semibold tracking-tight text-slate-100">
           tools<span className="text-blue-500">.</span>
         </Link>
+
+        <div className="hidden sm:block">{userSwitcher}</div>
 
         <nav aria-label="Hauptnavigation" className="hidden gap-1 sm:flex sm:items-center">
           {primaryLinks.map((link) => (
@@ -130,7 +133,8 @@ export function Nav() {
       </div>
 
       {mobileOpen && (
-        <nav aria-label="Hauptnavigation (mobil)" className="flex flex-col gap-1 border-t border-slate-800 px-6 py-3 sm:hidden">
+        <nav aria-label="Hauptnavigation (mobil)" className="flex flex-col gap-3 border-t border-slate-800 px-6 py-3 sm:hidden">
+          <div>{userSwitcher}</div>
           {allLinks.map((link, i) => (
             <Link
               key={link.href}

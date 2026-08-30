@@ -22,6 +22,8 @@ docker compose exec app npx prisma db seed
 
 **Nur für Demo-/Test-Instanzen gedacht — bei echten Finanzdaten NICHT setzen.** Mit `RESET_USER_DATA_ON_DEPLOY=true` löscht `docker-entrypoint.sh` bei **jedem** Start (also bei jedem `git pull && docker compose up -d --build`) unwiderruflich Objekte, Profil, Sparpositionen und Szenarien (`scripts/reset-user-data.ts`, dieselbe Löschreihenfolge wie beim App-seitigen Restore) und seedet danach die Referenzdaten neu (`prisma db seed`) — ohne Bestätigungs-Dialog, anders als der App-seitige Restore-Mechanismus unter `/profil`. Standardmäßig **nicht gesetzt** (`docker-compose.yml` reicht die Variable mit Default `false` durch), das bisherige Verhalten (nur Migrationen) bleibt unverändert.
 
+Seit dem lokalen Mehrbenutzer-Datenmodell ([ADR-0009](../architecture/decisions/0009-lokales-mehrbenutzer-datenmodell.md), `/nutzer`): der Reset gilt für **alle** Test-User gemeinsam, nicht nur den gerade aktiven — das Skript hat keinen Request-/Cookie-Kontext, aus dem sich ein einzelner User ableiten ließe. Die Test-User-Zeilen selbst (Namen unter `/nutzer`) bleiben erhalten, wie Referenzdaten — nur ihre Daten werden geleert.
+
 Aktivieren: in einer lokalen `.env`-Datei neben `docker-compose.yml` (von Compose automatisch geladen, nicht Teil des Repos) `RESET_USER_DATA_ON_DEPLOY=true` eintragen — **niemals** fest in `docker-compose.yml` verdrahten.
 
 Manuell, außerhalb des Deploy-Zyklus: `npm run db:reset-user-data` (löscht ohne Neu-Seed) oder `npm run db:reset-user-data && npx prisma db seed` (löscht + seedet neu). Vorher immer `npm run db:backup`.

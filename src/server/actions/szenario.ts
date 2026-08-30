@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
+import { getActiveUserId } from "@/server/session";
 import { szenarioSchema, type SzenarioAenderungFormValues, type SzenarioFormValues } from "./szenario-schema";
 import { ausfuehren, type ActionResult } from "./result";
 
@@ -30,18 +31,22 @@ function zuAenderungData(a: SzenarioAenderungFormValues) {
 }
 
 export async function ladeSzenarien() {
-  return prisma.szenario.findMany({ include: { aenderungen: true }, orderBy: { createdAt: "desc" } });
+  const userId = await getActiveUserId();
+  return prisma.szenario.findMany({ where: { userId }, include: { aenderungen: true }, orderBy: { createdAt: "desc" } });
 }
 
 export async function ladeSzenario(id: string) {
-  return prisma.szenario.findUnique({ where: { id }, include: { aenderungen: true } });
+  const userId = await getActiveUserId();
+  return prisma.szenario.findFirst({ where: { id, userId }, include: { aenderungen: true } });
 }
 
 export async function erstelleSzenario(values: SzenarioFormValues): Promise<ActionResult> {
   return ausfuehren(async () => {
     const data = parseSzenarioFormValues(values);
+    const userId = await getActiveUserId();
     const created = await prisma.szenario.create({
       data: {
+        userId,
         name: data.name,
         startjahr: data.startjahr,
         notizen: data.notizen,
@@ -56,8 +61,10 @@ export async function erstelleSzenario(values: SzenarioFormValues): Promise<Acti
 export async function aktualisiereSzenario(id: string, values: SzenarioFormValues): Promise<ActionResult> {
   return ausfuehren(async () => {
     const data = parseSzenarioFormValues(values);
+    const userId = await getActiveUserId();
 
     await prisma.$transaction(async (tx) => {
+      await tx.szenario.findFirstOrThrow({ where: { id, userId } });
       await tx.szenario.update({ where: { id }, data: { name: data.name, startjahr: data.startjahr, notizen: data.notizen } });
       await tx.szenarioAenderung.deleteMany({ where: { szenarioId: id } });
       if (data.aenderungen.length > 0) {
@@ -73,6 +80,8 @@ export async function aktualisiereSzenario(id: string, values: SzenarioFormValue
 }
 
 export async function loescheSzenario(id: string) {
-  await prisma.szenario.delete({ where: { id } });
+  const userId = await getActiveUserId();
+  const { count } = await prisma.szenario.deleteMany({ where: { id, userId } });
+  if (count === 0) throw new Error("Szenario nicht gefunden.");
   revalidatePath("/szenarien");
 }

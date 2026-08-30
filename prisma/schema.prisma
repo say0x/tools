@@ -48,6 +48,8 @@ enum Besitzstatus {
 /// without needing to know about typ-spezifische Spalten.
 model Asset {
   id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      AssetType
   name      String
   /// Default: POTENZIELLE_ANSCHAFFUNG — ein neu angelegtes Asset zählt erst nach
@@ -60,14 +62,37 @@ model Asset {
   wertpapierposition Wertpapierposition?
   tagesgeldkonto     Tagesgeldkonto?
   szenarioAenderungen SzenarioAenderung[]
+
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------------
-// User profile (single user, upsert pattern — no auth/multi-tenancy needed)
+// Test-User (lokal, KEIN Auth-Mechanismus) — siehe ADR-0009 (Revision von
+// ADR-0006). Bewusst nur ein Label + ID, kein Passwort/E-Mail/Session: dient
+// ausschließlich dazu, das Mehrbenutzer-Datenmodell lokal mit mehreren
+// Test-Identitäten zu verifizieren, solange die App per VPN-only-Perimeter
+// abgesichert bleibt. Muss ersetzt/erweitert werden, sobald echtes Auth kommt.
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  profile   UserProfile?
+  assets    Asset[]
+  szenarien Szenario[]
+}
+
+// ---------------------------------------------------------------------------
+// User profile — genau eine Zeile pro User (upsert-by-userId-Pattern,
+// @unique auf userId erzwingt das DB-seitig statt nur per App-Konvention).
 // ---------------------------------------------------------------------------
 
 model UserProfile {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   nettoEinkommenMonatlich Decimal @default(0) @db.Decimal(14, 2)
   bruttoEinkommenMonatlich Decimal @default(0) @db.Decimal(14, 2)
@@ -535,7 +560,9 @@ enum SzenarioAenderungTyp {
 }
 
 model Szenario {
-  id        String   @id @default(cuid())
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   /// Jahr, ab dem die Änderungen dieses Szenarios wirken (z. B. 2028) — einzelne Änderungen können eigene Zeitpunkte haben (Kaufdatum der Immobilie, Anschaffungsjahr), die Sparraten-Änderung greift ab diesem Startjahr.
   startjahr Int
@@ -545,6 +572,8 @@ model Szenario {
   updatedAt DateTime @updatedAt
 
   aenderungen SzenarioAenderung[]
+
+  @@index([userId])
 }
 
 model SzenarioAenderung {

@@ -4,6 +4,11 @@
  * wie stelleBackupWieder() in src/server/actions/restore.ts (unabhängig von
  * Kaskaden korrekt: Szenario zuerst, dann Asset, dann UserProfile).
  *
+ * Gilt für ALLE Test-User gemeinsam (nicht nur den aktiven) — das Skript hat
+ * keinen Cookie/Request-Kontext, aus dem sich ein einzelner User ableiten
+ * ließe. Die User-Zeilen selbst (Namen/Labels unter /nutzer) bleiben
+ * erhalten, wie Referenzdaten — nur ihre Daten werden geleert.
+ *
  * Nicht für den interaktiven Einsatz gedacht — nur über den env-gesteuerten
  * Opt-in in docker-entrypoint.sh (RESET_USER_DATA_ON_DEPLOY=true) oder
  * manuell via `npm run db:reset-user-data`. Kein Bestätigungs-Dialog wie beim
