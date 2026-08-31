@@ -7,9 +7,11 @@
 
 import type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
 import type { AnnahmenWarnung } from "./analyse/annahmen-warnungen";
+import type { BodenrichtwertVergleich } from "./analyse/bodenrichtwertvergleich";
 import type { ExitSzenarioResult } from "./exit/exit-szenario";
 export type { Verhandlungsargument } from "./analyse/verhandlungsargumente";
 export type { AnnahmenWarnung } from "./analyse/annahmen-warnungen";
+export type { BodenrichtwertVergleich } from "./analyse/bodenrichtwertvergleich";
 export type { ExitSzenarioResult } from "./exit/exit-szenario";
 
 export const BUNDESLAENDER = [
@@ -99,6 +101,8 @@ export interface PropertyExitInput {
 export interface PropertyInput {
   kaufpreis: number;
   wohnflaeche: number;
+  /** Nur bei HAUS/MEHRFAMILIENHAUS relevant — Basis für den Bodenrichtwert-Vergleich. */
+  grundstuecksflaecheQm: number | null;
   bundesland: Bundesland;
   lagetyp: Lagetyp;
   objekttyp: Objekttyp;
@@ -186,6 +190,8 @@ export interface ReferenceDataSnapshot {
   grundbuchProzentDefault: number;
   kaufpreisfaktorReferenzByObjekttypLagetyp: Record<string, number>; // key: `${objekttyp}:${lagetyp}`
   nutzungsdauerJahreByGewerk: Record<Gewerk, number>;
+  /** €/m² Grundstücksfläche laut BORIS-D/BORIS-SH — aktuell nur Schleswig-Holstein befüllt. */
+  bodenrichtwertByBundeslandLagetyp: Record<string, number>; // key: `${bundesland}:${lagetyp}`
 }
 
 export interface KaufnebenkostenResult {
@@ -354,5 +360,6 @@ export interface CalculationResult {
   dealBreaker: { rechnetSich: boolean; meldung: string; ampel: "GRUEN" | "GELB" | "ROT" };
   verhandlungsargumente: Verhandlungsargument[];
   annahmenWarnungen: AnnahmenWarnung[];
+  bodenrichtwertVergleich: BodenrichtwertVergleich | null;
   exitSzenario: ExitSzenarioResult | null;
 }

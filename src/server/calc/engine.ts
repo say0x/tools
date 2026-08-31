@@ -1,5 +1,6 @@
 import { berechneAffordability } from "./affordability/check";
 import { ermittleAnnahmenWarnungen } from "./analyse/annahmen-warnungen";
+import { berechneBodenrichtwertVergleich } from "./analyse/bodenrichtwertvergleich";
 import { ermittleVerhandlungsargumente } from "./analyse/verhandlungsargumente";
 import { berechneGewerkeAuswertung } from "./costs/gewerke";
 import { berechneExitSzenario } from "./exit/exit-szenario";
@@ -188,6 +189,15 @@ export function berechneObjekt(
     mietsteigerungProzentJaehrlich: property.mietsteigerungProzentJaehrlich,
   });
 
+  const bodenrichtwertVergleich = berechneBodenrichtwertVergleich({
+    objekttyp: property.objekttyp,
+    grundstuecksflaecheQm: property.grundstuecksflaecheQm,
+    bundesland: property.bundesland,
+    lagetyp: property.lagetyp,
+    kaufpreis: property.kaufpreis,
+    bodenrichtwertByBundeslandLagetyp: referenceData.bodenrichtwertByBundeslandLagetyp,
+  });
+
   const exitSzenario = berechneExitSzenario({
     geplant: property.exit.geplant,
     haltedauerJahre: property.exit.haltedauerJahre,
@@ -212,6 +222,7 @@ export function berechneObjekt(
     dealBreaker,
     verhandlungsargumente,
     annahmenWarnungen,
+    bodenrichtwertVergleich,
     exitSzenario,
   };
 }

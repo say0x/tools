@@ -20,6 +20,7 @@ export function toPropertyInput(row: PropertyWithRelations): PropertyInput {
   return {
     kaufpreis: row.kaufpreis.toNumber(),
     wohnflaeche: row.wohnflaeche,
+    grundstuecksflaecheQm: row.grundstuecksflaecheQm,
     bundesland: row.bundesland,
     lagetyp: row.lagetyp,
     objekttyp: row.objekttyp,

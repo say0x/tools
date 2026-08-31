@@ -90,6 +90,16 @@ const kaufpreisfaktorReferenz: Record<Objekttyp, Record<Lagetyp, number>> = {
   HAUS: { GROSSSTADT: 26, KLEINSTADT: 19, LAENDLICH: 15 },
 };
 
+// Bodenrichtwert (€/m² Grundstücksfläche) — nur Schleswig-Holstein, rein
+// illustrative Platzhalter, KEINE echten BORIS-SH-Daten. Ersetzen, sobald
+// scripts/import-bodenrichtwerte.ts einmal erfolgreich gegen die echte API
+// gelaufen ist (siehe Kommentar dort).
+const bodenrichtwertSchleswigHolstein: Record<Lagetyp, number> = {
+  GROSSSTADT: 450,
+  KLEINSTADT: 180,
+  LAENDLICH: 60,
+};
+
 // Peters'sche Formel — Instandhaltungsrücklage nach Gebäudealter (€/m² Wohnfläche/Jahr).
 const instandhaltungssaetze = [
   { von: 0, bis: 21, satz: 7.1 },
@@ -147,6 +157,15 @@ async function main() {
   for (const { von, bis, satz } of instandhaltungssaetze) {
     await prisma.referenceInstandhaltungssatz.create({
       data: { altersklasseVonJahren: von, altersklasseBisJahren: bis, satzProM2ProJahr: satz },
+    });
+  }
+
+  for (const lagetyp of Object.values(Lagetyp)) {
+    const bodenrichtwertProM2 = bodenrichtwertSchleswigHolstein[lagetyp];
+    await prisma.referenceBodenrichtwert.upsert({
+      where: { bundesland_lagetyp: { bundesland: "SCHLESWIG_HOLSTEIN", lagetyp } },
+      update: { bodenrichtwertProM2 },
+      create: { bundesland: "SCHLESWIG_HOLSTEIN", lagetyp, bodenrichtwertProM2 },
     });
   }
 

@@ -12,6 +12,7 @@ function rawObjekt(overrides: Record<string, unknown> = {}) {
     kaufpreis: d.kaufpreis,
     kaufdatum: "2024-01-01T00:00:00.000Z",
     wohnflaeche: d.wohnflaeche,
+    grundstuecksflaecheQm: d.grundstuecksflaecheQm,
     bundesland: d.bundesland,
     lagetyp: d.lagetyp,
     objekttyp: d.objekttyp,

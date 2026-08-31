@@ -156,6 +156,25 @@ export function PropertyForm({
             <Field label="Wohnfläche (m²)" error={errors.wohnflaeche?.message}>
               <Input type="number" step="any" {...register("wohnflaeche", { valueAsNumber: true })} />
             </Field>
+            {watched.objekttyp !== "ETW" && (
+              <Field
+                label={
+                  <>
+                    Grundstücksfläche (m²) <InfoTooltip text={FIELD_HILFE.grundstuecksflaecheQm} />
+                  </>
+                }
+                error={errors.grundstuecksflaecheQm?.message}
+              >
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="optional"
+                  {...register("grundstuecksflaecheQm", {
+                    setValueAs: (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v)),
+                  })}
+                />
+              </Field>
+            )}
             <Field
               label="Kaufdatum"
               hint="Für die Finanzübersicht: bestimmt, wie viele Jahre seit dem Kauf bereits vergangen sind (auch in der Zukunft möglich, für geplante Käufe)."

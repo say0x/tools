@@ -62,12 +62,18 @@ export const referenceDataFixture: ReferenceDataSnapshot = {
     BODENBELAEGE: 20,
     SONSTIGES: 25,
   },
+  bodenrichtwertByBundeslandLagetyp: {
+    "SCHLESWIG_HOLSTEIN:GROSSSTADT": 450,
+    "SCHLESWIG_HOLSTEIN:KLEINSTADT": 180,
+    "SCHLESWIG_HOLSTEIN:LAENDLICH": 60,
+  },
 };
 
 export function makePropertyFixture(overrides: Partial<PropertyInput> = {}): PropertyInput {
   return {
     kaufpreis: 300000,
     wohnflaeche: 80,
+    grundstuecksflaecheQm: null,
     bundesland: "NORDRHEIN_WESTFALEN",
     lagetyp: "GROSSSTADT",
     objekttyp: "ETW",

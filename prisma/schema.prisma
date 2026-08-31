@@ -223,6 +223,10 @@ model Property {
   kaufpreis       Decimal @db.Decimal(14, 2)
   kaufdatum       DateTime @default(now())
   wohnflaeche     Float
+  /// Grundstücksfläche in m² — nur bei HAUS/MEHRFAMILIENHAUS relevant (eigenes
+  /// Grundstück); ETW hat keine eigene Fläche in diesem Datenmodell (WEG-
+  /// Bruchteilseigentum). Basis für den Bodenrichtwert-Vergleich.
+  grundstuecksflaecheQm Float?
   bundesland      Bundesland
   lagetyp         Lagetyp
   objekttyp       Objekttyp
@@ -464,6 +468,21 @@ model ReferenceMietpreis {
   lagetyp        Lagetyp
   mietpreisProM2 Decimal @db.Decimal(14, 2)
   aktualisiertAm DateTime   @default(now())
+
+  @@unique([bundesland, lagetyp])
+}
+
+/// Amtlicher Bodenrichtwert (€/m² Grundstücksfläche, nicht Wohnfläche) laut
+/// BORIS-D/BORIS-SH — bewusste Vereinfachung wie ReferenceMietpreis: nur
+/// Bundesland+Lagetyp statt der viel kleinteiligeren echten
+/// Bodenrichtwertzonen. Aktuell nur Schleswig-Holstein befüllt (Zeilen für
+/// andere Bundesländer bleiben bis zu einer künftigen Erweiterung leer).
+model ReferenceBodenrichtwert {
+  id                  String     @id @default(cuid())
+  bundesland          Bundesland
+  lagetyp             Lagetyp
+  bodenrichtwertProM2 Decimal @db.Decimal(10, 2)
+  aktualisiertAm      DateTime   @default(now())
 
   @@unique([bundesland, lagetyp])
 }

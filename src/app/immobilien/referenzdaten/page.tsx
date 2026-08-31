@@ -2,6 +2,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { prisma } from "@/server/db";
 import { GrunderwerbsteuerTable } from "./GrunderwerbsteuerTable";
 import { MietpreisTable } from "./MietpreisTable";
+import { BodenrichtwertTable } from "./BodenrichtwertTable";
 import { GewerkKostenTable } from "./GewerkKostenTable";
 import { NutzungsdauerTable } from "./NutzungsdauerTable";
 import { KaufnebenkostenDefaultsCard } from "./KaufnebenkostenDefaultsCard";
@@ -14,16 +15,25 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Referenzdaten" };
 
 export default async function ReferenzdatenPage() {
-  const [grunderwerbsteuerRows, mietpreiseRows, gewerkKostenRows, nutzungsdauer, kaufnebenkostenDefaults, kaufpreisfaktorenRows, standardwerte] =
-    await Promise.all([
-      prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
-      prisma.referenceMietpreis.findMany(),
-      prisma.referenceGewerkKosten.findMany(),
-      prisma.referenceNutzungsdauer.findMany(),
-      ladeKaufnebenkostenDefaultsRow(),
-      prisma.referenceKaufpreisfaktor.findMany(),
-      ladeStandardwerte(),
-    ]);
+  const [
+    grunderwerbsteuerRows,
+    mietpreiseRows,
+    gewerkKostenRows,
+    nutzungsdauer,
+    kaufnebenkostenDefaults,
+    kaufpreisfaktorenRows,
+    standardwerte,
+    bodenrichtwertRows,
+  ] = await Promise.all([
+    prisma.referenceGrunderwerbsteuer.findMany({ orderBy: { bundesland: "asc" } }),
+    prisma.referenceMietpreis.findMany(),
+    prisma.referenceGewerkKosten.findMany(),
+    prisma.referenceNutzungsdauer.findMany(),
+    ladeKaufnebenkostenDefaultsRow(),
+    prisma.referenceKaufpreisfaktor.findMany(),
+    ladeStandardwerte(),
+    prisma.referenceBodenrichtwert.findMany({ where: { bundesland: "SCHLESWIG_HOLSTEIN" } }),
+  ]);
 
   // Geld-/Prozentfelder kommen als Decimal aus der DB — hier auf number konvertiert, bevor die
   // Zeilen an die "use client"-Tabellenkomponenten weitergereicht werden (siehe mappers.ts oben
@@ -36,6 +46,7 @@ export default async function ReferenzdatenPage() {
     kostenProM2Max: r.kostenProM2Max.toNumber(),
   }));
   const kaufpreisfaktoren = kaufpreisfaktorenRows.map((r) => ({ ...r, kaufpreisfaktorReferenz: r.kaufpreisfaktorReferenz.toNumber() }));
+  const bodenrichtwerte = bodenrichtwertRows.map((r) => ({ ...r, bodenrichtwertProM2: r.bodenrichtwertProM2.toNumber() }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,6 +84,16 @@ export default async function ReferenzdatenPage() {
       <Card>
         <CardTitle>Kaufpreisfaktor-Vergleichswert nach Objekttyp &amp; Lagetyp</CardTitle>
         <KaufpreisfaktorTable initialRows={kaufpreisfaktoren} />
+      </Card>
+
+      <Card>
+        <CardTitle>Bodenrichtwert (€/m² Grundstücksfläche)</CardTitle>
+        <p className="mb-4 text-xs text-slate-400">
+          Amtlicher Bodenwert laut BORIS-D/BORIS-SH — nur für HAUS/MEHRFAMILIENHAUS relevant, nicht für ETW.
+          Vereinfacht wie der Vergleichs-Mietpreis nach Bundesland/Lagetyp statt der viel kleinteiligeren echten
+          Bodenrichtwertzonen.
+        </p>
+        <BodenrichtwertTable initialRows={bodenrichtwerte} />
       </Card>
 
       <Card>

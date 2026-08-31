@@ -118,6 +118,29 @@ export function PropertyKennzahlenSidebar({
         </Card>
       )}
 
+      {result.bodenrichtwertVergleich && (
+        <Card>
+          <CardTitle>
+            Bodenrichtwert-Vergleich <InfoTooltip text={FIELD_HILFE.grundstuecksflaecheQm} />
+          </CardTitle>
+          <p className="mb-3 text-xs text-slate-400">
+            Rein informativ, keine Bewertung — nur Schleswig-Holstein, vereinfacht nach Bundesland/Lagetyp statt
+            echter Bodenrichtwertzonen.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <Stat label="Geschätzter Bodenwert" value={formatEuro(result.bodenrichtwertVergleich.bodenwertGeschaetzt)} />
+            <Stat
+              label="Anteil am Kaufpreis"
+              value={`${formatNumber(result.bodenrichtwertVergleich.anteilAmKaufpreisProzent, 1)}%`}
+            />
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Bodenrichtwert: {formatEuro(result.bodenrichtwertVergleich.bodenrichtwertProM2)}/m² ×{" "}
+            {formatNumber(result.bodenrichtwertVergleich.grundstuecksflaecheQm, 0)} m² Grundstücksfläche.
+          </p>
+        </Card>
+      )}
+
       {result.verhandlungsargumente.length > 0 && (
         <Card>
           <CardTitle>Verhandlungs-Argumente</CardTitle>

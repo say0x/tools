@@ -7,6 +7,7 @@ export function defaultPropertyFormValues(): PropertyFormValues {
     kaufdatum: new Date().toISOString().slice(0, 10),
     besitzstatus: "POTENZIELLE_ANSCHAFFUNG",
     wohnflaeche: 70,
+    grundstuecksflaecheQm: null,
     bundesland: "NORDRHEIN_WESTFALEN",
     lagetyp: "GROSSSTADT",
     objekttyp: "ETW",
