@@ -8,6 +8,7 @@ import { ausfuehren, type ActionResult } from "./result";
 
 const grunderwerbsteuerUpdateSchema = z.array(z.object({ id: z.string(), satzProzent: z.coerce.number().min(0).max(20) }));
 const mietpreisUpdateSchema = z.array(z.object({ id: z.string(), mietpreisProM2: z.coerce.number().min(0).max(1000) }));
+const bodenrichtwertUpdateSchema = z.array(z.object({ id: z.string(), bodenrichtwertProM2: z.coerce.number().min(0).max(100_000) }));
 const gewerkKostenUpdateSchema = z.array(
   z.object({ id: z.string(), kostenProM2Min: z.coerce.number().min(0).max(10_000), kostenProM2Max: z.coerce.number().min(0).max(10_000) })
 );
@@ -57,6 +58,16 @@ export async function aktualisiereMietpreise(updates: z.infer<typeof mietpreisUp
     const data = parseOrThrow(mietpreisUpdateSchema, updates);
     await prisma.$transaction(
       data.map((u) => prisma.referenceMietpreis.update({ where: { id: u.id }, data: { mietpreisProM2: u.mietpreisProM2 } }))
+    );
+    revalidatePath("/immobilien/referenzdaten");
+  });
+}
+
+export async function aktualisiereBodenrichtwerte(updates: z.infer<typeof bodenrichtwertUpdateSchema>): Promise<ActionResult> {
+  return ausfuehren(async () => {
+    const data = parseOrThrow(bodenrichtwertUpdateSchema, updates);
+    await prisma.$transaction(
+      data.map((u) => prisma.referenceBodenrichtwert.update({ where: { id: u.id }, data: { bodenrichtwertProM2: u.bodenrichtwertProM2 } }))
     );
     revalidatePath("/immobilien/referenzdaten");
   });

@@ -81,6 +81,11 @@ export const propertySchema = z.object({
   // Steuert, ob dieses Objekt automatisch im Vermögen (Finanzübersicht) mitgezählt wird — gilt einheitlich für alle Asset-Typen (siehe src/lib/asset.ts).
   besitzstatus: z.enum(BESITZSTAENDE),
   wohnflaeche: z.number({ error: "Wohnfläche muss eine Zahl sein" }).min(1, "Wohnfläche muss mindestens 1 m² betragen").max(100_000, "Wohnfläche ist unrealistisch groß"),
+  // Nur bei HAUS/MEHRFAMILIENHAUS relevant (eigenes Grundstück) — Basis für den Bodenrichtwert-Vergleich.
+  grundstuecksflaecheQm: z.number({ error: "Grundstücksfläche muss eine Zahl sein" })
+    .min(1, "Grundstücksfläche muss mindestens 1 m² betragen")
+    .max(1_000_000, "Grundstücksfläche ist unrealistisch groß")
+    .nullable(),
   bundesland: z.enum(BUNDESLAENDER),
   lagetyp: z.enum(LAGETYPEN),
   objekttyp: z.enum(OBJEKTTYPEN),

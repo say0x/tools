@@ -38,6 +38,7 @@ Wird ein Feld hier geändert oder ein neues hinzugefügt, bitte diese Datei mitp
 | `exit/exit-szenario.ts` | Bewertet den geplanten Verkauf am Ende der Haltedauer (Verkaufspreis/Restschuld aus dem Vermögensverlauf-Zieljahr, Spekulationssteuer darauf) | `berechneExitSzenario` |
 | `analyse/verhandlungsargumente.ts` | Leitet Verhandlungsargumente aus den übrigen Ergebnissen ab | `ermittleVerhandlungsargumente` |
 | `analyse/annahmen-warnungen.ts` | Warnt vor Annahmen, die technisch gültig, aber unrealistisch günstig sind (Leerstand, Wert-/Mietsteigerung) | `ermittleAnnahmenWarnungen` |
+| `analyse/bodenrichtwertvergleich.ts` | Vergleicht `grundstuecksflaecheQm × amtlicher Bodenrichtwert` (`ReferenceBodenrichtwert`, aktuell nur Schleswig-Holstein) mit dem Kaufpreis — rein informativ, nur `HAUS`/`MEHRFAMILIENHAUS` | `berechneBodenrichtwertVergleich` |
 | `affordability/check.ts` | Finanzierbarkeits-Ampel (Schuldendienstquote, Liquiditätsreserve) | `berechneAffordability` |
 
 ## Ablauf von `berechneObjekt()`
@@ -59,7 +60,8 @@ Reihenfolge in [`engine.ts`](../../src/server/calc/engine.ts) (jeder Schritt nut
 13. **"Rechnet sich?"-Ampel** — `rendite/dealbreaker.ts: berechneDealBreaker`: kein Jahr-1-Schnappschuss, sondern eine Trendprüfung über `vermoegensverlauf`. Rot, wenn entweder der Cashflow-nach-Steuer-Verlust in Jahr 1 die Schwelle `cashflowStartverlustMaxProzentKaltmiete` (relativ zur effektiven Kaltmiete) überschreitet, oder der Cashflow bis Jahr `cashflowUmschlagjahr` nicht positiv geworden ist, oder `affordability.ampel === "ROT"`. Sonst Gelb bei `affordability.ampel === "GELB"`, sonst Grün. `rechnetSich = ampel !== "ROT"`. Die Meldung nutzt bei zu großem Jahr-1-Verlust den Breakeven-Kaufpreis.
 14. **Verhandlungsargumente** — `ermittleVerhandlungsargumente`.
 15. **Annahmen-Warnungen** — `ermittleAnnahmenWarnungen`, prüft Leerstandsquote/Wert-/Mietsteigerung auf unrealistisch günstige Werte (unabhängig vom Exit-Szenario).
-16. **Exit-Szenario** — `berechneExitSzenario`, nur wenn `exit.geplant`: entnimmt Verkaufspreis und Restschuld dem `vermoegensverlauf`-Eintrag zum Jahr `exit.haltedauerJahre` und berechnet darauf die Spekulationssteuer.
+16. **Bodenrichtwert-Vergleich** — `berechneBodenrichtwertVergleich`, nur bei `objekttyp !== "ETW"` und vorhandener `grundstuecksflaecheQm` sowie passender Referenzzeile (aktuell nur Schleswig-Holstein): multipliziert Grundstücksfläche mit dem amtlichen Bodenrichtwert (€/m² Grundstücksfläche, nicht Wohnfläche) und stellt den geschätzten Bodenwert dem Kaufpreis gegenüber. Rein informativ, keine Ampel/Bewertung — anders als `verhandlungsargumente.ts` (das bewusst keine externen Marktvergleiche nutzt), da dies amtliche, nicht erfundene Referenzwerte sind.
+17. **Exit-Szenario** — `berechneExitSzenario`, nur wenn `exit.geplant`: entnimmt Verkaufspreis und Restschuld dem `vermoegensverlauf`-Eintrag zum Jahr `exit.haltedauerJahre` und berechnet darauf die Spekulationssteuer.
 
 ## Eingabe-Schnittstellen (`src/server/calc/types.ts`)
 
@@ -81,6 +83,7 @@ Reihenfolge in [`engine.ts`](../../src/server/calc/engine.ts) (jeder Schritt nut
 | `sanierungsmodus` | `Sanierungsmodus` | `PAUSCHAL` (manueller Betrag) \| `GRANULAR` (aus `gewerke[]` summiert) |
 | `sofortinvestitionPauschal` | `number` | Nur bei Modus `PAUSCHAL` verwendet |
 | `gebaeudeWohnflaecheGesamt` | `number \| null` | Gesamtwohnfläche des Gebäudes/der WEG — Basis der Miteigentumsanteil-Herleitung |
+| `grundstuecksflaecheQm` | `number \| null` | Grundstücksfläche in m² (nur `HAUS`/`MEHRFAMILIENHAUS`) — Basis des Bodenrichtwert-Vergleichs |
 | `miteigentumsanteilProzent` / `-Override` | `number` / `boolean` | computed-with-override; ohne `gebaeudeWohnflaecheGesamt` gilt immer 100% |
 | `kaltmieteMonatlich` | `number` | € pro Monat |
 | `mietsteigerungProzentJaehrlich` | `number` | Für den Vermögensverlauf |
@@ -159,6 +162,7 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 |---|---|---|
 | `grunderwerbsteuerByBundesland` | `Record<Bundesland, number>` | Satz in % je Bundesland |
 | `mietpreisByBundeslandLagetyp` | `Record<string, number>` | Key: `` `${bundesland}:${lagetyp}` `` |
+| `bodenrichtwertByBundeslandLagetyp` | `Record<string, number>` | Key: `` `${bundesland}:${lagetyp}` ``, amtlicher Bodenrichtwert in €/m² Grundstücksfläche — aktuell nur Schleswig-Holstein befüllt |
 | `gewerkKosten` | `Record<Gewerk, {min, max}>` | Kostenspanne je Gewerk |
 | `instandhaltungssaetze` | `{von, bis, satz}[]` | Altersklassen-gestaffelt, für die Peters'sche Formel |
 | `notarProzentDefault` / `grundbuchProzentDefault` | `number` | Bundesweite Standardsätze |
@@ -183,6 +187,7 @@ Aggregiert die editierbaren Referenztabellen (`/immobilien/referenzdaten`) in da
 | `dealBreaker` | `{rechnetSich, ampel, meldung}` | `rendite/dealbreaker.ts` |
 | `verhandlungsargumente` | `Verhandlungsargument[]` | `analyse/verhandlungsargumente.ts` |
 | `annahmenWarnungen` | `AnnahmenWarnung[]` | `analyse/annahmen-warnungen.ts` — immer berechnet, unabhängig vom Exit-Szenario |
+| `bodenrichtwertVergleich` | `BodenrichtwertVergleich \| null` | `analyse/bodenrichtwertvergleich.ts` — `null` bei `ETW`, fehlender `grundstuecksflaecheQm` oder fehlender Referenzzeile |
 | `exitSzenario` | `ExitSzenarioResult \| null` | `exit/exit-szenario.ts` — `null` ohne `exit.geplant` oder bei `haltedauerJahre <= 0` |
 
 Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `VermoegensverlaufJahr`) direkt als JSDoc-Kommentare in [`types.ts`](../../src/server/calc/types.ts) — bei Änderungen dort zuerst nachsehen/ergänzen, diese Datei verlinkt nur darauf statt sie zu duplizieren.
@@ -212,6 +217,7 @@ Detaillierte Feldbeschreibungen der Unterobjekte (z. B. `RenditeKennzahlen`, `Ve
 - **Exit-Szenario**: Buchwert für die Spekulationssteuer = Gesamtinvestition (Kaufpreis + Kaufnebenkosten + Sofortinvestition) minus kumulierte AfA bis zum Verkaufsjahr (AfA-Satz wird wie im Vermögensverlauf über die Haltedauer konstant angenommen) — keine separate Grundstücksanteil-Betrachtung. Verkaufspreis und Restschuld stammen aus dem `vermoegensverlauf`-Eintrag zum Jahr `haltedauerJahre`; bei einer Haltedauer über `VERMOEGENSVERLAUF_MAX_JAHRE` hinaus wird der letzte verfügbare Eintrag verwendet.
 - **Annahmen-Warnungen**: rein hinweisend (keine Kaufpreis-/Ampel-Auswirkung) — Leerstandsquote < 1%, Wert- oder Mietsteigerung > 3%/Jahr gelten als unrealistisch günstig. Feste Schwellen, keine Herleitung aus Referenzdaten.
 - **Referenzdaten**: Grunderwerbsteuer, Mietpreise, Sanierungskosten, Instandhaltungssätze, Notar-/Grundbuch-Standardsätze sind Startwerte ohne Live-Anbindung, aber auf `/immobilien/referenzdaten` frei editierbar.
+- **Bodenrichtwert-Vergleich**: nutzt echte amtliche Werte (BORIS-D/BORIS-SH), aber nur auf Bundesland+Lagetyp-Granularität statt der viel kleinteiligeren echten Bodenrichtwertzonen — bewusste Vereinfachung wie bei den Mietpreis-Referenzdaten. Aktuell nur Schleswig-Holstein befüllt, andere Bundesländer liefern `null` (keine Card statt falscher Zahlen). Nicht für `ETW` (Bruchteilseigentum via WEG, kein eigenes Grundstück in diesem Datenmodell). Rein informativ: kein "zu teuer/günstig"-Verdikt, da eine echte Bewertung eine Boden-/Gebäudewert-Aufteilung (Sachwertverfahren) bräuchte. `scripts/import-bodenrichtwerte.ts` pflegt die Referenztabelle — der BORIS-SH-Zugriff selbst ist als Platzhalter markiert und noch nicht gegen die echte API verifiziert (siehe Kommentar im Skript).
 - **Vermögensverlauf**: schreibt Miete und laufende Kosten mit getrennten, jährlichen Raten fort (Mietsteigerung bzw. Kostensteigerung) und übernimmt Zins/Tilgung Jahr für Jahr aus dem echten Tilgungsplan — Grenzsteuersatz und AfA bleiben dabei über die gesamte Laufzeit konstant (keine Simulation von Einkommensänderungen oder Sonderabschreibungs-Auslauf). Wertsteigerung der Immobilie (Default 2%/Jahr, angelehnt ans EZB-Inflationsziel) ist eine reine Annahme, keine Prognose. Die zusätzliche "real"-Linie im Chart rechnet mit derselben Kostensteigerungsrate als Inflations-Näherung inflationsbereinigt — kein separat modelliertes CPI.
 - **Grundsteuer**: wird als vollständig umlagefähig (cash-neutral) behandelt und nicht automatisch berechnet, da der Betrag vom Hebesatz der jeweiligen Gemeinde abhängt.
 - **Verhandlungsargumente** (Objekt-Detailseite): rein aus den eigenen Modelldaten abgeleitete Fakten (Gewerke-Zustand, Gewerke-Alter vs. übliche Nutzungsdauer, Instandhaltungs-Unterdeckung, Break-even-Kaufpreis, Kaufpreisfaktor-Vergleich) — keine Rechtsberatung. Ein Gewerk löst entweder das zustandsbasierte oder das altersbasierte Argument aus, nie beide gleichzeitig (kein Doppelzählen). Nutzen die selbst editierbaren Referenzwerte auf `/immobilien/referenzdaten` (Startwerte, keine echten Marktdaten).

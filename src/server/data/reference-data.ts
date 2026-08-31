@@ -19,6 +19,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     kaufnebenkostenDefaults,
     kaufpreisfaktoren,
     nutzungsdauerRows,
+    bodenrichtwerte,
   ] = await Promise.all([
     prisma.referenceGrunderwerbsteuer.findMany(),
     prisma.referenceMietpreis.findMany(),
@@ -27,6 +28,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     ladeKaufnebenkostenDefaultsRow(),
     prisma.referenceKaufpreisfaktor.findMany(),
     prisma.referenceNutzungsdauer.findMany(),
+    prisma.referenceBodenrichtwert.findMany(),
   ]);
 
   const grunderwerbsteuerByBundesland = Object.fromEntries(
@@ -54,6 +56,11 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     GEWERKE.map((g) => [g, nutzungsdauerRows.find((r) => r.gewerk === g)?.nutzungsdauerJahre ?? 30])
   ) as ReferenceDataSnapshot["nutzungsdauerJahreByGewerk"];
 
+  const bodenrichtwertByBundeslandLagetyp: Record<string, number> = {};
+  for (const row of bodenrichtwerte) {
+    bodenrichtwertByBundeslandLagetyp[`${row.bundesland}:${row.lagetyp}`] = row.bodenrichtwertProM2.toNumber();
+  }
+
   return {
     grunderwerbsteuerByBundesland,
     mietpreisByBundeslandLagetyp,
@@ -67,6 +74,7 @@ export async function ladeReferenceDataSnapshot(): Promise<ReferenceDataSnapshot
     grundbuchProzentDefault: kaufnebenkostenDefaults?.grundbuchProzent.toNumber() ?? 0.5,
     kaufpreisfaktorReferenzByObjekttypLagetyp,
     nutzungsdauerJahreByGewerk,
+    bodenrichtwertByBundeslandLagetyp,
   };
 }
 

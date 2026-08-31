@@ -39,6 +39,8 @@ export const FIELD_HILFE = {
     "An: die geschätzten Kosten zählen zur Sofortinvestition und müssen beim Kauf direkt aus Eigenkapital gedeckt werden. Aus: nicht jedes Gewerk mit schlechtem Zustand muss sofort saniert werden — der Betrag fließt dann nicht in die Sofortinvestition ein, sondern nur informativ als \"für später eingeplant\". Der Zustand fließt trotzdem weiter in die empfohlene Instandhaltungsrücklage ein.",
   gebaeudeWohnflaecheGesamt:
     "Gesamtwohnfläche des ganzen Gebäudes/der WEG (nicht nur deine Wohnung) — Basis, um Gemeinschaftseigentum-Kosten (z. B. Dach, Fassade) anteilig statt komplett zu berechnen. Ohne Angabe wird deine eigene Wohnfläche als Näherung verwendet (wie bisher).",
+  grundstuecksflaecheQm:
+    "Fläche des Grundstücks (nicht Wohnfläche) — Basis für den Bodenrichtwert-Vergleich (amtlicher Bodenwert pro m² laut BORIS-D, aktuell nur Schleswig-Holstein). Ohne Angabe entfällt dieser Vergleich.",
   miteigentumsanteil:
     "Anteil, mit dem du an den Kosten von Gemeinschaftseigentum (z. B. Dach, Fassade) beteiligt bist. Ohne Override aus deiner Wohnfläche / Gesamtwohnfläche hergeleitet (Wohnflächenschlüssel). Falls dein tatsächlicher Miteigentumsanteil laut Grundbuch/Teilungserklärung abweicht (z. B. wegen Sondernutzungsrechten), kannst du ihn hier manuell eintragen — wirkt sich nur aus, wenn du auch die Gesamtwohnfläche einträgst.",
 

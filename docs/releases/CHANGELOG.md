@@ -71,6 +71,8 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - Steuerrechner: Solidaritätszuschlag, Kirchensteuer und Sozialabgaben ergänzt (bisher nur §32a-Einkommensteuer) — neue steuerliche Angaben im Profil (Bundesland, Kirchensteuerpflicht, Beschäftigungsstatus, gesetzlich krankenversichert, kinderlos) als Vorbelegung (#84)
 - Deployment: Opt-in `RESET_USER_DATA_ON_DEPLOY` (Default aus) löscht bei jedem Container-Start alle Nutzer-Daten und seedet die Referenzdaten neu — nur für Demo-/Test-Instanzen gedacht. Grunderwerbsteuer Bremen im Seed korrigiert (5,0% → 5,5%, seit 1.7.2025) (#85)
 - Lokales Mehrbenutzer-Datenmodell: Objekte, Profil und Szenarien gehören jetzt einem `User`; neuer `/nutzer`-Bereich zum Anlegen/Wechseln lokaler Test-User (kein echtes Login/Auth — ADR-0009, Revision von ADR-0006), Referenzdaten bleiben global (#86)
+- Hotfix: Migration `multi_user_data_model` (#86) ging fälschlich von einer leeren DB aus und crashte auf ct-tools mit vorhandenen Nutzerdaten (`P3009`) — auf nullable-Spalte + Backfill auf einen Bootstrap-User statt direktem `NOT NULL` umgestellt, funktioniert jetzt auf leeren wie befüllten Datenbanken (#87)
+- Bodenrichtwert-Vergleich (Immobilien-Rechner, nur Schleswig-Holstein): neue Referenztabelle `ReferenceBodenrichtwert` (amtlicher Bodenwert €/m² Grundstücksfläche, BORIS-D/BORIS-SH) und eine rein informative Vergleichs-Card für `HAUS`/`MEHRFAMILIENHAUS`-Objekte mit hinterlegter Grundstücksfläche; neues Objekt-Feld `grundstuecksflaecheQm` (#88)
 
 ## [0.1.0] — 2026-08-23
 
