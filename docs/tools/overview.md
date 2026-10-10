@@ -1,6 +1,6 @@
 # Tool-Übersicht
 
-Landkarte über alle 12 Tools: Zweck, geteilte Engine, Überschneidungen. Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
+Landkarte über alle Tools: Zweck, geteilte Engine, Überschneidungen. Welche Tools es gibt (Navigation, Startseiten-Karten, E2E-Routen), steht an genau einer Stelle: [`src/lib/tool-registry.ts`](../../src/lib/tool-registry.ts) — ein Test stellt sicher, dass jedes dort registrierte Tool auch in dieser Tabelle steht. Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
 
 ## Inventar
 
@@ -18,8 +18,9 @@ Landkarte über alle 12 Tools: Zweck, geteilte Engine, Überschneidungen. Detail
 | Fitness & Ernährung | `/fitness/*` | Kalorienbedarf, Ernährungstagebuch (Lebensmittel-DB), Training, Gewichtstrend, Sport-Rechner — siehe [`fitness.md`](fitness.md) | `berechneEnergiebedarf()`, `berechneTagesbilanz()`, `berechneGewichtsverlauf()` | FitnessProfil, Gewicht/Mahlzeit/Training/TagesAktivitaet, Lebensmittel |
 | Profil | `/profil` | Einkommen/Schwellen + Daten-Backup (JSON-Export) | — | UserProfile |
 | Integrationen & API | `/integrationen`, `/api/v1/*` | API-Tokens verwalten, Home-Assistant-/curl-Konfiguration kopieren; REST-API für Geräte und Skripte — siehe [`../api/README.md`](../api/README.md) | dieselben Datenfunktionen wie die Tools (`ladeFitnessTag()`, `ladeDashboardKennzahlen()`, …) | ApiToken (nur Hash) |
+| Nutzer | `/nutzer` | Lokale Test-User anlegen und wechseln (kein Login, [ADR-0009](../architecture/decisions/0009-lokales-mehrbenutzer-datenmodell.md)) | — | User |
 
-Alle Status `ACTIVE` — keine BETA/EXPERIMENTAL/DEPRECATED-Kandidaten. 5 der 12 Tools rufen eine bereits an anderer Stelle getestete Engine-Funktion auf statt eigener Berechnungslogik — Zentralisierung ist hier gelebte Praxis, keine offene Aufgabe.
+Alle Status `ACTIVE` — keine BETA/EXPERIMENTAL/DEPRECATED-Kandidaten. Szenarien, die drei freistehenden Rechner und Kaufen-oder-Anlegen? rufen eine bereits an anderer Stelle getestete Engine-Funktion auf statt eigener Berechnungslogik — Zentralisierung ist hier gelebte Praxis, keine offene Aufgabe.
 
 ## Überschneidungs-Check
 
@@ -47,5 +48,5 @@ Ein Fund aus der Ökosystem-Analyse (2026-08-22, behoben): Kaufen-oder-Anlegen? 
 
 `tools` ist ein Next.js-Monolith mit einem Build, einem Docker-Image, einem Deploy-Ziel ([ADR-0007](../architecture/decisions/0007-monolith-statt-microservices.md)) — es gibt keine unabhängig auslieferbaren Tool-Versionen. Statt erfundener Pro-Tool-Versionsnummern (die eine Unabhängigkeit vortäuschen würden, die technisch nicht existiert):
 
-- **Plattform-Version**: `package.json` (`0.3.0-20261010` — SemVer mit CalVer-Datumssuffix `YYYYMMDD`, siehe [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md)).
+- **Plattform-Version**: `version` in `package.json` (SemVer mit CalVer-Datumssuffix `YYYYMMDD`, aktueller Stand in der README und im [`CHANGELOG`](../releases/CHANGELOG.md)).
 - **Pro Tool, ehrlich statt erfunden**: `git log -- src/app/<pfad>` zeigt den tatsächlichen Änderungsverlauf eines einzelnen Tools innerhalb der gemeinsamen Historie.

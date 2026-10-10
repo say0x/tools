@@ -1,32 +1,16 @@
 "use client";
 
-// Referenz (primaryLinks/secondaryLinks-Aufteilung, warum ein eigener Dropdown statt externer Bibliothek): docs/tools/weitere-rechner.md
+// Referenz (Gruppen der Navigation, warum ein eigener Dropdown statt externer Bibliothek): docs/tools/weitere-rechner.md
+// Welche Links es gibt, steht ausschließlich in src/lib/tool-registry.ts.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { HAUPT_TOOLS, TOOLS, WEITERE_TOOLS, istAktiv, type Tool } from "@/lib/tool-registry";
 
-const primaryLinks = [
-  { href: "/", label: "Start" },
-  { href: "/immobilien/objekte", label: "Immobilien" },
-  { href: "/finanzuebersicht", label: "Finanzübersicht" },
-  { href: "/szenarien", label: "Szenarien" },
-  { href: "/fitness", label: "Fitness" },
-];
-
-const secondaryLinks = [
-  { href: "/sparziel", label: "Sparziel-Rechner" },
-  { href: "/steuerrechner", label: "Steuerrechner" },
-  { href: "/kreditvergleich", label: "Kreditvergleich" },
-  { href: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen?" },
-  { href: "/profil", label: "Profil" },
-  { href: "/nutzer", label: "Nutzer" },
-  { href: "/integrationen", label: "Integrationen & API" },
-  { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
-];
-
-const allLinks = [...primaryLinks, ...secondaryLinks];
+/** Trennlinie vor dem ersten Eintrag einer neuen Gruppe. */
+const neueGruppe = (liste: readonly Tool[], i: number) => i > 0 && liste[i].gruppe !== liste[i - 1].gruppe;
 
 export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
   const pathname = usePathname();
@@ -34,8 +18,8 @@ export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const moreIsActive = secondaryLinks.some((link) => isActive(link.href));
+  const isActive = (href: string) => istAktiv(href, pathname);
+  const moreIsActive = WEITERE_TOOLS.some((tool) => isActive(tool.href));
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -60,7 +44,9 @@ export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
     );
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+    // relative z-40: backdrop-blur erzeugt einen eigenen Stapelkontext — ohne z-index würden Seiteninhalte
+    // mit eigener Ebene (opacity, transform, position) über die Menüs dieser Kopfzeile gezeichnet.
+    <header className="relative z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight text-slate-100">
           tools<span className="text-blue-500">.</span>
@@ -69,9 +55,9 @@ export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
         <div className="hidden sm:block">{userSwitcher}</div>
 
         <nav aria-label="Hauptnavigation" className="hidden gap-1 sm:flex sm:items-center">
-          {primaryLinks.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={isActive(link.href) ? "page" : undefined} className={linkClass(isActive(link.href))}>
-              {link.label}
+          {HAUPT_TOOLS.map((tool) => (
+            <Link key={tool.href} href={tool.href} aria-current={isActive(tool.href) ? "page" : undefined} className={linkClass(isActive(tool.href))}>
+              {tool.navLabel}
             </Link>
           ))}
 
@@ -94,20 +80,20 @@ export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
                 role="menu"
                 className="absolute right-0 z-40 mt-2 w-56 rounded-md border border-slate-800 bg-slate-900 p-1 shadow-lg shadow-black/30"
               >
-                {secondaryLinks.map((link, i) => (
+                {WEITERE_TOOLS.map((tool, i) => (
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    key={tool.href}
+                    href={tool.href}
                     role="menuitem"
-                    aria-current={isActive(link.href) ? "page" : undefined}
+                    aria-current={isActive(tool.href) ? "page" : undefined}
                     onClick={() => setMoreOpen(false)}
                     className={cn(
                       "block rounded-md px-3 py-2 text-sm transition-colors",
-                      i === 4 && "mt-1 border-t border-slate-800 pt-2",
-                      isActive(link.href) ? "bg-slate-800 text-slate-100" : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                      neueGruppe(WEITERE_TOOLS, i) && "mt-1 border-t border-slate-800 pt-2",
+                      isActive(tool.href) ? "bg-slate-800 text-slate-100" : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                     )}
                   >
-                    {link.label}
+                    {tool.navLabel}
                   </Link>
                 ))}
               </div>
@@ -137,15 +123,15 @@ export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
       {mobileOpen && (
         <nav aria-label="Hauptnavigation (mobil)" className="flex flex-col gap-3 border-t border-slate-800 px-6 py-3 sm:hidden">
           <div>{userSwitcher}</div>
-          {allLinks.map((link, i) => (
+          {TOOLS.map((tool, i) => (
             <Link
-              key={link.href}
-              href={link.href}
-              aria-current={isActive(link.href) ? "page" : undefined}
+              key={tool.href}
+              href={tool.href}
+              aria-current={isActive(tool.href) ? "page" : undefined}
               onClick={() => setMobileOpen(false)}
-              className={cn(linkClass(isActive(link.href)), i === primaryLinks.length && "mt-1 border-t border-slate-800 pt-3")}
+              className={cn(linkClass(isActive(tool.href)), neueGruppe(TOOLS, i) && "mt-1 border-t border-slate-800 pt-3")}
             >
-              {link.label}
+              {tool.navLabel}
             </Link>
           ))}
         </nav>

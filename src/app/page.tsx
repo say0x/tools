@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { AMPEL_LABELS } from "@/lib/labels";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
+import { STARTSEITEN_TOOLS } from "@/lib/tool-registry";
 import { ladeDashboardKennzahlen } from "@/server/data/dashboard-kennzahlen";
 import { ladeFitnessTag } from "@/server/data/fitness";
 import { getActiveUserId } from "@/server/session";
@@ -25,59 +26,6 @@ const VermoegensverteilungChart = dynamicImport(
   () => import("@/components/charts/VermoegensverteilungChart").then((m) => m.VermoegensverteilungChart),
   { loading: () => <Skeleton className="h-[100px] w-full" /> }
 );
-
-const tools = [
-  {
-    href: "/immobilien/objekte",
-    title: "Immobilien-Rechner",
-    description: "Objekte erfassen, Kennzahlen berechnen, vergleichen — rechnet sich der Kauf?",
-  },
-  {
-    href: "/finanzuebersicht",
-    title: "Finanzübersicht",
-    description: "Wertpapiere, Tagesgeld & Immobilien-Cashflow zusammen betrachten — wie viel Geld hast du in wie vielen Jahren wirklich zur Verfügung?",
-  },
-  {
-    href: "/szenarien",
-    title: "Szenarien",
-    description: "„Was wäre, wenn…“ — Käufe, Verkäufe, Sparraten & Anschaffungen durchspielen, ohne deine echten Daten zu verändern.",
-  },
-  {
-    href: "/sparziel",
-    title: "Sparziel-Rechner",
-    description: "Freistehender Zinseszins-Rechner: Kapitalverlauf einer Sparrate über Zeit, und wann ein Zielbetrag erreicht ist.",
-  },
-  {
-    href: "/steuerrechner",
-    title: "Steuerrechner",
-    description: "Freistehender Grenzsteuersatz-Rechner, unabhängig vom Profil — schnell ein anderes Einkommen durchspielen.",
-  },
-  {
-    href: "/kreditvergleich",
-    title: "Kreditvergleich",
-    description: "Zwei Finanzierungsangebote nebeneinander durchrechnen, ohne dass ein Objekt angelegt werden muss.",
-  },
-  {
-    href: "/kaufen-oder-anlegen",
-    title: "Kaufen oder Anlegen?",
-    description: "Ein Objekt aus deiner Bibliothek gegen die Alternative vergleichen, dasselbe Eigenkapital stattdessen anzulegen.",
-  },
-  {
-    href: "/fitness",
-    title: "Fitness & Ernährung",
-    description: "Kalorienbedarf, Ernährungstagebuch mit Lebensmittel-Datenbank, Training, Gewichtstrend und Sport-Rechner.",
-  },
-  {
-    href: "/profil",
-    title: "Profil",
-    description: "Einkommen, Budget und Schwellen hinterlegen — steuert die Ampeln und Kennzahlen aller anderen Tools.",
-  },
-  {
-    href: "/integrationen",
-    title: "Integrationen & API",
-    description: "Home Assistant, iOS-Kurzbefehle und eigene Skripte per REST-API anbinden — Tokens verwalten, fertige Konfiguration kopieren.",
-  },
-];
 
 const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
   GRUEN: "bg-emerald-500",
@@ -335,11 +283,11 @@ export default async function Home() {
       <div>
         <h2 className="mb-3 text-sm font-medium text-slate-400">Werkzeuge</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {tools.map((tool) => (
-            <Link key={tool.title} href={tool.href}>
+          {STARTSEITEN_TOOLS.map((tool) => (
+            <Link key={tool.href} href={tool.href}>
               <Card className="transition-colors hover:border-slate-700">
-                <CardTitle className="mb-1">{tool.title}</CardTitle>
-                <p className="text-sm text-slate-400">{tool.description}</p>
+                <CardTitle className="mb-1">{tool.titel}</CardTitle>
+                <p className="text-sm text-slate-400">{tool.beschreibung}</p>
               </Card>
             </Link>
           ))}

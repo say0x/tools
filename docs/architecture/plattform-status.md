@@ -45,7 +45,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 | F3 | Security | Kein App-Login; jeder im VPN hat vollen Zugriff auf Finanz-, Immobilien- und Gesundheitsdaten. Tragfähig **nur** unter der VPN-Prämisse — jede Exposition darüber hinaus (SaaS, Port-Freigabe) braucht vorher echte Authentifizierung | hoch (prämissenabhängig) | Roadmap R9, Entscheidung beim Nutzer |
 | F4 | Qualität | E2E läuft nicht in der CI: der Steuerrechner-Test war seit #84 rot (mehrdeutiger Locator), unbemerkt | mittel | Test repariert; CI-Integration R6 |
 | F5 | Barrierefreiheit | 5 Texte mit `text-slate-500` unter WCAG-AA-Kontrast (3,96:1) in Zuständen, die der axe-Scan nie erreicht (Netto-Zeile bei Krediten, offenes Nutzer-Menü, Bodenrichtwert-Card, Restore-Vorschau) | mittel | behoben in diesem PR |
-| F6 | Architektur | Ein neues Tool muss an ≥ 5 Stellen von Hand eingetragen werden (`Nav.tsx` mit Index-basiertem Trenner, Dashboard-Werkzeugliste, `e2e/routes.ts`, Tool-Doku, README) — skaliert schlecht und driftet | mittel | Roadmap R5 |
+| F6 | Architektur | Ein neues Tool muss an ≥ 5 Stellen von Hand eingetragen werden (`Nav.tsx` mit Index-basiertem Trenner, Dashboard-Werkzeugliste, `e2e/routes.ts`, Tool-Doku, README) — skaliert schlecht und driftet | mittel | behoben in #93 (`src/lib/tool-registry.ts`, Drift-Tests) |
 | F7 | Architektur | Zwei Muster für die Nutzerauflösung: implizit `getActiveUserId()` in Loadern (Immobilien/Finanzen) vs. explizite `userId` im Datenzugriff (Fitness). Für Schnittstellen ohne Cookie (API) ist nur das explizite Muster sicher | mittel | schrittweise angleichen (R8), nicht als Big-Bang |
 | F8 | Architektur | Dashboard-Kennzahlen werden direkt in der Seitenkomponente berechnet — für eine API nicht wiederverwendbar | niedrig | behoben in #92 (`src/server/data/dashboard-kennzahlen.ts`, genutzt von Startseite und API) |
 | F9 | Betrieb | Kein Health-Endpunkt, kein Healthcheck für den App-Container (nur für Postgres) | niedrig | behoben in #92 (`/api/v1/status`, Compose-Healthcheck) |
@@ -55,7 +55,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 
 ### Skalierungsengpässe
 
-1. **Tool-Registrierung** (F6) — wächst linear mit jedem Tool.
+1. ~~**Tool-Registrierung**~~ (F6) — seit #93 ein Eintrag in `src/lib/tool-registry.ts`; Navigation, Startseite, Tabs und E2E-Routen leiten sich ab, Tests melden vergessene Seiten.
 2. ~~**Fehlende Außenschnittstelle**~~ — seit #92 gelöst: REST-API v1 mit Tokens, OpenAPI und Home-Assistant-Endpunkt ([ADR-0011](decisions/0011-rest-api-mit-bearer-tokens.md)).
 3. **Auth** (F3) — blockiert jeden Betrieb jenseits des VPN; die Datenschicht ist durch das Mehrbenutzer-Modell vorbereitet, die Nutzerauflösung (F7) noch nicht überall.
 
@@ -67,7 +67,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 - [x] **R2** Kontrast-Fixes, reparierter Steuerrechner-E2E-Test (F4, F5)
 - [x] **R3** Version `0.3.0-20261010`, Changelog-Schnitt, Doku-Korrekturen (F10, F11)
 - [x] **R4** (#92) REST-API v1 mit Token-Authentifizierung, OpenAPI-Beschreibung und Home-Assistant-Anbindung (Sensoren, Schreibwege für Waage/Wasser/Schritte, Foto-Upload per Kurzbefehl); Dashboard-Kennzahlen als geteiltes Datenmodul; Health-Endpunkt + Compose-Healthcheck (F8, F9, Engpass 2). Neues ADR-0011.
-- [ ] **R5** Zentrale Tool-Registry: Navigation und Dashboard-Werkzeugliste aus einer Quelle, Drift-Test gegen `e2e/routes.ts`, dokumentierter Ablauf „neues Tool hinzufügen" (F6)
+- [x] **R5** (#93) Zentrale Tool-Registry: Navigation und Dashboard-Werkzeugliste aus einer Quelle, Drift-Test gegen `e2e/routes.ts`, dokumentierter Ablauf „neues Tool hinzufügen" (F6)
 
 ### Mittelfristig (Architektur & Qualität)
 
