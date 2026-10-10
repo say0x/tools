@@ -1,6 +1,6 @@
 # tools
 
-Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`sayox.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Die **Finanzübersicht** aggregiert Wertpapierdepots, Tagesgeld und den Cashflow ausgewählter Immobilien auf demselben `Asset`-Datenmodell zu einem gemeinsamen Verlauf des tatsächlich verfügbaren Geldes (nominal & inflationsbereinigt) — Immobilienwerte selbst fließen dabei bewusst nicht ein, nur der Cashflow, den sie erwirtschaften. **Szenarien** beantworten "was wäre, wenn…?" (Immobilie kaufen/verkaufen, Sparrate ändern, einmalige Anschaffung), ohne jemals die echten Asset-Daten zu verändern — ein Szenario ist immer Basiszustand + Änderungen, nur zur Laufzeit kombiniert. Der **Sparziel-Rechner** ist ein freistehender Zinseszins-Rechner (Kapitalverlauf einer Sparrate über Zeit, Jahr bis zu einem Zielbetrag) ohne eigene Datenhaltung. Der **Steuerrechner** ist ein freistehender Grenzsteuersatz-Rechner, unabhängig vom hinterlegten Profil. Der **Kreditvergleich** rechnet zwei Finanzierungsangebote nebeneinander durch, ganz ohne Objekt. **Kaufen oder Anlegen?** vergleicht ein konkretes Objekt aus der Bibliothek gegen die Alternative, dasselbe Eigenkapital stattdessen in ein Wertpapierdepot zu stecken. **Fitness & Ernährung** (`/fitness`) berechnet Kalorien- und Makrobedarf (Mifflin-St Jeor), führt ein Ernährungstagebuch mit Lebensmittel-Datenbank, erfasst Training mit geschätztem Mehrverbrauch, glättet den Gewichtsverlauf mit Trend und Ziel-Prognose und bietet Sport-Rechner (Pace/Wettkampfprognose, Herzfrequenzzonen, 1RM). Die Startseite (`/`) zeigt ein Dashboard mit den wichtigsten Kennzahlen über alle Tools hinweg (Immobilien im Besitz, Bargeld & Depots, monatlicher Immobilien-Cashflow, Anzahl Szenarien, Notgroschen-Reichweite, Fitness heute).
+Interne Tool-Suite von Dennis Kohnke — nicht öffentlich, für den Eigenbedarf im Homelab (`sayox.de`). Startet mit dem **Immobilien-Rechner**: Objekte erfassen, Kennzahlen live berechnen, speichern und vergleichen. Die **Finanzübersicht** aggregiert Wertpapierdepots, Tagesgeld und den Cashflow ausgewählter Immobilien auf demselben `Asset`-Datenmodell zu einem gemeinsamen Verlauf des tatsächlich verfügbaren Geldes (nominal & inflationsbereinigt) — Immobilienwerte selbst fließen dabei bewusst nicht ein, nur der Cashflow, den sie erwirtschaften. **Szenarien** beantworten "was wäre, wenn…?" (Immobilie kaufen/verkaufen, Sparrate ändern, einmalige Anschaffung), ohne jemals die echten Asset-Daten zu verändern — ein Szenario ist immer Basiszustand + Änderungen, nur zur Laufzeit kombiniert. Der **Sparziel-Rechner** ist ein freistehender Zinseszins-Rechner (Kapitalverlauf einer Sparrate über Zeit, Jahr bis zu einem Zielbetrag) ohne eigene Datenhaltung. Der **Steuerrechner** ist ein freistehender Grenzsteuersatz-Rechner, unabhängig vom hinterlegten Profil. Der **Kreditvergleich** rechnet zwei Finanzierungsangebote nebeneinander durch, ganz ohne Objekt. **Kaufen oder Anlegen?** vergleicht ein konkretes Objekt aus der Bibliothek gegen die Alternative, dasselbe Eigenkapital stattdessen in ein Wertpapierdepot zu stecken. **Fitness & Ernährung** (`/fitness`) berechnet Kalorien- und Makrobedarf (Mifflin-St Jeor), führt ein Ernährungstagebuch mit Lebensmittel-Datenbank, erfasst Training mit geschätztem Mehrverbrauch, glättet den Gewichtsverlauf mit Trend und Ziel-Prognose und bietet Sport-Rechner (Pace/Wettkampfprognose, Herzfrequenzzonen, 1RM). **Integrationen & API** (`/integrationen`) bindet Home Assistant, iOS-Kurzbefehle, Smart-Waagen und eigene Skripte über eine REST-API mit Tokens an (Sensoren für Kalorien/Makros/Gewicht/Finanzen, Schreibwege für Gewicht, Wasser, Schritte, Mahlzeiten, Trainings und Foto-Analyse; OpenAPI-Beschreibung unter `/api/v1/openapi.json`). Die Startseite (`/`) zeigt ein Dashboard mit den wichtigsten Kennzahlen über alle Tools hinweg (Immobilien im Besitz, Bargeld & Depots, monatlicher Immobilien-Cashflow, Anzahl Szenarien, Notgroschen-Reichweite, Fitness heute).
 
 ## Tech-Stack
 
@@ -18,7 +18,7 @@ Wiederkehrendes Datenmodell-Muster **"computed-with-override"**: ein Wertefeld +
 
 ## Version
 
-`0.3.0-20261010` (SemVer + CalVer-Datumssuffix, siehe [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md)). Ein Deploy, ein Build — keine unabhängigen Tool-Versionen, siehe [ADR-0007](docs/architecture/decisions/0007-monolith-statt-microservices.md).
+`0.4.0-20261010` (SemVer + CalVer-Datumssuffix, siehe [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md)). Ein Deploy, ein Build — keine unabhängigen Tool-Versionen, siehe [ADR-0007](docs/architecture/decisions/0007-monolith-statt-microservices.md).
 
 ## Dokumentation
 
@@ -28,6 +28,7 @@ Diese README gibt den schnellen Einstieg — Tech-Stack, lokale Entwicklung, Dep
 |---|---|
 | [`docs/architecture/`](docs/architecture/overview.md) | Systemarchitektur, [Plattform-Status & Roadmap](docs/architecture/plattform-status.md), [Architecture Decision Records](docs/architecture/decisions/) |
 | [`docs/tools/`](docs/tools/overview.md) | Tool-Inventar, Überschneidungs-Check, sowie die Detail-Referenz je Tool |
+| [`docs/api/`](docs/api/README.md) | REST-API v1, [Home-Assistant-Anbindung](docs/integrations/home-assistant.md) |
 | [`docs/database/`](docs/database/schema.md) | Datenmodell-Landkarte |
 | [`docs/deployment/`](docs/deployment/docker.md) | Docker, Netzwerk, CI |
 | [`docs/development/`](docs/development/setup.md) | Setup, Tests, Import-Skript |
@@ -66,7 +67,8 @@ Vollständig mit Erläuterung je Verzeichnis: [`docs/development/setup.md`](docs
 prisma/schema.prisma          Datenmodell (Asset, UserProfile, Property, Reference*)
 src/server/calc/                Framework-freie Berechnungs-Engine + Tests
 src/server/actions/            Server Actions (Profil, Objekt-CRUD, Referenzdaten)
-src/app/                       11 Tools — Übersicht: docs/tools/overview.md
+src/server/api/                REST-API-Rahmen, DTOs, OpenAPI (Routen: src/app/api/v1/)
+src/app/                       12 Tools — Übersicht: docs/tools/overview.md
 docs/                          Ausführliche Referenzdokumentation (siehe "Dokumentation" oben)
 ```
 

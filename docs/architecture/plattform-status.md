@@ -47,8 +47,8 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 | F5 | Barrierefreiheit | 5 Texte mit `text-slate-500` unter WCAG-AA-Kontrast (3,96:1) in Zuständen, die der axe-Scan nie erreicht (Netto-Zeile bei Krediten, offenes Nutzer-Menü, Bodenrichtwert-Card, Restore-Vorschau) | mittel | behoben in diesem PR |
 | F6 | Architektur | Ein neues Tool muss an ≥ 5 Stellen von Hand eingetragen werden (`Nav.tsx` mit Index-basiertem Trenner, Dashboard-Werkzeugliste, `e2e/routes.ts`, Tool-Doku, README) — skaliert schlecht und driftet | mittel | Roadmap R5 |
 | F7 | Architektur | Zwei Muster für die Nutzerauflösung: implizit `getActiveUserId()` in Loadern (Immobilien/Finanzen) vs. explizite `userId` im Datenzugriff (Fitness). Für Schnittstellen ohne Cookie (API) ist nur das explizite Muster sicher | mittel | schrittweise angleichen (R8), nicht als Big-Bang |
-| F8 | Architektur | Dashboard-Kennzahlen werden direkt in der Seitenkomponente berechnet — für eine API nicht wiederverwendbar | niedrig | wird mit der API in ein Datenmodul verschoben (R4) |
-| F9 | Betrieb | Kein Health-Endpunkt, kein Healthcheck für den App-Container (nur für Postgres) | niedrig | mit der API (R4) |
+| F8 | Architektur | Dashboard-Kennzahlen werden direkt in der Seitenkomponente berechnet — für eine API nicht wiederverwendbar | niedrig | behoben in #92 (`src/server/data/dashboard-kennzahlen.ts`, genutzt von Startseite und API) |
+| F9 | Betrieb | Kein Health-Endpunkt, kein Healthcheck für den App-Container (nur für Postgres) | niedrig | behoben in #92 (`/api/v1/status`, Compose-Healthcheck) |
 | F10 | Release | Version stand seit 2026-08-23 auf `0.2.0-20260823`, obwohl Mehrbenutzer-Modell, Fitness und KI dazukamen; der `[0.2.0]`-Abschnitt im Changelog reichte bis #90 trotz Datumsangabe „bis 2026-08-29" | niedrig | behoben in diesem PR (`0.3.0-20261010`) |
 | F11 | Doku | Migrationsanzahl in `database/schema.md` seit #88 um eins zu niedrig; `workflow.md` nannte ADRs „bis 0008" | niedrig | behoben in diesem PR |
 | F12 | Performance | Dashboard rechnet die 50-Jahres-Engine für jedes Objekt bei jedem Aufruf; gemessen mit 27 Objekten ~60–100 ms | keiner akut | beobachten, erst ab spürbarer Latenz cachen |
@@ -56,7 +56,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 ### Skalierungsengpässe
 
 1. **Tool-Registrierung** (F6) — wächst linear mit jedem Tool.
-2. **Fehlende Außenschnittstelle** — jede Integration (Home Assistant, Kurzbefehle, Wearables) bräuchte heute einen eigenen Sonderweg.
+2. ~~**Fehlende Außenschnittstelle**~~ — seit #92 gelöst: REST-API v1 mit Tokens, OpenAPI und Home-Assistant-Endpunkt ([ADR-0011](decisions/0011-rest-api-mit-bearer-tokens.md)).
 3. **Auth** (F3) — blockiert jeden Betrieb jenseits des VPN; die Datenschicht ist durch das Mehrbenutzer-Modell vorbereitet, die Nutzerauflösung (F7) noch nicht überall.
 
 ## 3. Roadmap
@@ -66,7 +66,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 - [x] **R1** Next.js-Sicherheitsupdate auf 16.3.8 + nicht-brechende transitive Fixes (F1)
 - [x] **R2** Kontrast-Fixes, reparierter Steuerrechner-E2E-Test (F4, F5)
 - [x] **R3** Version `0.3.0-20261010`, Changelog-Schnitt, Doku-Korrekturen (F10, F11)
-- [ ] **R4** REST-API v1 mit Token-Authentifizierung, OpenAPI-Beschreibung und Home-Assistant-Anbindung (Sensoren, Schreibwege für Waage/Wasser/Schritte, Foto-Upload per Kurzbefehl); Dashboard-Kennzahlen als geteiltes Datenmodul; Health-Endpunkt + Compose-Healthcheck (F8, F9, Engpass 2). Neues ADR-0011.
+- [x] **R4** (#92) REST-API v1 mit Token-Authentifizierung, OpenAPI-Beschreibung und Home-Assistant-Anbindung (Sensoren, Schreibwege für Waage/Wasser/Schritte, Foto-Upload per Kurzbefehl); Dashboard-Kennzahlen als geteiltes Datenmodul; Health-Endpunkt + Compose-Healthcheck (F8, F9, Engpass 2). Neues ADR-0011.
 - [ ] **R5** Zentrale Tool-Registry: Navigation und Dashboard-Werkzeugliste aus einer Quelle, Drift-Test gegen `e2e/routes.ts`, dokumentierter Ablauf „neues Tool hinzufügen" (F6)
 
 ### Mittelfristig (Architektur & Qualität)
@@ -87,11 +87,12 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 
 ## 4. Architekturentscheidungen & Konventionen
 
-Bestehend und weiterhin gültig: [ADR-0001](decisions/0001-framework-freier-rechenkern.md) (framework-freier Rechenkern), [ADR-0005](decisions/0005-computed-with-override-pattern.md) (computed-with-override), [ADR-0007](decisions/0007-monolith-statt-microservices.md) (Monolith — ein Plugin-System oder dynamisches Laden ist bei zwölf Tools nicht gerechtfertigt; eine statische Registry genügt), [ADR-0008](decisions/0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md), [ADR-0009](decisions/0009-lokales-mehrbenutzer-datenmodell.md), [ADR-0010](decisions/0010-ki-fotoanalyse-ueber-claude-api.md).
+Bestehend und weiterhin gültig: [ADR-0001](decisions/0001-framework-freier-rechenkern.md) (framework-freier Rechenkern), [ADR-0005](decisions/0005-computed-with-override-pattern.md) (computed-with-override), [ADR-0007](decisions/0007-monolith-statt-microservices.md) (Monolith — ein Plugin-System oder dynamisches Laden ist bei zwölf Tools nicht gerechtfertigt; eine statische Registry genügt), [ADR-0008](decisions/0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md), [ADR-0009](decisions/0009-lokales-mehrbenutzer-datenmodell.md), [ADR-0010](decisions/0010-ki-fotoanalyse-ueber-claude-api.md), [ADR-0011](decisions/0011-rest-api-mit-bearer-tokens.md) (REST-API mit Bearer-Tokens).
 
 Konventionen, die sich aus diesem Audit ergeben:
 
 - **Externe Anbieter** bekommen genau ein Adapter-Modul (heute `src/server/ki/`), das allein das SDK/HTTP anspricht: Timeouts, begrenzte Retries, typisierte Fehlerübersetzung, injizierbarer Client für Tests ohne Netzwerk, Konfiguration nur über Umgebungsvariablen. Kein direkter SDK-Aufruf aus Seiten, Actions oder anderen Tools. Eine generische Integrationsschicht wird erst bei mehreren gleichartigen Anbietern sinnvoll.
+- **Schnittstellen nach außen** laufen ausschließlich über `/api/v1` mit `apiRoute()` (Token, Schreibrecht, Validierung, Fehlerformat) und teilen sich die Zod-Schemas mit den Server Actions; jede Route steht in `src/server/api/openapi.ts` (Test erzwingt das). Ablauf: [`docs/api/README.md`](../api/README.md#neuen-endpunkt-hinzufügen).
 - **Neuer Datenzugriff** nimmt die `userId` explizit entgegen (Muster aus `src/server/data/fitness.ts`); `getActiveUserId()` gehört an die Ränder (Seiten, Server Actions).
 - **Lese-Funktionen nicht in `"use server"`-Dateien mit Nutzer-Parameter** exportieren — jede dort exportierte Funktion ist vom Browser aus aufrufbar.
 - **Versionierung** bleibt bei der etablierten Konvention `MAJOR.MINOR.PATCH-YYYYMMDD` für die Gesamtplattform (`package.json`, Changelog-Abschnitt je Version); keine eigenen Tool-Versionen ([ADR-0007](decisions/0007-monolith-statt-microservices.md)). Git-Tags/Releases nur auf ausdrücklichen Wunsch.

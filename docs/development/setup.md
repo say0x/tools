@@ -51,6 +51,10 @@ prisma/seed.ts                 Startwerte für Referenztabellen
 src/server/calc/                Framework-freie Berechnungs-Engine + Tests
 src/server/actions/            Server Actions (Profil, Objekt-CRUD, Referenzdaten)
 src/server/data/               Prisma-Reads + Mapper zu den Calc-Engine-Typen
+src/server/api/                REST-API-Rahmen (Token, Validierung, Fehler), DTOs, OpenAPI
+src/server/ki/                 Adapter zur Claude API (KI-Fotoanalyse)
+src/app/api/v1/                REST-Routen (docs/api/README.md)
+src/app/integrationen/         Tokens verwalten, Home-Assistant-/curl-Konfiguration
 src/components/forms/          PropertyForm (Objekt-Formular inkl. Live-Kennzahlen)
 src/components/charts/         Recharts-Komponenten
 src/app/immobilien/            Objekt-Bibliothek, -Formular, -Vergleich, Referenzdaten

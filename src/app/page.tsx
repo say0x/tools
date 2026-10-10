@@ -8,17 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
-import { BESITZSTATUS_ZAEHLT_IM_VERMOEGEN } from "@/lib/asset";
 import { AMPEL_LABELS } from "@/lib/labels";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
-import { berechneObjekt } from "@/server/calc/engine";
-import { ladeProfil } from "@/server/actions/profile";
-import { ladeSparpositionen } from "@/server/actions/finanzuebersicht";
-import { ladeSzenarien } from "@/server/actions/szenario";
-import { ladeObjekte } from "@/server/data/property";
-import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
-import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
-import { immobilienPositionAusErgebnis } from "@/server/data/vermoegen";
+import { ladeDashboardKennzahlen } from "@/server/data/dashboard-kennzahlen";
 import { ladeFitnessTag } from "@/server/data/fitness";
 import { getActiveUserId } from "@/server/session";
 import { heuteIso } from "@/server/calc/fitness/datum";
@@ -80,6 +72,11 @@ const tools = [
     title: "Profil",
     description: "Einkommen, Budget und Schwellen hinterlegen — steuert die Ampeln und Kennzahlen aller anderen Tools.",
   },
+  {
+    href: "/integrationen",
+    title: "Integrationen & API",
+    description: "Home Assistant, iOS-Kurzbefehle und eigene Skripte per REST-API anbinden — Tokens verwalten, fertige Konfiguration kopieren.",
+  },
 ];
 
 const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
@@ -89,85 +86,34 @@ const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
 };
 
 export default async function Home() {
-  const [propertyRows, profilRow, referenceData, sparpositionenRows, szenarien, fitnessHeute] = await Promise.all([
-    ladeObjekte(),
-    ladeProfil(),
-    ladeReferenceDataSnapshot(),
-    ladeSparpositionen(),
-    ladeSzenarien(),
-    getActiveUserId().then((userId) => ladeFitnessTag(userId, heuteIso())),
-  ]);
-
-  const profile = toProfileInput(profilRow);
-  const heute = new Date();
-
-  // Einmal pro Objekt berechnen und für Ampel/Cashflow-Kennzahlen sowie die
-  // Vermögens-Referenzwerte (immobilienpositionen) wiederverwenden, statt
-  // die kostenintensive 50-Jahres-Engine-Berechnung zweimal anzustoßen.
-  const objekteMitErgebnis = propertyRows.map((row) => ({
-    row,
-    result: berechneObjekt(toPropertyInput(row), profile, referenceData),
-  }));
-
-  const objekteImBesitz = objekteMitErgebnis
-    .filter(({ row }) => row.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
-    .map(({ result }) => result);
-
-  const monatlicherImmobilienCashflow = objekteImBesitz.reduce(
-    (summe, r) => summe + r.rendite.monatlicherCashflowNachSteuer,
-    0
-  );
-  const ampelVerteilung: Record<"GRUEN" | "GELB" | "ROT", number> = { GRUEN: 0, GELB: 0, ROT: 0 };
-  for (const o of objekteImBesitz) ampelVerteilung[o.affordability.ampel]++;
+  const userId = await getActiveUserId();
+  const [k, fitnessHeute] = await Promise.all([ladeDashboardKennzahlen(userId), ladeFitnessTag(userId, heuteIso())]);
+  const {
+    monatlicherImmobilienCashflow,
+    ampelVerteilung,
+    durchschnittlicheBruttorendite,
+    sparvermoegen,
+    notgroschenMonate,
+    keinProfilHinterlegt,
+    immobilienEigenkapitalReferenz,
+    gesamtvermoegenReferenz,
+    gesamtSchuldenRestschuld,
+    gesamtvermoegenNetto,
+    nochKeineDaten,
+  } = k;
   const objekteRot = ampelVerteilung.ROT;
-
-  const durchschnittlicheBruttorendite =
-    objekteImBesitz.length === 0
-      ? null
-      : objekteImBesitz.reduce((summe, r) => summe + r.rendite.bruttomietrenditeProzent, 0) / objekteImBesitz.length;
-
-  const sparpositionenImBesitz = [...sparpositionenRows.wertpapiere, ...sparpositionenRows.tagesgeld].filter(
-    (p) => p.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN
-  );
-  const sparvermoegen = sparpositionenImBesitz.reduce((summe, p) => summe + p.betrag.toNumber(), 0);
-
-  // Notgroschen bewusst nur aus Tagesgeld (sofort verfügbar) — Wertpapierdepots zählen
-  // hier nicht mit, da sie erst verkauft werden müssten und im Kurs schwanken können.
-  const tagesgeldImBesitz = sparpositionenRows.tagesgeld
-    .filter((t) => t.asset.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
-    .reduce((summe, t) => summe + t.betrag.toNumber(), 0);
-  const fixkostenMonatlich = profilRow?.fixkostenMonatlich.toNumber() ?? 0;
-  const notgroschenMonate = fixkostenMonatlich > 0 ? tagesgeldImBesitz / fixkostenMonatlich : null;
-  const groessteSparposition = sparpositionenImBesitz.reduce(
-    (groesste, p) => (groesste === null || p.betrag.toNumber() > groesste.betrag.toNumber() ? p : groesste),
-    null as (typeof sparpositionenImBesitz)[number] | null
-  );
-
-  const immobilienpositionen = objekteMitErgebnis.map(({ row, result }) =>
-    immobilienPositionAusErgebnis(row, result, heute)
-  );
-  const immobilienEigenkapitalReferenz = immobilienpositionen
-    .filter((p) => p.besitzstatus === BESITZSTATUS_ZAEHLT_IM_VERMOEGEN)
-    .reduce((summe, p) => summe + p.eigenkapitalanteilHeuteReferenz, 0);
-  const gesamtvermoegenReferenz = immobilienEigenkapitalReferenz + sparvermoegen;
-
-  // Bestehende Kredite (Profil → "Bestehende Kredite") fließen bewusst in keine andere
-  // Kennzahl ein (siehe docs/tools/weitere-rechner.md) — hier als einzige Stelle von der
-  // Referenzgröße abgezogen, um zusätzlich zum Brutto-Bild auch ein Netto-Vermögen zu zeigen.
-  const gesamtSchuldenRestschuld = profile.liabilities.reduce((summe, l) => summe + l.restschuld, 0);
-  const gesamtvermoegenNetto = gesamtvermoegenReferenz - gesamtSchuldenRestschuld;
 
   const stats = [
     {
       label: "Immobilien im Besitz",
-      value: `${objekteImBesitz.length}`,
-      hint: `von ${propertyRows.length} Objekt(en) gesamt`,
+      value: `${k.objekteImBesitz}`,
+      hint: `von ${k.objekteGesamt} Objekt(en) gesamt`,
       href: "/immobilien/objekte",
     },
     {
       label: "Bargeld & Depots",
       value: formatEuro(sparvermoegen),
-      hint: `${sparpositionenImBesitz.length} Position(en)`,
+      hint: `${k.sparpositionenImBesitz} Position(en)`,
       href: "/finanzuebersicht",
     },
     {
@@ -178,13 +124,11 @@ export default async function Home() {
     },
     {
       label: "Szenarien",
-      value: `${szenarien.length}`,
+      value: `${k.szenarienAnzahl}`,
       hint: "gespeicherte „Was wäre, wenn…“-Pläne",
       href: "/szenarien",
     },
   ];
-
-  const keinProfilHinterlegt = !profilRow || fixkostenMonatlich === 0;
 
   const fakten = [
     {
@@ -207,8 +151,8 @@ export default async function Home() {
     },
     {
       label: "Größte Sparposition",
-      value: groessteSparposition ? formatEuro(groessteSparposition.betrag.toNumber()) : "—",
-      hint: groessteSparposition?.asset.name ?? "noch keine Position erfasst",
+      value: k.groessteSparposition ? formatEuro(k.groessteSparposition.betrag) : "—",
+      hint: k.groessteSparposition?.name ?? "noch keine Position erfasst",
       netto: null as number | null,
     },
     {
@@ -221,8 +165,6 @@ export default async function Home() {
       netto: gesamtSchuldenRestschuld > 0 ? gesamtvermoegenNetto : null,
     },
   ];
-
-  const nochKeineDaten = propertyRows.length === 0 && sparpositionenRows.wertpapiere.length === 0 && sparpositionenRows.tagesgeld.length === 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -301,7 +243,7 @@ export default async function Home() {
 
         <Card>
           <CardTitle>Objekte nach Ampel</CardTitle>
-          {objekteImBesitz.length === 0 ? (
+          {k.objekteImBesitz === 0 ? (
             <p className="text-sm text-slate-400">Keine Objekte im Besitz.</p>
           ) : (
             <>
@@ -312,7 +254,7 @@ export default async function Home() {
                       <div
                         key={status}
                         className={AMPEL_FARBEN[status]}
-                        style={{ width: `${(ampelVerteilung[status] / objekteImBesitz.length) * 100}%` }}
+                        style={{ width: `${(ampelVerteilung[status] / k.objekteImBesitz) * 100}%` }}
                         title={`${AMPEL_LABELS[status]}: ${ampelVerteilung[status]}`}
                       />
                     )

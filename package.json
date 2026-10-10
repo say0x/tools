@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "0.3.0-20261010",
+  "version": "0.4.0-20261010",
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
@@ -52,6 +52,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }

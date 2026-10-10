@@ -13,9 +13,17 @@ Einzelnutzer-Tool im eigenen Homelab, nur über VPN erreichbar (siehe [ADR-0006]
 - **Netzwerk**: `docker-compose.yml` mappt den Postgres-Port bewusst nicht auf den Host (behoben im Audit — vorher unnötig exponiert mit trivialen Zugangsdaten). Der App-Container erreicht Postgres ausschließlich über das Docker-Netz.
 - **Security-Header/CSP**: seit 2026-08-28 gesetzt (`next.config.ts`) — Content-Security-Policy, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, restriktives `Permissions-Policy`. Details und Begründung (statische statt Nonce-basierte CSP): [`docs/deployment/docker.md`](../deployment/docker.md#http-security-header).
 
+## REST-API & Tokens (seit 2026-10, [ADR-0011](../architecture/decisions/0011-rest-api-mit-bearer-tokens.md))
+
+- `/api/v1/*` verlangt `Authorization: Bearer <Token>`; öffentlich sind nur `/api/v1/status` (ohne Nutzerdaten) und `/api/v1/openapi.json`.
+- Tokens: 256 Bit Zufall, in der DB nur als SHA-256-Hash; Klartext wird einmal angezeigt. Lese-Tokens werden bei POST/PUT/DELETE mit 403 abgewiesen. Widerruf wirkt sofort.
+- Jede API-Datenfunktion bekommt die `userId` aus dem Token — nie aus dem Nutzer-Cookie. Löschen nur per `(id, userId)`; fremde IDs liefern 404.
+- Eingaben: Zod-Validierung (dieselben Schemas wie die Server Actions), Body-Limits (64 KB / 256 KB / 8 MB Foto), `Content-Type`-Pflicht, `Cache-Control: no-store`. Fehlerantworten enthalten keine Stacktraces (Details nur im Server-Log).
+- **Grenze**: Die API ändert die Prämisse nicht. Wer das UI erreicht, kann auf `/integrationen` Tokens für jeden lokalen Nutzer erstellen. Tokens schützen gegen Geräte ohne Token, nicht gegen Personen mit UI-Zugriff.
+
 ## Externe Datenflüsse
 
-- **KI-Fotoanalyse (opt-in, seit 2026-10)**: nur wenn `ANTHROPIC_API_KEY` gesetzt ist, sendet der Server verkleinerte Mahlzeitenfotos und einen optionalen Zusatztext an die Anthropic API ([ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md)). Der Aufruf passiert ausschließlich serverseitig — der Schlüssel erreicht nie den Browser, die CSP bleibt bei `connect-src 'self'`. Fotos werden von `tools` nicht gespeichert. Validierung vor dem Versand: Bildtyp (JPEG/PNG/WebP/GIF) und Größe (≤ 5 MB). Kostendeckel `KI_FOTO_LIMIT_PRO_TAG`. Der Schlüssel gehört in die lokale `.env` (gitignored), nie ins Repository oder in `docker-compose.yml`.
+- **KI-Fotoanalyse (opt-in, seit 2026-10)**: nur wenn `ANTHROPIC_API_KEY` gesetzt ist, sendet der Server verkleinerte Mahlzeitenfotos und einen optionalen Zusatztext an die Anthropic API ([ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md)). Der Aufruf passiert ausschließlich serverseitig — der Schlüssel erreicht nie den Browser, die CSP bleibt bei `connect-src 'self'`. Fotos werden von `tools` nicht gespeichert. Validierung vor dem Versand: Bildtyp anhand der Dateisignatur (JPEG/PNG/WebP/GIF) und Größe (≤ 5 MB). Über die API (`POST /api/v1/fitness/mahlzeiten/foto-analyse`) gilt dasselbe, nur mit Schreib-Token. Kostendeckel `KI_FOTO_LIMIT_PRO_TAG`. Der Schlüssel gehört in die lokale `.env` (gitignored), nie ins Repository oder in `docker-compose.yml`.
 
 ## Dependency-Advisories (Stand 2026-10-10, [Audit #12](../qa/audit-log.md))
 

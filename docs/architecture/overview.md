@@ -4,16 +4,18 @@ Große Linien der Systemarchitektur. Details zu einem einzelnen Tool stehen unte
 
 ## System auf einen Blick
 
-Ein Next.js-16-Monolith (App Router, TypeScript, Server Actions), eine PostgreSQL-Datenbank, ein Docker-Image, ein Deploy-Ziel (`tools.sayox.de`, VPN-only). Kein separates API-Backend, kein Microservice-Schnitt — siehe [ADR-0007](decisions/0007-monolith-statt-microservices.md).
+Ein Next.js-16-Monolith (App Router, TypeScript, Server Actions), eine PostgreSQL-Datenbank, ein Docker-Image, ein Deploy-Ziel (`tools.sayox.de`, VPN-only). Kein separates API-Backend, kein Microservice-Schnitt — siehe [ADR-0007](decisions/0007-monolith-statt-microservices.md). Für Geräte und Skripte (Home Assistant, Kurzbefehle) gibt es im selben Monolithen eine REST-API unter `/api/v1` mit Bearer-Tokens ([ADR-0011](decisions/0011-rest-api-mit-bearer-tokens.md), [`docs/api/README.md`](../api/README.md)).
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  src/app/**                 UI: Server Components +      │
 │                              Client Components (*Client)  │
 ├─────────────────────────────────────────────────────────┤
-│  src/server/actions/**      Server Actions — einzige       │
-│                              Schreib-Schnittstelle          │
-│                              (Zod-Validierung → Prisma)     │
+│  src/server/actions/**      Server Actions — Schreibweg    │
+│                              des UI (Zod → Prisma)          │
+│  src/app/api/v1/** +        REST-API für Geräte/Skripte:   │
+│  src/server/api/**           Token → gleiche Zod-Schemas →  │
+│                              gleiche Datenfunktionen        │
 ├─────────────────────────────────────────────────────────┤
 │  src/server/data/**         Lese-Zugriffe + Mapper         │
 │                              (Prisma-Row → Calc-Engine-Typ) │
@@ -48,7 +50,8 @@ Beide teilen sich denselben Rechenkern (`berechneObjekt`, `berechneSparpositions
 
 - **computed-with-override** ([ADR-0005](decisions/0005-computed-with-override-pattern.md)): ein Wertefeld + `xOverride`-Boolean, durchgängig für herleitbare, aber überschreibbare Eingaben.
 - **Nicht-mutierende Szenarien** ([ADR-0004](decisions/0004-szenario-system-ohne-mutation.md)): "Was wäre wenn"-Rechnungen verändern nie echte Asset-Daten.
-- **Kein App-Level-Login** ([ADR-0006](decisions/0006-kein-app-level-login.md)): Absicherung über das VPN-Netzwerk statt über Anwendungscode.
+- **Kein App-Level-Login** ([ADR-0006](decisions/0006-kein-app-level-login.md)): Absicherung über das VPN-Netzwerk statt über Anwendungscode. Die REST-API ergänzt Bearer-Tokens für Geräte, ohne diese Prämisse zu ändern ([ADR-0011](decisions/0011-rest-api-mit-bearer-tokens.md)).
+- **Eine Datenfunktion, zwei Eingänge**: Datenzugriffe mit expliziter `userId` (`…FuerUser`, `ladeDashboardKennzahlen`) werden von Seiten/Actions (Nutzer aus Cookie) und der API (Nutzer aus Token) gleichermaßen genutzt — keine doppelte Fachlogik.
 
 ## Tech-Stack
 

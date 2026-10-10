@@ -2,6 +2,12 @@
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/). Nur fachlich relevante Änderungen — nicht jeder Commit. Vollständige Historie: `git log`.
 
+## [0.4.0] — 2026-10-10
+
+Erste Außenschnittstelle der Plattform: REST-API mit Tokens und Home-Assistant-Anbindung (Roadmap R4, [ADR-0011](../architecture/decisions/0011-rest-api-mit-bearer-tokens.md)).
+
+- REST-API `/api/v1`: Fitness (Tagesübersicht, Zeitraum-Statistik, Mahlzeiten inkl. Mehrfach-Anlage, Foto-Analyse per KI, Training, Gewicht mit Trend/Prognose, Tageswerte als Teil-Update, Wasser-Zähler, Lebensmittel-Suche), Finanz-Kennzahlen, aggregierter Home-Assistant-Endpunkt; einheitliches Fehlerformat, Zod-Validierung über dieselben Schemas wie das UI. Bearer-Tokens je Nutzer (nur Hash gespeichert, Lese-/Schreibrecht, Widerruf) über die neue Seite **Integrationen & API** (`/integrationen`) mit kopierfertiger Home-Assistant- und curl-Konfiguration. OpenAPI 3.1 unter `/api/v1/openapi.json`, per Test mit allen Routen abgeglichen. Öffentlicher Health-Check `/api/v1/status` + Docker-Compose-Healthcheck. Dashboard-Kennzahlen in ein geteiltes Datenmodul verschoben (Startseite und API rechnen identisch). KI-Fotoanalyse prüft jetzt die Bildsignatur (HEIC/Nicht-Bilder → klare Fehlermeldung statt Fehler der KI-API) und rundet die Summe (#92)
+
 ## [0.3.0] — 2026-08-30 bis 2026-10-10
 
 Drei neue Plattform-Fähigkeiten: lokales Mehrbenutzer-Datenmodell, die Fachdomäne Fitness & Ernährung und die erste externe KI-Integration — dazu die erste Plattform-Bestandsaufnahme mit Roadmap ([`architecture/plattform-status.md`](../architecture/plattform-status.md)). Versionssprung erst hier nachgezogen (siehe Fund F10 dort).

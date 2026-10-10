@@ -16,6 +16,13 @@ describe("pruefeKiAnalyse", () => {
     expect(r.summe.kcal).toBe(235);
   });
 
+  it("Summe hat keine Gleitkomma-Reste (2,3 + 7,5 + 4,3 = 14,1)", () => {
+    const pos = (fettG: number) => ({ bezeichnung: "x", mengeG: 10, kcal: 9 * fettG, proteinG: 0, kohlenhydrateG: 0, fettG });
+    const r = pruefeKiAnalyse({ ...basis, positionen: [pos(2.3), pos(7.5), pos(4.3)] });
+    expect(2.3 + 7.5 + 4.3).not.toBe(14.1);
+    expect(r.summe.fettG).toBe(14.1);
+  });
+
   it("markiert Positionen, deren kcal nicht zu den Makros passen", () => {
     const r = pruefeKiAnalyse({
       ...basis,
