@@ -3,15 +3,9 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { toolBereiche } from "@/lib/tool-registry";
 
-const TABS = [
-  { href: "/fitness", label: "Heute" },
-  { href: "/fitness/ernaehrung", label: "Ernährung" },
-  { href: "/fitness/training", label: "Training" },
-  { href: "/fitness/gewicht", label: "Gewicht" },
-  { href: "/fitness/rechner", label: "Sport-Rechner" },
-  { href: "/fitness/profil", label: "Ziele & Körperdaten" },
-];
+const TABS = toolBereiche("/fitness");
 
 /** Behält ?datum= beim Wechsel zwischen Tagesansichten bei (Heute ↔ Ernährung). */
 const DATUMSBEZOGEN = new Set(["/fitness", "/fitness/ernaehrung"]);

@@ -68,7 +68,7 @@ prisma/schema.prisma          Datenmodell (Asset, UserProfile, Property, Referen
 src/server/calc/                Framework-freie Berechnungs-Engine + Tests
 src/server/actions/            Server Actions (Profil, Objekt-CRUD, Referenzdaten)
 src/server/api/                REST-API-Rahmen, DTOs, OpenAPI (Routen: src/app/api/v1/)
-src/app/                       12 Tools — Übersicht: docs/tools/overview.md
+src/app/                       Seiten je Tool — Liste: src/lib/tool-registry.ts, Übersicht: docs/tools/overview.md
 docs/                          Ausführliche Referenzdokumentation (siehe "Dokumentation" oben)
 ```
 

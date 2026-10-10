@@ -9,6 +9,17 @@ Wie an diesem Projekt gearbeitet wird — PR-Ablauf, Audit-Tracking, Code-Dokume
 3. PR öffnen. **Bei jeder fachlich relevanten Änderung** (siehe [`CHANGELOG.md`](../releases/CHANGELOG.md)s eigene Definition: "nicht jeder Commit") **gehört ein Eintrag unter der aktuellen Version in den PR** — nicht als Nachtrag in einer späteren Session. Rein interne Umbenennungen/Formatierung ohne Verhaltensänderung brauchen keinen Eintrag.
 4. CI grün abwarten, mergen (Squash), lokalen `main` synchronisieren.
 
+## Neues Tool hinzufügen
+
+Checkliste — die mit ✓ markierten Punkte erzwingt ein Test, der Rest ist Sorgfalt:
+
+1. **Registrieren** in [`src/lib/tool-registry.ts`](../../src/lib/tool-registry.ts): `href`, `navLabel`, `titel`, `beschreibung` (oder `null` ohne Startseiten-Karte), `gruppe` (`rechner` für neue Rechner; `haupt` nur in Ausnahmefällen), optional `bereiche` für Tabs. Daraus entstehen automatisch Navigation (Desktop, Dropdown, mobil), Startseiten-Karte sowie Smoke- und Barrierefreiheits-E2E-Tests. ✓ Eine Seite unter `src/app/` ohne Registry-Eintrag lässt `tool-registry.test.ts` fehlschlagen, ebenso ein Eintrag ohne Seite.
+2. **Seite** unter `src/app/<pfad>/page.tsx` mit `metadata.title`; DB-lesende Seiten `export const dynamic = "force-dynamic"`, dazu ein `loading.tsx`.
+3. **Fachlogik** framework-frei unter `src/server/calc/<bereich>/` mit Vitest-Tests ([ADR-0001](../architecture/decisions/0001-framework-freier-rechenkern.md)); vorhandene Engine-Funktionen wiederverwenden statt duplizieren ([Überschneidungs-Check](../tools/overview.md#überschneidungs-check)).
+4. **Daten** (falls persistent): Prisma-Modell mit `userId` + Migration (`npx prisma migrate dev --name <beschreibend>`), Datenfunktionen mit expliziter `userId` in `src/server/data/`, Schreibwege als Server Actions mit Zod-Schema und `ActionResult` ([ADR-0008](../architecture/decisions/0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md)); Backup/Restore und `scripts/reset-user-data.ts` ergänzen.
+5. **API** (optional): Endpunkte nach [`docs/api/README.md`](../api/README.md#neuen-endpunkt-hinzufügen). ✓ `openapi.test.ts` verlangt die Dokumentation jeder Route.
+6. **Doku**: eigene Seite unter `docs/tools/` oder Abschnitt in einer bestehenden, Zeile in [`docs/tools/overview.md`](../tools/overview.md) (✓ von `tool-registry.test.ts` geprüft), Kurzbeschreibung in der README, CHANGELOG-Eintrag.
+
 ## Audit-Workflow
 
 Ein **Audit** im Sinne dieses Projekts ist ein cross-cutting Review mit eigener Methodik und schriftlichem Fundbericht (Security-, QA-, Code-Qualität-, Doku-Review, …) — keine Pro-Tool-Feature-Iteration. Vollständiger, fortlaufend nummerierter Index: [`docs/qa/audit-log.md`](../qa/audit-log.md).

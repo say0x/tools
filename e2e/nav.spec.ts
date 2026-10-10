@@ -23,6 +23,23 @@ test.describe("Hauptnavigation", () => {
     await expect(menu).toBeHidden();
   });
 
+  test("'Weitere Tools'-Dropdown liegt über dem Seiteninhalt (kein Element verdeckt einen Menüeintrag)", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    // /integrationen hat direkt unter der Kopfzeile einen deaktivierten Button (opacity → eigene Ebene).
+    await page.goto("/integrationen");
+    await page.getByRole("button", { name: "Weitere Tools" }).click();
+    const eintraege = page.getByRole("menuitem");
+    for (let i = 0; i < (await eintraege.count()); i++) {
+      const eintrag = eintraege.nth(i);
+      const oben = await eintrag.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const treffer = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return treffer === el || el.contains(treffer);
+      });
+      expect(oben, await eintrag.innerText()).toBe(true);
+    }
+  });
+
   test("Mobile Menü: Toggle-Button spiegelt Zustand in aria-expanded/aria-label", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");
