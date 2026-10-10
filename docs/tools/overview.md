@@ -1,6 +1,6 @@
 # Tool-Übersicht
 
-Landkarte über alle Tools: Zweck, geteilte Engine, Überschneidungen. Welche Tools es gibt (Navigation, Startseiten-Karten, E2E-Routen), steht an genau einer Stelle: [`src/lib/tool-registry.ts`](../../src/lib/tool-registry.ts) — ein Test stellt sicher, dass jedes dort registrierte Tool auch in dieser Tabelle steht. Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
+Landkarte über alle Tools: Zweck, geteilte Engine, Überschneidungen. Welche Tools es gibt (Navigation, Startseiten-Karten, E2E-Routen), steht an genau einer Stelle: [`src/lib/tool-registry.ts`](../../src/lib/tool-registry.ts) — ein Test stellt sicher, dass jedes dort registrierte Tool auch in dieser Tabelle steht. Dort ist jedes Tool außerdem einer Kategorie zugeordnet (Finanzen & Immobilien, Gesundheit & Fitness, Rechner, Einstellungen & Daten), nach der Navigation und Startseite gruppieren ([ADR-0012](../architecture/decisions/0012-skalierbare-navigation.md)). Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
 
 ## Inventar
 

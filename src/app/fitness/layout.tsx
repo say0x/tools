@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { FitnessTabs } from "./FitnessTabs";
+import { ToolTabs } from "@/components/layout/ToolTabs";
 
 export default function FitnessLayout({ children }: LayoutProps<"/fitness">) {
   return (
@@ -7,7 +7,7 @@ export default function FitnessLayout({ children }: LayoutProps<"/fitness">) {
       {/* useSearchParams() in den Tabs braucht eine Suspense-Grenze, sonst
           bricht das Prerendering der statischen Unterseiten (Sport-Rechner). */}
       <Suspense fallback={<div className="h-10 border-b border-slate-800" />}>
-        <FitnessTabs />
+        <ToolTabs toolHref="/fitness" />
       </Suspense>
       {children}
     </div>

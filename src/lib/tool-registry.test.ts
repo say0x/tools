@@ -1,7 +1,17 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { HAUPT_TOOLS, STARTSEITEN_TOOLS, TOOLS, WEITERE_TOOLS, istAktiv, toolBereiche } from "./tool-registry";
+import {
+  KATEGORIEN,
+  KOPFZEILE_MAX,
+  KOPFZEILEN_TOOLS,
+  STARTSEITE,
+  TOOLS,
+  TOOLS_JE_KATEGORIE_MAX,
+  istAktiv,
+  toolFuerPfad,
+  toolsNachKategorie,
+} from "./tool-registry";
 
 const APP = path.join(process.cwd(), "src/app");
 const seiteVon = (href: string) => path.join(APP, href, "page.tsx");
@@ -23,32 +33,32 @@ function alleSeiten(): string[] {
   return seiten.map((s) => (s === "/" ? s : s.replace(/\/$/, "")));
 }
 
-describe("Tool-Registry", () => {
+const alleLinks = TOOLS.flatMap((t) => [t.href, ...(t.bereiche ?? []).map((b) => b.href), ...(t.schnellzugriffe ?? []).map((s) => s.href)]);
+
+describe("Tool-Registry: Konsistenz", () => {
   it("ist importfrei (wird von Playwright ohne Next.js/Alias geladen)", () => {
     const quelle = readFileSync(path.join(process.cwd(), "src/lib/tool-registry.ts"), "utf8");
     expect(quelle).not.toMatch(/^\s*import\s/m);
   });
 
-  it("Einstiegspfade sind eindeutig; Bereiche beginnen mit der Einstiegsseite", () => {
+  it("Einstiegspfade eindeutig; Bereiche beginnen mit der Einstiegsseite; alles liegt unter dem Tool", () => {
     const hrefs = TOOLS.map((t) => t.href);
     expect(new Set(hrefs).size).toBe(hrefs.length);
-    for (const t of TOOLS.filter((x) => x.bereiche)) {
-      expect(t.bereiche![0].href, t.titel).toBe(t.href);
-      for (const b of t.bereiche!) expect(istAktiv(t.href, b.href), b.href).toBe(true);
+    for (const t of TOOLS) {
+      if (t.bereiche) expect(t.bereiche[0].href, t.titel).toBe(t.href);
+      for (const l of [...(t.bereiche ?? []), ...(t.schnellzugriffe ?? [])]) expect(istAktiv(t.href, l.href), l.href).toBe(true);
     }
   });
 
   it("jede registrierte Seite existiert", () => {
-    for (const t of TOOLS) {
-      expect(existsSync(seiteVon(t.href)), t.href).toBe(true);
-      for (const b of t.bereiche ?? []) expect(existsSync(seiteVon(b.href)), b.href).toBe(true);
-    }
+    expect(existsSync(seiteVon(STARTSEITE.href))).toBe(true);
+    for (const href of alleLinks) expect(existsSync(seiteVon(href)), href).toBe(true);
   });
 
   it("jede Seite unter src/app gehört zu einem registrierten Tool", () => {
-    const seiten = alleSeiten();
+    const seiten = alleSeiten().filter((s) => s !== STARTSEITE.href);
     expect(seiten.length).toBeGreaterThan(TOOLS.length);
-    const ohneTool = seiten.filter((s) => !TOOLS.some((t) => istAktiv(t.href, s)));
+    const ohneTool = seiten.filter((s) => !toolFuerPfad(s));
     expect(ohneTool, "neue Seite? → Eintrag in src/lib/tool-registry.ts").toEqual([]);
   });
 
@@ -57,24 +67,32 @@ describe("Tool-Registry", () => {
     for (const t of TOOLS) expect(doku, `${t.titel} fehlt in docs/tools/overview.md`).toContain("`" + t.href);
   });
 
-  it("die Kopfzeile bleibt kurz (sonst läuft sie über, siehe docs/tools/weitere-rechner.md)", () => {
-    expect(HAUPT_TOOLS.length).toBeLessThanOrEqual(6);
-    expect(HAUPT_TOOLS.length + WEITERE_TOOLS.length).toBe(TOOLS.length);
-  });
-
-  it("Gruppen stehen zusammenhängend (eine Trennlinie je Gruppenwechsel)", () => {
-    const folge = TOOLS.map((t) => t.gruppe).filter((g, i, a) => i === 0 || g !== a[i - 1]);
-    expect(new Set(folge).size).toBe(folge.length);
-  });
-
-  it("Startseiten-Karten haben eine Beschreibung, das Dashboard selbst keine", () => {
-    expect(STARTSEITEN_TOOLS.every((t) => t.beschreibung.length > 20)).toBe(true);
-    expect(STARTSEITEN_TOOLS.some((t) => t.href === "/")).toBe(false);
+  it("jedes Tool hat eine aussagekräftige Beschreibung und eine gültige Kategorie", () => {
+    const ids = KATEGORIEN.map((k) => k.id as string);
+    for (const t of TOOLS) {
+      expect(t.beschreibung.length, t.titel).toBeGreaterThan(30);
+      expect(ids, t.titel).toContain(t.kategorie);
+    }
   });
 });
 
-describe("istAktiv / toolBereiche", () => {
-  it("'/' nur exakt, sonst auch Unterseiten — aber keine Präfix-Verwechslung", () => {
+describe("Tool-Registry: Skalierungsregeln (ADR-0012)", () => {
+  it(`höchstens ${KOPFZEILE_MAX} Tools in der Kopfzeile, mit kurzen Namen`, () => {
+    expect(KOPFZEILEN_TOOLS.length).toBeLessThanOrEqual(KOPFZEILE_MAX);
+    for (const t of KOPFZEILEN_TOOLS) expect(t.navLabel.length, t.navLabel).toBeLessThanOrEqual(16);
+  });
+
+  it(`höchstens ${TOOLS_JE_KATEGORIE_MAX} Tools je Kategorie — sonst neue Kategorie anlegen`, () => {
+    for (const k of toolsNachKategorie()) expect(k.tools.length, k.label).toBeLessThanOrEqual(TOOLS_JE_KATEGORIE_MAX);
+  });
+
+  it("keine leeren Kategorien in der Konfiguration", () => {
+    expect(toolsNachKategorie().map((k) => k.id)).toEqual(KATEGORIEN.map((k) => k.id));
+  });
+});
+
+describe("Hilfsfunktionen", () => {
+  it("istAktiv: '/' nur exakt, sonst auch Unterseiten — keine Präfix-Verwechslung", () => {
     expect(istAktiv("/", "/")).toBe(true);
     expect(istAktiv("/", "/fitness")).toBe(false);
     expect(istAktiv("/fitness", "/fitness/ernaehrung")).toBe(true);
@@ -83,8 +101,16 @@ describe("istAktiv / toolBereiche", () => {
     expect(istAktiv("/profil", "/profilbild")).toBe(false);
   });
 
-  it("liefert die Fitness-Tabs und leer für Tools ohne Bereiche", () => {
-    expect(toolBereiche("/fitness").map((b) => b.label)).toContain("Ernährung");
-    expect(toolBereiche("/sparziel")).toEqual([]);
+  it("toolFuerPfad liefert das spezifischste Tool", () => {
+    expect(toolFuerPfad("/fitness/training")?.href).toBe("/fitness");
+    expect(toolFuerPfad("/immobilien/objekte/abc123")?.href).toBe("/immobilien/objekte");
+    expect(toolFuerPfad("/immobilien/referenzdaten")?.href).toBe("/immobilien/referenzdaten");
+    expect(toolFuerPfad("/")).toBeUndefined();
+  });
+
+  it("toolsNachKategorie hält die Kategorie- und Registry-Reihenfolge", () => {
+    const k = toolsNachKategorie();
+    expect(k[0].label).toBe(KATEGORIEN[0].label);
+    expect(k.flatMap((x) => x.tools).length).toBe(TOOLS.length);
   });
 });

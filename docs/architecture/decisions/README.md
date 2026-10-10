@@ -15,3 +15,4 @@ Dokumentiert die wichtigsten, bereits getroffenen Architekturentscheidungen im R
 | [0009](0009-lokales-mehrbenutzer-datenmodell.md) | Lokales Mehrbenutzer-Datenmodell, Test-User-Switcher statt Auth |
 | [0010](0010-ki-fotoanalyse-ueber-claude-api.md) | KI-Fotoanalyse von Mahlzeiten über die Claude API (optional) |
 | [0011](0011-rest-api-mit-bearer-tokens.md) | REST-API `/api/v1` mit Bearer-Tokens neben dem login-freien UI |
+| [0012](0012-skalierbare-navigation.md) | Skalierbare Navigation: Kategorien, „Alle Tools“-Panel und Befehlspalette |

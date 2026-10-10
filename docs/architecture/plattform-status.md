@@ -51,6 +51,7 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 | F9 | Betrieb | Kein Health-Endpunkt, kein Healthcheck für den App-Container (nur für Postgres) | niedrig | behoben in #92 (`/api/v1/status`, Compose-Healthcheck) |
 | F10 | Release | Version stand seit 2026-08-23 auf `0.2.0-20260823`, obwohl Mehrbenutzer-Modell, Fitness und KI dazukamen; der `[0.2.0]`-Abschnitt im Changelog reichte bis #90 trotz Datumsangabe „bis 2026-08-29" | niedrig | behoben in diesem PR (`0.3.0-20261010`) |
 | F11 | Doku | Migrationsanzahl in `database/schema.md` seit #88 um eins zu niedrig; `workflow.md` nannte ADRs „bis 0008" | niedrig | behoben in diesem PR |
+| F13 | UX/Skalierung | Kopfzeile lief bei 640 px über (seitliches Scrollen, Menüknopf abgeschnitten) und brach bei 768 px um; jedes neue Tool verlängerte Kopfzeile, Dropdown oder Startseite | mittel | behoben in #94 ([ADR-0012](decisions/0012-skalierbare-navigation.md)) |
 | F12 | Performance | Dashboard rechnet die 50-Jahres-Engine für jedes Objekt bei jedem Aufruf; gemessen mit 27 Objekten ~60–100 ms | keiner akut | beobachten, erst ab spürbarer Latenz cachen |
 
 ### Skalierungsengpässe
@@ -68,6 +69,8 @@ Faktenbasierte Bestandsaufnahme der Gesamtplattform mit priorisierter Roadmap �
 - [x] **R3** Version `0.3.0-20261010`, Changelog-Schnitt, Doku-Korrekturen (F10, F11)
 - [x] **R4** (#92) REST-API v1 mit Token-Authentifizierung, OpenAPI-Beschreibung und Home-Assistant-Anbindung (Sensoren, Schreibwege für Waage/Wasser/Schritte, Foto-Upload per Kurzbefehl); Dashboard-Kennzahlen als geteiltes Datenmodul; Health-Endpunkt + Compose-Healthcheck (F8, F9, Engpass 2). Neues ADR-0011.
 - [x] **R5** (#93) Zentrale Tool-Registry: Navigation und Dashboard-Werkzeugliste aus einer Quelle, Drift-Test gegen `e2e/routes.ts`, dokumentierter Ablauf „neues Tool hinzufügen" (F6)
+
+- [x] **R12** (#94) Skalierbare Navigation: Kategorien, Kopfzeile mit fester Breite, „Alle Tools“-Panel, Befehlspalette (Strg+K) mit Schnellzugriffen und „Zuletzt verwendet“, gruppierte Startseite; Grenzen als Tests (F13, ADR-0012)
 
 ### Mittelfristig (Architektur & Qualität)
 
