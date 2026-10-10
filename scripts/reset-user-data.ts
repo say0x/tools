@@ -1,5 +1,6 @@
 /**
- * Löscht ALLE Nutzer-Daten (Objekte, Profil, Sparpositionen, Szenarien) —
+ * Löscht ALLE Nutzer-Daten (Objekte, Profil, Sparpositionen, Szenarien,
+ * Fitness-Daten) —
  * Referenzdaten/Standardwerte bleiben unangetastet. Dieselbe Löschreihenfolge
  * wie stelleBackupWieder() in src/server/actions/restore.ts (unabhängig von
  * Kaskaden korrekt: Szenario zuerst, dann Asset, dann UserProfile).
@@ -25,7 +26,13 @@ async function main() {
   await prisma.szenario.deleteMany({});
   await prisma.asset.deleteMany({});
   await prisma.userProfile.deleteMany({});
-  console.log("Nutzer-Daten gelöscht (Objekte, Profil, Sparpositionen, Szenarien). Referenzdaten unangetastet.");
+  await prisma.fitnessProfil.deleteMany({});
+  await prisma.gewichtEintrag.deleteMany({});
+  await prisma.mahlzeitEintrag.deleteMany({});
+  await prisma.trainingEintrag.deleteMany({});
+  await prisma.tagesAktivitaet.deleteMany({});
+  await prisma.eigenesLebensmittel.deleteMany({});
+  console.log("Nutzer-Daten gelöscht (Objekte, Profil, Sparpositionen, Szenarien, Fitness). Referenzdaten unangetastet.");
 }
 
 main()

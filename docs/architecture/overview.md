@@ -33,6 +33,10 @@ Ein Next.js-16-Monolith (App Router, TypeScript, Server Actions), eine PostgreSQ
 
 `Asset` ist die gemeinsame Basis für jede Anlageklasse (Immobilie, Wertpapierdepot, Tagesgeld) — ein `besitzstatus`-Enum steuert einheitlich, ob ein Asset automatisch ins Vermögen (Finanzübersicht) einfließt. Details und die Begründung: [ADR-0003](decisions/0003-polymorphes-asset-modell.md), vollständiges Schema unter [`docs/database/schema.md`](../database/schema.md).
 
+## Drei Fachdomänen auf einem Kern
+
+Neben Immobilien und Finanzen gibt es seit 2026-10 die Domäne **Fitness & Ernährung** ([`docs/tools/fitness.md`](../tools/fitness.md)) — gleiche Schichten, gleiches Prinzip (Rohdaten in der DB, Kennzahlen aus `src/server/calc/fitness/`), keine gemeinsamen Daten mit den Finanz-Tools. Ihre Datenzugriffs-Funktionen nehmen die `userId` explizit entgegen, damit weitere Schnittstellen neben den Server Actions dieselben Wege nutzen können.
+
 ## Zwei Berechnungs-Philosophien, bewusst getrennt
 
 - **Immobilien-Rechner** (`docs/tools/immobilien-rechner.md`): objektbezogene Einzelkennzahlen (Rendite, Cashflow, Ampel-Status) für eine Kaufentscheidung.

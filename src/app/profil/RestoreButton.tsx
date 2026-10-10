@@ -125,6 +125,11 @@ export function RestoreButton() {
               <td className="py-0.5">{vorschau.aktuell.profilVorhanden ? "vorhanden" : "leer"}</td>
               <td className="py-0.5">{vorschau.backup.profilVorhanden ? "vorhanden" : "leer"}</td>
             </tr>
+            <tr>
+              <td className="py-0.5 pr-4">Fitness-Einträge (Gewicht, Essen, Training)</td>
+              <td className="py-0.5 tabular-nums">{vorschau.aktuell.fitnessEintraege}</td>
+              <td className="py-0.5 tabular-nums">{vorschau.backup.fitnessEintraege ?? "nicht enthalten — bleibt unverändert"}</td>
+            </tr>
           </tbody>
         </table>
         <p className="text-xs text-slate-400">

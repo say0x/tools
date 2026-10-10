@@ -275,3 +275,51 @@ describe("validiereBackup — Szenario-Referenzen", () => {
     }
   });
 });
+
+describe("validiereBackup — Fitness-Abschnitt", () => {
+  const fitness = {
+    profil: {
+      groesseCm: 180,
+      geburtsjahr: 1990,
+      geschlecht: "MAENNLICH",
+      aktivitaetslevel: "LEICHT",
+      ziel: "ABNEHMEN",
+      zielTempoKgProWoche: 0.5,
+      zielGewichtKg: 78,
+      kalorienzielKcal: null,
+      kalorienzielOverride: false,
+      proteinGProKg: 1.8,
+      fettAnteilProzent: 30,
+      wasserZielMl: null,
+      schritteZiel: 10000,
+      trainingskalorienAnrechnen: true,
+    },
+    gewichte: [{ datum: "2026-10-01", gewichtKg: 82.4, koerperfettProzent: null, notiz: "", quelle: "API" }],
+    mahlzeiten: [{ datum: "2026-10-01", mahlzeit: "FRUEHSTUECK", bezeichnung: "Haferflocken", mengeG: 60, kcal: 222, proteinG: 8, kohlenhydrateG: 35, fettG: 4, quelle: "LEBENSMITTEL_DB", kiKonfidenz: null }],
+    trainings: [{ datum: "2026-10-01", sportart: "LAUFEN", intensitaet: "MITTEL", dauerMin: 40, distanzKm: 7.5, kcalVerbrauch: null, kcalOverride: false, durchschnittsPuls: 150, notiz: "", quelle: "MANUELL" }],
+    tagesAktivitaeten: [{ datum: "2026-10-01", schritte: 9000, wasserMl: 2000, schlafStunden: 7.5, ruhepuls: 54 }],
+    eigeneLebensmittel: [{ bezeichnung: "Proteinriegel", kcalPro100g: 360, proteinPro100g: 33, kohlenhydratePro100g: 30, fettPro100g: 12, standardPortionG: 45 }],
+  };
+
+  it("älteres Backup ohne Fitness-Abschnitt → fitness = null (Fitness-Daten bleiben unangetastet)", () => {
+    const result = validiereBackup(validBackup());
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.fitness).toBeNull();
+  });
+
+  it("übernimmt einen gültigen Fitness-Abschnitt", () => {
+    const result = validiereBackup(validBackup({ fitness }));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.fitness?.gewichte[0]).toMatchObject({ datum: "2026-10-01", gewichtKg: 82.4, quelle: "API" });
+      expect(result.data.fitness?.profil?.ziel).toBe("ABNEHMEN");
+      expect(result.data.fitness?.eigeneLebensmittel).toHaveLength(1);
+    }
+  });
+
+  it("lehnt ungültige Fitness-Daten mit verständlicher Meldung ab", () => {
+    const result = validiereBackup(validBackup({ fitness: { ...fitness, gewichte: [{ datum: "2026-13-01", gewichtKg: 82 }] } }));
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toContain("Fitness-Daten");
+  });
+});

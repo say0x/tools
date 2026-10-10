@@ -6,6 +6,7 @@ import { getActiveUserId } from "@/server/session";
 import { splitPropertyData } from "@/server/data/mappers";
 import { validiereBackup, type ValidiertesBackup } from "./restore-schema";
 import { ausfuehren, type ActionResult } from "./result";
+import { stelleFitnessDatenWieder, zaehleFitnessDaten } from "@/server/data/fitness-backup";
 
 /**
  * Wiedereinspiel-Mechanismus für den Daten-Backup-Export (Rang 3 der
@@ -30,20 +31,29 @@ const BESTAETIGUNGSWORT = "DATEN ERSETZEN";
 
 export interface BackupVorschau {
   exportiertAm: string | null;
-  backup: { objekte: number; sparpositionen: number; szenarien: number; profilVorhanden: boolean };
-  aktuell: { objekte: number; sparpositionen: number; szenarien: number; profilVorhanden: boolean };
+  backup: { objekte: number; sparpositionen: number; szenarien: number; profilVorhanden: boolean; fitnessEintraege: number | null };
+  aktuell: { objekte: number; sparpositionen: number; szenarien: number; profilVorhanden: boolean; fitnessEintraege: number };
 }
 
 async function ladeAktuelleZahlen() {
   const userId = await getActiveUserId();
-  const [objekte, wertpapiere, tagesgeld, szenarien, profil] = await Promise.all([
+  const [objekte, wertpapiere, tagesgeld, szenarien, profil, gewichte, mahlzeiten, trainings] = await Promise.all([
     prisma.property.count({ where: { asset: { userId } } }),
     prisma.wertpapierposition.count({ where: { asset: { userId } } }),
     prisma.tagesgeldkonto.count({ where: { asset: { userId } } }),
     prisma.szenario.count({ where: { userId } }),
     prisma.userProfile.findFirst({ where: { userId }, select: { id: true } }),
+    prisma.gewichtEintrag.count({ where: { userId } }),
+    prisma.mahlzeitEintrag.count({ where: { userId } }),
+    prisma.trainingEintrag.count({ where: { userId } }),
   ]);
-  return { objekte, sparpositionen: wertpapiere + tagesgeld, szenarien, profilVorhanden: profil !== null };
+  return {
+    objekte,
+    sparpositionen: wertpapiere + tagesgeld,
+    szenarien,
+    profilVorhanden: profil !== null,
+    fitnessEintraege: gewichte + mahlzeiten + trainings,
+  };
 }
 
 export async function vorschauBackup(json: unknown): Promise<ActionResult<BackupVorschau>> {
@@ -60,6 +70,7 @@ export async function vorschauBackup(json: unknown): Promise<ActionResult<Backup
         sparpositionen: validiert.data.sparpositionen.length,
         szenarien: validiert.data.szenarien.length,
         profilVorhanden: validiert.data.profil !== null,
+        fitnessEintraege: validiert.data.fitness ? zaehleFitnessDaten(validiert.data.fitness) : null,
       },
       aktuell,
     };
@@ -161,6 +172,10 @@ async function fuehreRestoreAus(
     } else {
       await tx.tagesgeldkonto.create({ data: { ...positionData, zinsProzentJaehrlich: position.values.renditeProzentJaehrlich } });
     }
+  }
+
+  if (daten.fitness) {
+    await stelleFitnessDatenWieder(tx, userId, daten.fitness);
   }
 
   for (const szenario of daten.szenarien) {

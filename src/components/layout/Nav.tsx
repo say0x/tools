@@ -12,6 +12,7 @@ const primaryLinks = [
   { href: "/immobilien/objekte", label: "Immobilien" },
   { href: "/finanzuebersicht", label: "Finanzübersicht" },
   { href: "/szenarien", label: "Szenarien" },
+  { href: "/fitness", label: "Fitness" },
 ];
 
 const secondaryLinks = [

@@ -9,6 +9,7 @@ Ausführliche Referenz neben der kurzen Übersicht in der [Haupt-README](../READ
 | [`tools/overview.md`](tools/overview.md) | Tool-Inventar, Überschneidungs-Check, Datenwiederverwendung |
 | [`tools/immobilien-rechner.md`](tools/immobilien-rechner.md) | Rechenkern-Modul-Landkarte, alle Ein-/Ausgabe-Schnittstellen |
 | [`tools/finanzuebersicht-und-szenarien.md`](tools/finanzuebersicht-und-szenarien.md) | Cashflow-only-Philosophie, Besitzstatus-System, Szenario-Änderungsarten |
+| [`tools/fitness.md`](tools/fitness.md) | Fitness & Ernährung: Formeln (Mifflin-St Jeor, MET, Riegel, …), Datenmodell, Backup-Verhalten |
 | [`tools/weitere-rechner.md`](tools/weitere-rechner.md) | Sparziel, Steuerrechner, Kreditvergleich, Kaufen-oder-Anlegen, Dashboard, geteilte UI-Bausteine |
 | [`database/schema.md`](database/schema.md) | Datenmodell-Landkarte, Konventionen |
 | [`deployment/docker.md`](deployment/docker.md) | Docker-Deployment, Netzwerk, CI |

@@ -82,6 +82,13 @@ model User {
   profile   UserProfile?
   assets    Asset[]
   szenarien Szenario[]
+
+  fitnessProfil       FitnessProfil?
+  gewichtEintraege    GewichtEintrag[]
+  mahlzeitEintraege   MahlzeitEintrag[]
+  trainingEintraege   TrainingEintrag[]
+  tagesAktivitaeten   TagesAktivitaet[]
+  eigeneLebensmittel  EigenesLebensmittel[]
 }
 
 // ---------------------------------------------------------------------------
@@ -625,4 +632,212 @@ model SzenarioAenderung {
 
   @@index([szenarioId])
   @@index([assetId])
+}
+
+// ---------------------------------------------------------------------------
+// Fitness & Ernährung — siehe docs/tools/fitness.md. Wie im Immobilien-Teil
+// speichert die DB nur Rohwerte; Grundumsatz, Kalorienziel, Makroziele,
+// Trainingsverbrauch (sofern nicht überschrieben), Tagesbilanz und
+// Gewichtstrend rechnet der framework-freie Kern in src/server/calc/fitness/.
+// Kalendertage als @db.Date (kein Zeitanteil) — "heute" wird in der App in
+// Europe/Berlin bestimmt, nicht in der UTC-Zeit des Containers.
+// ---------------------------------------------------------------------------
+
+enum Geschlecht {
+  MAENNLICH
+  WEIBLICH
+}
+
+/// Alltagsaktivität OHNE gezieltes Training (das wird separat über
+/// TrainingEintrag erfasst und auf das Tagesbudget aufgeschlagen) — sonst
+/// würde Sport doppelt gezählt.
+enum Aktivitaetslevel {
+  SITZEND
+  LEICHT
+  MAESSIG
+  AKTIV
+  SEHR_AKTIV
+}
+
+enum FitnessZiel {
+  ABNEHMEN
+  HALTEN
+  ZUNEHMEN
+}
+
+/// Herkunft eines Eintrags — rein informativ (Filter/Anzeige), keine Logik
+/// hängt daran außer der Kennzeichnung KI-geschätzter Werte in der UI.
+enum DatenQuelle {
+  MANUELL
+  LEBENSMITTEL_DB
+  FOTO_KI
+  API
+}
+
+enum Mahlzeit {
+  FRUEHSTUECK
+  MITTAGESSEN
+  ABENDESSEN
+  SNACK
+}
+
+enum Sportart {
+  LAUFEN
+  GEHEN
+  WANDERN
+  RADFAHREN
+  SCHWIMMEN
+  KRAFTTRAINING
+  HIIT
+  YOGA
+  TEAMSPORT
+  RUDERN
+  SONSTIGES
+}
+
+enum Intensitaet {
+  LEICHT
+  MITTEL
+  HOCH
+}
+
+enum KiKonfidenz {
+  HOCH
+  MITTEL
+  NIEDRIG
+}
+
+/// Körperdaten & Ziele — genau eine Zeile pro User (wie UserProfile).
+/// kalorienzielKcal/-Override folgt dem computed-with-override-Muster
+/// (ADR-0005): ohne Override leitet der Rechenkern das Ziel aus
+/// Gesamtumsatz + Ziel ab.
+model FitnessProfil {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  groesseCm        Int
+  geburtsjahr      Int
+  geschlecht       Geschlecht
+  aktivitaetslevel Aktivitaetslevel @default(LEICHT)
+  ziel             FitnessZiel      @default(HALTEN)
+  /// Gewünschte Veränderung pro Woche in kg (Betrag) — nur bei ABNEHMEN/ZUNEHMEN relevant.
+  zielTempoKgProWoche Float  @default(0.5)
+  zielGewichtKg       Float?
+
+  kalorienzielKcal     Int?
+  kalorienzielOverride Boolean @default(false)
+
+  proteinGProKg       Float   @default(1.8)
+  fettAnteilProzent   Float   @default(30)
+  wasserZielMl        Int?
+  schritteZiel        Int     @default(10000)
+  /// Ob Trainings-Verbrauch das Tagesbudget erhöht ("verdiente" Kalorien).
+  trainingskalorienAnrechnen Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Ein Messwert pro Tag (Upsert per userId+datum) — eine Smart-Waage, die
+/// mehrfach täglich sendet, überschreibt den Tageswert statt Duplikate zu erzeugen.
+model GewichtEintrag {
+  id                 String      @id @default(cuid())
+  userId             String
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datum              DateTime    @db.Date
+  gewichtKg          Float
+  koerperfettProzent Float?
+  notiz              String      @default("")
+  quelle             DatenQuelle @default(MANUELL)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([userId, datum])
+}
+
+model MahlzeitEintrag {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datum          DateTime     @db.Date
+  mahlzeit       Mahlzeit
+  bezeichnung    String
+  mengeG         Float?
+  kcal           Float
+  proteinG       Float        @default(0)
+  kohlenhydrateG Float        @default(0)
+  fettG          Float        @default(0)
+  quelle         DatenQuelle  @default(MANUELL)
+  kiKonfidenz    KiKonfidenz?
+  createdAt      DateTime     @default(now())
+
+  @@index([userId, datum])
+}
+
+/// kcalVerbrauch/-Override: computed-with-override — ohne Override schätzt
+/// der Rechenkern den Verbrauch aus MET-Wert × Körpergewicht × Dauer.
+model TrainingEintrag {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datum             DateTime    @db.Date
+  sportart          Sportart
+  intensitaet       Intensitaet @default(MITTEL)
+  dauerMin          Int
+  distanzKm         Float?
+  kcalVerbrauch     Float?
+  kcalOverride      Boolean     @default(false)
+  durchschnittsPuls Int?
+  notiz             String      @default("")
+  quelle            DatenQuelle @default(MANUELL)
+  createdAt         DateTime    @default(now())
+
+  @@index([userId, datum])
+}
+
+/// Tageswerte, die typischerweise von Handy/Uhr/Home Assistant kommen.
+/// Schritte sind rein informativ und erhöhen das Kalorienbudget NICHT (die
+/// Alltagsbewegung steckt bereits im Aktivitätslevel/PAL).
+model TagesAktivitaet {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datum         DateTime @db.Date
+  schritte      Int?
+  wasserMl      Int?
+  schlafStunden Float?
+  ruhepuls      Int?
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, datum])
+}
+
+/// Eigene Lebensmittel/Rezepte eines Users (Nährwerte je 100 g).
+model EigenesLebensmittel {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bezeichnung           String
+  kcalPro100g           Float
+  proteinPro100g        Float    @default(0)
+  kohlenhydratePro100g  Float    @default(0)
+  fettPro100g           Float    @default(0)
+  standardPortionG      Float    @default(100)
+  createdAt             DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// Globale Lebensmittel-Datenbank (Richtwerte je 100 g, editierbare
+/// Startwerte wie die übrigen Reference*-Tabellen — keine Live-Anbindung).
+model ReferenceLebensmittel {
+  id                   String @id @default(cuid())
+  bezeichnung          String @unique
+  kategorie            String
+  kcalPro100g          Float
+  proteinPro100g       Float
+  kohlenhydratePro100g Float
+  fettPro100g          Float
+  standardPortionG     Float  @default(100)
 }
