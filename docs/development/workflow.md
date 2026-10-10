@@ -19,7 +19,7 @@ Ein **Audit** im Sinne dieses Projekts ist ein cross-cutting Review mit eigener 
 
 ## Architecture Decision Records
 
-Für Entscheidungen mit dauerhafter Tragweite (nicht für einzelne Bugfixes): neues ADR unter [`docs/architecture/decisions/`](../architecture/decisions/), fortlaufend nummeriert (aktuell bis `0008`), Format siehe bestehende ADRs. Ein ADR beantwortet "warum", nicht nur "was" — das eigentliche "was" steht im Code und ggf. der Tool-Referenzdoku.
+Für Entscheidungen mit dauerhafter Tragweite (nicht für einzelne Bugfixes): neues ADR unter [`docs/architecture/decisions/`](../architecture/decisions/), fortlaufend nummeriert (aktueller Stand: [Index](../architecture/decisions/README.md)), Format siehe bestehende ADRs. Ein ADR beantwortet "warum", nicht nur "was" — das eigentliche "was" steht im Code und ggf. der Tool-Referenzdoku.
 
 ## Code-Dokumentation
 

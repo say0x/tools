@@ -27,3 +27,4 @@ Kanonischer, fortlaufend nummerierter Index **aller** cross-cutting Audits an di
 | 11 | 2026-08-28 | Projekt-Governance: Audit-Log, Workflow-Doku, Guardrail-Skripte | #76 (dieser PR) | dieses Dokument, [`development/workflow.md`](../development/workflow.md) |
 
 Nächste freie Nummer: **12**.
+| 12 | 2026-10-10 | Plattform-Bestandsaufnahme: Architektur, Daten, Integrationen, Sicherheit (inkl. `npm audit`), Qualität, Release-Stand; priorisierte Roadmap | #91 | [`architecture/plattform-status.md`](../architecture/plattform-status.md), [`security/overview.md`](../security/overview.md) |

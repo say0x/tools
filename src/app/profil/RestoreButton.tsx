@@ -98,7 +98,7 @@ export function RestoreButton() {
 
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+            <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="pb-1 font-normal">Bereich</th>
               <th className="pb-1 font-normal">Aktuell</th>
               <th className="pb-1 font-normal">Nach Wiederherstellung</th>

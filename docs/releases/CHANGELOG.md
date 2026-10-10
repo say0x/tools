@@ -2,6 +2,17 @@
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/). Nur fachlich relevante Änderungen — nicht jeder Commit. Vollständige Historie: `git log`.
 
+## [0.3.0] — 2026-08-30 bis 2026-10-10
+
+Drei neue Plattform-Fähigkeiten: lokales Mehrbenutzer-Datenmodell, die Fachdomäne Fitness & Ernährung und die erste externe KI-Integration — dazu die erste Plattform-Bestandsaufnahme mit Roadmap ([`architecture/plattform-status.md`](../architecture/plattform-status.md)). Versionssprung erst hier nachgezogen (siehe Fund F10 dort).
+
+- Lokales Mehrbenutzer-Datenmodell: Objekte, Profil und Szenarien gehören jetzt einem `User`; neuer `/nutzer`-Bereich zum Anlegen/Wechseln lokaler Test-User (kein echtes Login/Auth — ADR-0009, Revision von ADR-0006), Referenzdaten bleiben global (#86)
+- Hotfix: Migration `multi_user_data_model` (#86) ging fälschlich von einer leeren DB aus und crashte auf ct-tools mit vorhandenen Nutzerdaten (`P3009`) — auf nullable-Spalte + Backfill auf einen Bootstrap-User statt direktem `NOT NULL` umgestellt, funktioniert jetzt auf leeren wie befüllten Datenbanken (#87)
+- Bodenrichtwert-Vergleich (Immobilien-Rechner, nur Schleswig-Holstein): neue Referenztabelle `ReferenceBodenrichtwert` (amtlicher Bodenwert €/m² Grundstücksfläche, BORIS-D/BORIS-SH) und eine rein informative Vergleichs-Card für `HAUS`/`MEHRFAMILIENHAUS`-Objekte mit hinterlegter Grundstücksfläche; neues Objekt-Feld `grundstuecksflaecheQm` (#88)
+- Fitness & Ernährung: Kalorien-/Makrobedarf (Mifflin-St Jeor, PAL ohne Sport), Ernährungstagebuch mit Lebensmittel-Datenbank (70 Startwerte) und eigenen Lebensmitteln, Training mit geschätztem Netto-Mehrverbrauch (MET/Laufdistanz/Radtempo, Override), Gewichtsverlauf mit 7-Tage-Glättung, Trend und Ziel-Prognose, Wasser/Schritte/Schlaf/Ruhepuls, Sport-Rechner (Riegel, Karvonen, 1RM); Fitness-Daten in Backup/Restore/Reset (#89)
+- KI-Fotoanalyse im Ernährungstagebuch (optional, `ANTHROPIC_API_KEY`): Foto → Claude Vision mit Structured Outputs → editierbare Positionen (Mengenkorrektur skaliert Nährwerte) → übernehmen; Foto wird nicht gespeichert, Tageslimit als Kostendeckel (ADR-0010) (#90)
+- Plattform-Audit #12: Bestandsaufnahme und priorisierte Roadmap; **Sicherheitsupdate Next.js 16.3.3 → 16.3.8** (7 Advisories, davon 1 kritisch) plus nicht-brechende transitive Fixes; WCAG-Kontrast an 5 Stellen behoben, die der axe-Scan bisher nicht erreichte; seit #84 roter Steuerrechner-E2E-Test repariert (#91)
+
 ## [0.2.0] — 2026-08-23 bis 2026-08-29
 
 Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eigenen Changelog-Eintrag, und die folgenden 49 PRs (drei vollständige Audit-Serien: Tool-Audits je Rechner, Produkt-/UX-Audits je Rechner, Backend-/DB-Audit) blieben ebenfalls uneinsortiert. Dieser Eintrag holt das nach — chronologisch, nur PR-Titel, keine rückwirkend erfundene Detailtiefe (siehe Prinzip unten unter "Vor diesem Changelog"). #72–#76 fehlten trotz der mit #75/#76 eingeführten Pflicht-Regel ebenfalls noch (siehe [Audit-Log](../qa/audit-log.md)) — hier nachgetragen, statt die Lücke ein zweites Mal stehen zu lassen.
@@ -70,11 +81,6 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - Szenarien: fünfter Änderungstyp „Immobilie statt Alternativanlage" — Opportunitätskosten-Vergleich wie in Kaufen-oder-Anlegen?, jetzt auch im Szenario-System (#83)
 - Steuerrechner: Solidaritätszuschlag, Kirchensteuer und Sozialabgaben ergänzt (bisher nur §32a-Einkommensteuer) — neue steuerliche Angaben im Profil (Bundesland, Kirchensteuerpflicht, Beschäftigungsstatus, gesetzlich krankenversichert, kinderlos) als Vorbelegung (#84)
 - Deployment: Opt-in `RESET_USER_DATA_ON_DEPLOY` (Default aus) löscht bei jedem Container-Start alle Nutzer-Daten und seedet die Referenzdaten neu — nur für Demo-/Test-Instanzen gedacht. Grunderwerbsteuer Bremen im Seed korrigiert (5,0% → 5,5%, seit 1.7.2025) (#85)
-- Lokales Mehrbenutzer-Datenmodell: Objekte, Profil und Szenarien gehören jetzt einem `User`; neuer `/nutzer`-Bereich zum Anlegen/Wechseln lokaler Test-User (kein echtes Login/Auth — ADR-0009, Revision von ADR-0006), Referenzdaten bleiben global (#86)
-- Hotfix: Migration `multi_user_data_model` (#86) ging fälschlich von einer leeren DB aus und crashte auf ct-tools mit vorhandenen Nutzerdaten (`P3009`) — auf nullable-Spalte + Backfill auf einen Bootstrap-User statt direktem `NOT NULL` umgestellt, funktioniert jetzt auf leeren wie befüllten Datenbanken (#87)
-- Bodenrichtwert-Vergleich (Immobilien-Rechner, nur Schleswig-Holstein): neue Referenztabelle `ReferenceBodenrichtwert` (amtlicher Bodenwert €/m² Grundstücksfläche, BORIS-D/BORIS-SH) und eine rein informative Vergleichs-Card für `HAUS`/`MEHRFAMILIENHAUS`-Objekte mit hinterlegter Grundstücksfläche; neues Objekt-Feld `grundstuecksflaecheQm` (#88)
-- Fitness & Ernährung: Kalorien-/Makrobedarf (Mifflin-St Jeor, PAL ohne Sport), Ernährungstagebuch mit Lebensmittel-Datenbank (70 Startwerte) und eigenen Lebensmitteln, Training mit geschätztem Netto-Mehrverbrauch (MET/Laufdistanz/Radtempo, Override), Gewichtsverlauf mit 7-Tage-Glättung, Trend und Ziel-Prognose, Wasser/Schritte/Schlaf/Ruhepuls, Sport-Rechner (Riegel, Karvonen, 1RM); Fitness-Daten in Backup/Restore/Reset (#89)
-- KI-Fotoanalyse im Ernährungstagebuch (optional, `ANTHROPIC_API_KEY`): Foto → Claude Vision mit Structured Outputs → editierbare Positionen (Mengenkorrektur skaliert Nährwerte) → übernehmen; Foto wird nicht gespeichert, Tageslimit als Kostendeckel (ADR-0010) (#90)
 
 ## [0.1.0] — 2026-08-23
 

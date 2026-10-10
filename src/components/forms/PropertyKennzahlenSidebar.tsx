@@ -134,7 +134,7 @@ export function PropertyKennzahlenSidebar({
               value={`${formatNumber(result.bodenrichtwertVergleich.anteilAmKaufpreisProzent, 1)}%`}
             />
           </div>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-400">
             Bodenrichtwert: {formatEuro(result.bodenrichtwertVergleich.bodenrichtwertProM2)}/m² ×{" "}
             {formatNumber(result.bodenrichtwertVergleich.grundstuecksflaecheQm, 0)} m² Grundstücksfläche.
           </p>

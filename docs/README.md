@@ -5,6 +5,7 @@ Ausführliche Referenz neben der kurzen Übersicht in der [Haupt-README](../READ
 | Bereich | Inhalt |
 |---|---|
 | [`architecture/overview.md`](architecture/overview.md) | Systemarchitektur, Schichten, Tech-Stack |
+| [`architecture/plattform-status.md`](architecture/plattform-status.md) | Bestandsaufnahme, Funde, priorisierte Roadmap, Konventionen für Integrationen und Datenzugriff |
 | [`architecture/decisions/`](architecture/decisions/) | Architecture Decision Records — warum, nicht nur was |
 | [`tools/overview.md`](tools/overview.md) | Tool-Inventar, Überschneidungs-Check, Datenwiederverwendung |
 | [`tools/immobilien-rechner.md`](tools/immobilien-rechner.md) | Rechenkern-Modul-Landkarte, alle Ein-/Ausgabe-Schnittstellen |

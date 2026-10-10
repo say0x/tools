@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "0.2.0-20260823",
+  "version": "0.3.0-20261010",
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
@@ -29,7 +29,7 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "date-fns": "^4.4.0",
-    "next": "16.3.3",
+    "next": "^16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "^7.85.0",
@@ -46,7 +46,7 @@
     "@vitest/coverage-v8": "^4.1.11",
     "dotenv": "^17.4.2",
     "eslint": "^9",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "^16.3.8",
     "knip": "^6.33.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",

@@ -30,4 +30,4 @@ Quelle der Wahrheit ist immer [`prisma/schema.prisma`](../../prisma/schema.prism
 
 ## Migrationen
 
-27 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zu den Fitness-Tabellen (`fitness_ernaehrung`). Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, `money_fields_decimal`, …) statt generisch nummeriert.
+28 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zu den Fitness-Tabellen (`fitness_ernaehrung`). Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, `money_fields_decimal`, …) statt generisch nummeriert.
