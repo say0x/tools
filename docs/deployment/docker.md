@@ -28,6 +28,19 @@ Aktivieren: in einer lokalen `.env`-Datei neben `docker-compose.yml` (von Compos
 
 Manuell, außerhalb des Deploy-Zyklus: `npm run db:reset-user-data` (löscht ohne Neu-Seed) oder `npm run db:reset-user-data && npx prisma db seed` (löscht + seedet neu). Vorher immer `npm run db:backup`.
 
+### Optional: KI-Fotoanalyse aktivieren
+
+In der lokalen `.env` neben `docker-compose.yml` (gitignored, von Compose automatisch geladen):
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+# optional:
+# ANTHROPIC_MODEL=claude-sonnet-5-5
+# KI_FOTO_LIMIT_PRO_TAG=100
+```
+
+Danach `docker compose up -d` (Compose reicht die Variablen an den App-Container durch, leer = deaktiviert). Der Container braucht ausgehenden HTTPS-Zugriff auf `api.anthropic.com`. Details: [`docs/tools/fitness.md`](../tools/fitness.md#ki-fotoanalyse), [ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md).
+
 ## Backup & Restore
 
 ```bash

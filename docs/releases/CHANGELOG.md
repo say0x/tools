@@ -74,6 +74,7 @@ Der Versionsbump auf `0.2.0-20260823` geschah bereits mit #22 — aber ohne eige
 - Hotfix: Migration `multi_user_data_model` (#86) ging fälschlich von einer leeren DB aus und crashte auf ct-tools mit vorhandenen Nutzerdaten (`P3009`) — auf nullable-Spalte + Backfill auf einen Bootstrap-User statt direktem `NOT NULL` umgestellt, funktioniert jetzt auf leeren wie befüllten Datenbanken (#87)
 - Bodenrichtwert-Vergleich (Immobilien-Rechner, nur Schleswig-Holstein): neue Referenztabelle `ReferenceBodenrichtwert` (amtlicher Bodenwert €/m² Grundstücksfläche, BORIS-D/BORIS-SH) und eine rein informative Vergleichs-Card für `HAUS`/`MEHRFAMILIENHAUS`-Objekte mit hinterlegter Grundstücksfläche; neues Objekt-Feld `grundstuecksflaecheQm` (#88)
 - Fitness & Ernährung: Kalorien-/Makrobedarf (Mifflin-St Jeor, PAL ohne Sport), Ernährungstagebuch mit Lebensmittel-Datenbank (70 Startwerte) und eigenen Lebensmitteln, Training mit geschätztem Netto-Mehrverbrauch (MET/Laufdistanz/Radtempo, Override), Gewichtsverlauf mit 7-Tage-Glättung, Trend und Ziel-Prognose, Wasser/Schritte/Schlaf/Ruhepuls, Sport-Rechner (Riegel, Karvonen, 1RM); Fitness-Daten in Backup/Restore/Reset (#89)
+- KI-Fotoanalyse im Ernährungstagebuch (optional, `ANTHROPIC_API_KEY`): Foto → Claude Vision mit Structured Outputs → editierbare Positionen (Mengenkorrektur skaliert Nährwerte) → übernehmen; Foto wird nicht gespeichert, Tageslimit als Kostendeckel (ADR-0010) (#90)
 
 ## [0.1.0] — 2026-08-23
 

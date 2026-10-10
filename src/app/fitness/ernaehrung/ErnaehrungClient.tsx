@@ -14,8 +14,9 @@ import type { LebensmittelOption } from "@/server/data/fitness";
 import { MAHLZEIT_LABELS, formatGramm, formatKcal } from "@/lib/fitness-labels";
 import { LoeschenButton } from "../_components/LoeschenButton";
 import { zahlOderNull } from "../_components/zahl";
+import { FotoAnalyse } from "./FotoAnalyse";
 
-type Modus = "datenbank" | "manuell" | "eigene";
+type Modus = "foto" | "datenbank" | "manuell" | "eigene";
 
 /** Vorbelegung nach Uhrzeit — spart beim schnellen Eintragen einen Klick. */
 function mahlzeitNachUhrzeit(): Mahlzeit {
@@ -26,11 +27,12 @@ function mahlzeitNachUhrzeit(): Mahlzeit {
   return "SNACK";
 }
 
-export function ErnaehrungClient({ datum, katalog }: { datum: string; katalog: LebensmittelOption[] }) {
-  const [modus, setModus] = useState<Modus>("datenbank");
+export function ErnaehrungClient({ datum, katalog, kiVerfuegbar }: { datum: string; katalog: LebensmittelOption[]; kiVerfuegbar: boolean }) {
+  const [modus, setModus] = useState<Modus>(kiVerfuegbar ? "foto" : "datenbank");
   const [mahlzeit, setMahlzeit] = useState<Mahlzeit>(mahlzeitNachUhrzeit);
 
   const tabs: { id: Modus; label: string }[] = [
+    { id: "foto", label: "Foto (KI)" },
     { id: "datenbank", label: "Lebensmittel-Datenbank" },
     { id: "manuell", label: "Manuell" },
     { id: "eigene", label: "Eigene Lebensmittel" },
@@ -69,6 +71,7 @@ export function ErnaehrungClient({ datum, katalog }: { datum: string; katalog: L
         )}
       </div>
 
+      {modus === "foto" && <FotoAnalyse datum={datum} mahlzeit={mahlzeit} verfuegbar={kiVerfuegbar} />}
       {modus === "datenbank" && <DatenbankModus datum={datum} mahlzeit={mahlzeit} katalog={katalog} />}
       {modus === "manuell" && <ManuellModus datum={datum} mahlzeit={mahlzeit} />}
       {modus === "eigene" && <EigeneModus eigene={katalog.filter((k) => k.eigenes)} />}

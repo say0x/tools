@@ -40,6 +40,12 @@ const cspHeader = `
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Foto-Upload für die KI-Mahlzeitenanalyse (Server Action). Der Client verkleinert
+  // auf max. 1568 px (meist < 500 KB), das Limit ist nur das Sicherheitsnetz, falls
+  // das Verkleinern im Browser scheitert; der Server prüft zusätzlich ≤ 5 MB dekodiert.
+  experimental: {
+    serverActions: { bodySizeLimit: "8mb" },
+  },
   async headers() {
     return [
       {

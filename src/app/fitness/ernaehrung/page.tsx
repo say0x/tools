@@ -6,6 +6,7 @@ import { formatGramm, formatKcal } from "@/lib/fitness-labels";
 import { DatumWaehler } from "../_components/DatumWaehler";
 import { MahlzeitenListe } from "../_components/MahlzeitenListe";
 import { ErnaehrungClient } from "./ErnaehrungClient";
+import { kiAnalyseKonfiguriert } from "@/server/ki/mahlzeit-analyse";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Fitness — Ernährung" };
@@ -36,7 +37,7 @@ export default async function ErnaehrungPage({ searchParams }: PageProps<"/fitne
         <DatumWaehler datum={datum} heute={heute} />
       </div>
 
-      <ErnaehrungClient key={datum} datum={datum} katalog={katalog} />
+      <ErnaehrungClient key={datum} datum={datum} katalog={katalog} kiVerfuegbar={kiAnalyseKonfiguriert()} />
 
       <Card>
         <CardTitle>Einträge an diesem Tag</CardTitle>
