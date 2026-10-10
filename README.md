@@ -18,7 +18,7 @@ Wiederkehrendes Datenmodell-Muster **"computed-with-override"**: ein Wertefeld +
 
 ## Version
 
-`0.2.0-20260823` (SemVer + CalVer-Datumssuffix, siehe [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md)). Ein Deploy, ein Build — keine unabhängigen Tool-Versionen, siehe [ADR-0007](docs/architecture/decisions/0007-monolith-statt-microservices.md).
+`0.3.0-20261010` (SemVer + CalVer-Datumssuffix, siehe [`docs/releases/CHANGELOG.md`](docs/releases/CHANGELOG.md)). Ein Deploy, ein Build — keine unabhängigen Tool-Versionen, siehe [ADR-0007](docs/architecture/decisions/0007-monolith-statt-microservices.md).
 
 ## Dokumentation
 
@@ -26,7 +26,7 @@ Diese README gibt den schnellen Einstieg — Tech-Stack, lokale Entwicklung, Dep
 
 | | |
 |---|---|
-| [`docs/architecture/`](docs/architecture/overview.md) | Systemarchitektur + [Architecture Decision Records](docs/architecture/decisions/) |
+| [`docs/architecture/`](docs/architecture/overview.md) | Systemarchitektur, [Plattform-Status & Roadmap](docs/architecture/plattform-status.md), [Architecture Decision Records](docs/architecture/decisions/) |
 | [`docs/tools/`](docs/tools/overview.md) | Tool-Inventar, Überschneidungs-Check, sowie die Detail-Referenz je Tool |
 | [`docs/database/`](docs/database/schema.md) | Datenmodell-Landkarte |
 | [`docs/deployment/`](docs/deployment/docker.md) | Docker, Netzwerk, CI |
