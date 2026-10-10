@@ -41,6 +41,12 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 Danach `docker compose up -d` (Compose reicht die Variablen an den App-Container durch, leer = deaktiviert). Der Container braucht ausgehenden HTTPS-Zugriff auf `api.anthropic.com`. Details: [`docs/tools/fitness.md`](../tools/fitness.md#ki-fotoanalyse), [ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md).
 
+### Healthcheck & Integrationen
+
+Der App-Container hat einen Compose-Healthcheck gegen `GET /api/v1/status` (prüft auch die DB-Verbindung; 503 bei Ausfall, Start-Schonfrist 60 s für die Migrationen). Derselbe Endpunkt eignet sich für Uptime-Monitoring — er braucht kein Token und gibt keine Nutzerdaten preis.
+
+Home Assistant & Co. sprechen die REST-API an ([`docs/api/README.md`](../api/README.md), [`docs/integrations/home-assistant.md`](../integrations/home-assistant.md)). Home Assistant muss `tools` dafür im Heimnetz/VPN erreichen; Tokens werden in der App unter `/integrationen` erstellt — keine zusätzliche Server-Konfiguration nötig.
+
 ## Backup & Restore
 
 ```bash

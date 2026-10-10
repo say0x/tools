@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { analysiereMahlzeitBild, kiAnalyseKonfiguriert, kiModell, zerlegeBildDataUrl, type MahlzeitAnalyseClient } from "./mahlzeit-analyse";
 
-// 1×1-Pixel-JPEG-Ersatz: der Inhalt ist egal, nur Format/Größe werden geprüft.
-const BILD = `data:image/jpeg;base64,${"A".repeat(400)}`;
+// Bild-Ersatz: korrekte Signatur am Anfang, Rest egal — geprüft werden nur Signatur und Größe.
+const mitSignatur = (signatur: number[]) => Buffer.concat([Buffer.from(signatur), Buffer.alloc(300)]).toString("base64");
+const JPEG = mitSignatur([0xff, 0xd8, 0xff, 0xe0]);
+const PNG = mitSignatur([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(300)]).toString("base64");
+const BILD = `data:image/jpeg;base64,${JPEG}`;
 
 const analyse = {
   erkannt: true,
@@ -87,7 +91,18 @@ describe("analysiereMahlzeitBild", () => {
 describe("zerlegeBildDataUrl", () => {
   it("akzeptiert JPEG/PNG/WebP-Data-URLs", () => {
     expect(zerlegeBildDataUrl(BILD).mediaType).toBe("image/jpeg");
-    expect(zerlegeBildDataUrl(BILD.replace("jpeg", "png")).mediaType).toBe("image/png");
+    expect(zerlegeBildDataUrl(`data:image/png;base64,${PNG}`).mediaType).toBe("image/png");
+    expect(zerlegeBildDataUrl(`data:image/webp;base64,${WEBP}`).mediaType).toBe("image/webp");
+  });
+
+  it("der Inhalt bestimmt den Typ, nicht die Angabe des Clients", () => {
+    expect(zerlegeBildDataUrl(`data:image/jpeg;base64,${PNG}`).mediaType).toBe("image/png");
+  });
+
+  it("lehnt Daten ohne Bildsignatur ab (z. B. HEIC mit falscher Typangabe)", () => {
+    const heic = Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from("ftypheic"), Buffer.alloc(300)]).toString("base64");
+    expect(() => zerlegeBildDataUrl(`data:image/jpeg;base64,${heic}`)).toThrow("HEIC");
+    expect(() => zerlegeBildDataUrl(`data:image/jpeg;base64,${"A".repeat(400)}`)).toThrow("kein JPEG");
   });
 
   it("lehnt andere Typen, Nicht-Data-URLs und zu große Bilder ab", () => {
@@ -113,5 +128,25 @@ describe("pruefeUndZaehleKiTageslimit", () => {
     pruefeUndZaehleKiTageslimit(tag1);
     expect(() => pruefeUndZaehleKiTageslimit(tag1)).toThrow("Tageslimit");
     expect(() => pruefeUndZaehleKiTageslimit(new Date("2030-01-02T10:00:00Z"))).not.toThrow();
+  });
+});
+
+describe("KiAnalyseFehler.art", () => {
+  it("kennzeichnet Bild-, Konfigurations- und Limit-Fehler für die HTTP-Abbildung", async () => {
+    const { KiAnalyseFehler } = await import("./mahlzeit-analyse");
+    const fange = (f: () => unknown) => {
+      try {
+        f();
+      } catch (e) {
+        return e;
+      }
+      return null;
+    };
+    const bildFehler = fange(() => zerlegeBildDataUrl("kein-bild"));
+    expect(bildFehler).toBeInstanceOf(KiAnalyseFehler);
+    expect((bildFehler as InstanceType<typeof KiAnalyseFehler>).art).toBe("BILD_UNGUELTIG");
+
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    await expect(analysiereMahlzeitBild({ dataUrl: BILD })).rejects.toMatchObject({ art: "NICHT_KONFIGURIERT" });
   });
 });

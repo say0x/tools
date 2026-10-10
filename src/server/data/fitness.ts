@@ -274,6 +274,11 @@ export async function ladeGewichtsverlauf(userId: string, heute: IsoDatum): Prom
 }
 
 
+export async function ladeMahlzeiten(userId: string, von: IsoDatum, bis: IsoDatum): Promise<MahlzeitZeile[]> {
+  const rows = await prisma.mahlzeitEintrag.findMany({ where: { userId, datum: zeitraum(von, bis) }, orderBy: [{ datum: "asc" }, { createdAt: "asc" }] });
+  return rows.map(toMahlzeitZeile);
+}
+
 export async function ladeTrainings(userId: string, von: IsoDatum, bis: IsoDatum): Promise<TrainingZeile[]> {
   const [rows, gewichte] = await Promise.all([
     prisma.trainingEintrag.findMany({ where: { userId, datum: zeitraum(von, bis) }, orderBy: [{ datum: "desc" }, { createdAt: "desc" }] }),
@@ -345,7 +350,6 @@ export async function speichereGewichtFuerUser(userId: string, daten: z.output<t
   return toGewichtZeile(row);
 }
 
-
 export async function erstelleMahlzeitenFuerUser(userId: string, eintraege: z.output<typeof mahlzeitSchema>[]) {
   const rows = await prisma.$transaction(
     eintraege.map((daten) => prisma.mahlzeitEintrag.create({ data: { ...daten, userId, datum: isoZuUtcDate(daten.datum) } }))
@@ -353,11 +357,11 @@ export async function erstelleMahlzeitenFuerUser(userId: string, eintraege: z.ou
   return rows.map(toMahlzeitZeile);
 }
 
-export async function erstelleTrainingFuerUser(userId: string, daten: z.output<typeof trainingSchema>) {
+export async function erstelleTrainingFuerUser(userId: string, daten: z.output<typeof trainingSchema>, quelle: DatenQuelle = "MANUELL") {
   const datum = isoZuUtcDate(daten.datum);
   const [row, letztesGewicht] = await Promise.all([
     prisma.trainingEintrag.create({
-      data: { ...daten, kcalVerbrauch: daten.kcalOverride ? daten.kcalVerbrauch : null, userId, datum },
+      data: { ...daten, kcalVerbrauch: daten.kcalOverride ? daten.kcalVerbrauch : null, quelle, userId, datum },
     }),
     prisma.gewichtEintrag.findFirst({ where: { userId, datum: { lte: datum } }, orderBy: { datum: "desc" } }),
   ]);

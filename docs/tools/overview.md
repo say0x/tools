@@ -1,6 +1,6 @@
 # Tool-Übersicht
 
-Landkarte über alle 11 Tools: Zweck, geteilte Engine, Überschneidungen. Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
+Landkarte über alle 12 Tools: Zweck, geteilte Engine, Überschneidungen. Details zu einem einzelnen Tool: [`immobilien-rechner.md`](immobilien-rechner.md), [`finanzuebersicht-und-szenarien.md`](finanzuebersicht-und-szenarien.md), [`fitness.md`](fitness.md), [`weitere-rechner.md`](weitere-rechner.md).
 
 ## Inventar
 
@@ -17,8 +17,9 @@ Landkarte über alle 11 Tools: Zweck, geteilte Engine, Überschneidungen. Detail
 | Kaufen oder Anlegen? | `/kaufen-oder-anlegen` | Ein Objekt vs. Alternativanlage desselben EK | `berechneSparpositionsverlauf()` | liest Property |
 | Fitness & Ernährung | `/fitness/*` | Kalorienbedarf, Ernährungstagebuch (Lebensmittel-DB), Training, Gewichtstrend, Sport-Rechner — siehe [`fitness.md`](fitness.md) | `berechneEnergiebedarf()`, `berechneTagesbilanz()`, `berechneGewichtsverlauf()` | FitnessProfil, Gewicht/Mahlzeit/Training/TagesAktivitaet, Lebensmittel |
 | Profil | `/profil` | Einkommen/Schwellen + Daten-Backup (JSON-Export) | — | UserProfile |
+| Integrationen & API | `/integrationen`, `/api/v1/*` | API-Tokens verwalten, Home-Assistant-/curl-Konfiguration kopieren; REST-API für Geräte und Skripte — siehe [`../api/README.md`](../api/README.md) | dieselben Datenfunktionen wie die Tools (`ladeFitnessTag()`, `ladeDashboardKennzahlen()`, …) | ApiToken (nur Hash) |
 
-Alle Status `ACTIVE` — keine BETA/EXPERIMENTAL/DEPRECATED-Kandidaten. 5 der 11 Tools rufen eine bereits an anderer Stelle getestete Engine-Funktion auf statt eigener Berechnungslogik — Zentralisierung ist hier gelebte Praxis, keine offene Aufgabe.
+Alle Status `ACTIVE` — keine BETA/EXPERIMENTAL/DEPRECATED-Kandidaten. 5 der 12 Tools rufen eine bereits an anderer Stelle getestete Engine-Funktion auf statt eigener Berechnungslogik — Zentralisierung ist hier gelebte Praxis, keine offene Aufgabe.
 
 ## Überschneidungs-Check
 
@@ -30,6 +31,7 @@ Kategorien: **A** Duplikat (zusammenlegen prüfen) · **B** starke Überschneidu
 | Kreditvergleich ↔ Immobilien-Rechner-Finanzierung | C | Identische Engine, Kreditvergleich bewusst ohne Objektbezug (z. B. Anschlussfinanzierungs-Vergleich ohne Objekt zu bearbeiten). |
 | Steuerrechner ↔ Profil-Grenzsteuersatz | C | Identische Engine, bewusst unabhängig vom hinterlegten Profil für hypothetische Einkommensfragen. |
 | Kaufen-oder-Anlegen? ↔ Szenario-System | C | Beide vergleichen Vermögensverläufe über Zeit; der Änderungstyp `IMMOBILIE_STATT_ALTERNATIVANLAGE` bringt den Opportunitätskosten-Vergleich ("Kauf X *statt* Alternativanlage Y") ins Szenario-System, bewusst als eigener Typ statt Kaufen-oder-Anlegen? zu ersetzen — Kaufen-oder-Anlegen? bleibt der schnelle DB-lose Rechner ohne Szenario-Overhead. |
+| Integrationen & API ↔ alle Tools | C | Keine eigene Fachlogik: die API ruft exakt die Datenfunktionen und Zod-Schemas der Tools auf; neue Werte entstehen nie nur in der API. |
 | Fitness ↔ Finanz-/Immobilien-Tools | D | Eigene Domäne ohne gemeinsame Daten; teilt nur Infrastruktur (User-Modell, Backup, Navigation, Dashboard-Karte). |
 | Alle übrigen Paare | D | Eigenständiger, nicht überlappender fachlicher Zweck. |
 

@@ -12,6 +12,8 @@ Ausführliche Referenz neben der kurzen Übersicht in der [Haupt-README](../READ
 | [`tools/finanzuebersicht-und-szenarien.md`](tools/finanzuebersicht-und-szenarien.md) | Cashflow-only-Philosophie, Besitzstatus-System, Szenario-Änderungsarten |
 | [`tools/fitness.md`](tools/fitness.md) | Fitness & Ernährung: Formeln (Mifflin-St Jeor, MET, Riegel, …), Datenmodell, Backup-Verhalten |
 | [`tools/weitere-rechner.md`](tools/weitere-rechner.md) | Sparziel, Steuerrechner, Kreditvergleich, Kaufen-oder-Anlegen, Dashboard, geteilte UI-Bausteine |
+| [`api/README.md`](api/README.md) | REST-API v1: Authentifizierung, Konventionen, Fehlercodes, Endpunkte, Beispiele (curl, iOS-Kurzbefehl) |
+| [`integrations/home-assistant.md`](integrations/home-assistant.md) | Home Assistant: Sensoren, Schreibwege, Automationen, Dashboard-Karten, Fehlersuche |
 | [`database/schema.md`](database/schema.md) | Datenmodell-Landkarte, Konventionen |
 | [`deployment/docker.md`](deployment/docker.md) | Docker-Deployment, Netzwerk, CI |
 | [`development/setup.md`](development/setup.md) | Lokale Entwicklung, Tests, Import-Skript |

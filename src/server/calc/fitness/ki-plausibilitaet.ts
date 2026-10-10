@@ -50,10 +50,17 @@ export function pruefeKiAnalyse(roh: KiAnalyseRoh): KiAnalyseGeprueft {
     })
     .map((p) => p.bezeichnung);
 
-  const summe = positionen.reduce(
+  const roheSumme = positionen.reduce(
     (s, p) => ({ kcal: s.kcal + p.kcal, proteinG: s.proteinG + p.proteinG, kohlenhydrateG: s.kohlenhydrateG + p.kohlenhydrateG, fettG: s.fettG + p.fettG }),
     { kcal: 0, proteinG: 0, kohlenhydrateG: 0, fettG: 0 }
   );
+  // Erneut runden: Summen von 1-Nachkommastellen-Werten erzeugen Gleitkomma-Reste (14.100000000000001).
+  const summe = {
+    kcal: runde(roheSumme.kcal),
+    proteinG: runde(roheSumme.proteinG, 1),
+    kohlenhydrateG: runde(roheSumme.kohlenhydrateG, 1),
+    fettG: runde(roheSumme.fettG, 1),
+  };
 
   return { ...roh, erkannt: roh.erkannt && positionen.length > 0, positionen, summe, inkonsistentePositionen };
 }

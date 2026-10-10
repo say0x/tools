@@ -14,6 +14,8 @@ Quelle der Wahrheit ist immer [`prisma/schema.prisma`](../../prisma/schema.prism
 
 **Fitness & Ernährung** (`FitnessProfil` 1:1 je User, `GewichtEintrag`/`TagesAktivitaet` je ein Eintrag pro Tag, `MahlzeitEintrag`, `TrainingEintrag`, `EigenesLebensmittel`; global `ReferenceLebensmittel`) — Kalendertage als `@db.Date`, Details in [`docs/tools/fitness.md`](../tools/fitness.md#datenmodell).
 
+**Integrationen** (`ApiToken` n:1 `User`) — Bearer-Tokens der REST-API; gespeichert werden nur SHA-256-Hash (`tokenHash`, unique) und ein Anzeige-Präfix, nie der Klartext ([ADR-0011](../architecture/decisions/0011-rest-api-mit-bearer-tokens.md)).
+
 **Szenarien** (`Szenario` + 1:n `SzenarioAenderung`) — siehe [ADR-0004](../architecture/decisions/0004-szenario-system-ohne-mutation.md): verändert nie die obigen Tabellen.
 
 ## Konventionen
@@ -30,4 +32,4 @@ Quelle der Wahrheit ist immer [`prisma/schema.prisma`](../../prisma/schema.prism
 
 ## Migrationen
 
-28 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zu den Fitness-Tabellen (`fitness_ernaehrung`). Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, `money_fields_decimal`, …) statt generisch nummeriert.
+29 inkrementelle Migrationen unter [`prisma/migrations/`](../../prisma/migrations/), chronologisch von der initialen Immobilien-Struktur bis zu den API-Tokens (`api_tokens`). Migrationsnamen sind bewusst beschreibend (`sondertilgung`, `asset_besitzstatus`, `szenario_system`, `money_fields_decimal`, …) statt generisch nummeriert.

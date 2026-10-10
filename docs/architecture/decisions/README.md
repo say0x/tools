@@ -14,3 +14,4 @@ Dokumentiert die wichtigsten, bereits getroffenen Architekturentscheidungen im R
 | [0008](0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md) | Server Actions geben ein ActionResult zurück statt Fehler zu werfen |
 | [0009](0009-lokales-mehrbenutzer-datenmodell.md) | Lokales Mehrbenutzer-Datenmodell, Test-User-Switcher statt Auth |
 | [0010](0010-ki-fotoanalyse-ueber-claude-api.md) | KI-Fotoanalyse von Mahlzeiten über die Claude API (optional) |
+| [0011](0011-rest-api-mit-bearer-tokens.md) | REST-API `/api/v1` mit Bearer-Tokens neben dem login-freien UI |

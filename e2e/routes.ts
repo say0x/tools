@@ -18,5 +18,6 @@ export const ROUTES = [
   { path: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen" },
   { path: "/profil", label: "Profil" },
   { path: "/nutzer", label: "Nutzer" },
+  { path: "/integrationen", label: "Integrationen & API" },
   { path: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ] as const;

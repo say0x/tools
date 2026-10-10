@@ -22,6 +22,7 @@ const secondaryLinks = [
   { href: "/kaufen-oder-anlegen", label: "Kaufen oder Anlegen?" },
   { href: "/profil", label: "Profil" },
   { href: "/nutzer", label: "Nutzer" },
+  { href: "/integrationen", label: "Integrationen & API" },
   { href: "/immobilien/referenzdaten", label: "Referenzdaten" },
 ];
 

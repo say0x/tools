@@ -8,7 +8,8 @@
  * Gilt für ALLE Test-User gemeinsam (nicht nur den aktiven) — das Skript hat
  * keinen Cookie/Request-Kontext, aus dem sich ein einzelner User ableiten
  * ließe. Die User-Zeilen selbst (Namen/Labels unter /nutzer) bleiben
- * erhalten, wie Referenzdaten — nur ihre Daten werden geleert.
+ * erhalten, wie Referenzdaten — nur ihre Daten werden geleert. API-Tokens
+ * hängen am User und bleiben deshalb ebenfalls gültig (Home Assistant läuft weiter).
  *
  * Nicht für den interaktiven Einsatz gedacht — nur über den env-gesteuerten
  * Opt-in in docker-entrypoint.sh (RESET_USER_DATA_ON_DEPLOY=true) oder

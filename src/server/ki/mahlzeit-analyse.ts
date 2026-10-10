@@ -51,7 +51,16 @@ Ist die Schätzung unsicher (verdeckte Zutaten, ungewöhnliche Perspektive), set
 
 export type MahlzeitAnalyse = KiAnalyseGeprueft & { modell: string };
 
-export class KiAnalyseFehler extends Error {}
+export type KiFehlerArt = "NICHT_KONFIGURIERT" | "BILD_UNGUELTIG" | "LIMIT" | "API";
+
+export class KiAnalyseFehler extends Error {
+  constructor(
+    message: string,
+    readonly art: KiFehlerArt = "API"
+  ) {
+    super(message);
+  }
+}
 
 export function kiAnalyseKonfiguriert(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
@@ -73,7 +82,7 @@ export function pruefeUndZaehleKiTageslimit(jetzt = new Date()): void {
     tageszaehler.anzahl = 0;
   }
   if (Number.isFinite(limit) && limit >= 0 && tageszaehler.anzahl >= limit) {
-    throw new KiAnalyseFehler(`Tageslimit von ${limit} KI-Analysen erreicht (KI_FOTO_LIMIT_PRO_TAG).`);
+    throw new KiAnalyseFehler(`Tageslimit von ${limit} KI-Analysen erreicht (KI_FOTO_LIMIT_PRO_TAG).`, "LIMIT");
   }
   tageszaehler.anzahl++;
 }
@@ -85,16 +94,35 @@ export function kiModell(): string {
 /** Akzeptiert eine Data-URL ("data:image/jpeg;base64,...") und prüft Typ und Größe. */
 export function zerlegeBildDataUrl(dataUrl: string): { mediaType: Bildtyp; base64: string } {
   const treffer = /^data:([a-z/+.-]+);base64,([A-Za-z0-9+/=\s]+)$/i.exec(dataUrl.trim());
-  if (!treffer) throw new KiAnalyseFehler("Ungültiges Bildformat — erwartet wird ein Foto (JPEG, PNG, WebP oder GIF).");
+  if (!treffer) throw new KiAnalyseFehler("Ungültiges Bildformat — erwartet wird ein Foto (JPEG, PNG, WebP oder GIF).", "BILD_UNGUELTIG");
   const mediaType = treffer[1].toLowerCase();
   if (!(ERLAUBTE_BILDTYPEN as readonly string[]).includes(mediaType)) {
-    throw new KiAnalyseFehler(`Bildtyp ${mediaType} wird nicht unterstützt — bitte JPEG, PNG, WebP oder GIF verwenden.`);
+    throw new KiAnalyseFehler(`Bildtyp ${mediaType} wird nicht unterstützt — bitte JPEG, PNG, WebP oder GIF verwenden.`, "BILD_UNGUELTIG");
   }
   const base64 = treffer[2].replace(/\s/g, "");
   const bytes = Math.floor((base64.length * 3) / 4);
-  if (bytes > MAX_BILD_BYTES) throw new KiAnalyseFehler("Bild ist zu groß (max. 5 MB) — bitte verkleinern.");
-  if (bytes < 100) throw new KiAnalyseFehler("Bild ist leer oder beschädigt.");
-  return { mediaType: mediaType as Bildtyp, base64 };
+  if (bytes > MAX_BILD_BYTES) throw new KiAnalyseFehler("Bild ist zu groß (max. 5 MB) — bitte verkleinern.", "BILD_UNGUELTIG");
+  if (bytes < 100) throw new KiAnalyseFehler("Bild ist leer oder beschädigt.", "BILD_UNGUELTIG");
+  const erkannt = erkenneBildtyp(base64);
+  if (!erkannt) {
+    throw new KiAnalyseFehler(
+      "Die Daten sind kein JPEG-, PNG-, WebP- oder GIF-Bild. iPhone-Fotos (HEIC) bitte vorher in JPEG umwandeln.",
+      "BILD_UNGUELTIG"
+    );
+  }
+  // Der tatsächliche Inhalt gewinnt über die Angabe des Clients — die Claude API lehnt abweichende media_types ab.
+  return { mediaType: erkannt, base64 };
+}
+
+/** Bildtyp anhand der Signatur der ersten Bytes. */
+function erkenneBildtyp(base64: string): Bildtyp | null {
+  const kopf = Buffer.from(base64.slice(0, 24), "base64");
+  const ascii = (von: number, bis: number) => kopf.subarray(von, bis).toString("latin1");
+  if (kopf[0] === 0xff && kopf[1] === 0xd8 && kopf[2] === 0xff) return "image/jpeg";
+  if (kopf[0] === 0x89 && ascii(1, 4) === "PNG") return "image/png";
+  if (ascii(0, 4) === "GIF8") return "image/gif";
+  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp";
+  return null;
 }
 
 /** Kleinste Schnittstelle des SDK-Clients, die hier gebraucht wird — erlaubt einen Fake in Tests. */
@@ -111,7 +139,7 @@ export async function analysiereMahlzeitBild(
   apiClient: MahlzeitAnalyseClient | null = null
 ): Promise<MahlzeitAnalyse> {
   if (!apiClient && !kiAnalyseKonfiguriert()) {
-    throw new KiAnalyseFehler("KI-Fotoanalyse ist nicht eingerichtet — dafür muss ANTHROPIC_API_KEY in der Server-Umgebung gesetzt sein.");
+    throw new KiAnalyseFehler("KI-Fotoanalyse ist nicht eingerichtet — dafür muss ANTHROPIC_API_KEY in der Server-Umgebung gesetzt sein.", "NICHT_KONFIGURIERT");
   }
   const { mediaType, base64 } = zerlegeBildDataUrl(eingabe.dataUrl);
   pruefeUndZaehleKiTageslimit();
@@ -156,7 +184,7 @@ function uebersetzeApiFehler(error: unknown): Error {
     return new KiAnalyseFehler("Der hinterlegte ANTHROPIC_API_KEY ist ungültig oder hat keine Berechtigung.");
   }
   if (error instanceof Anthropic.RateLimitError) {
-    return new KiAnalyseFehler("Rate-Limit der KI-API erreicht — bitte in einer Minute erneut versuchen.");
+    return new KiAnalyseFehler("Rate-Limit der KI-API erreicht — bitte in einer Minute erneut versuchen.", "LIMIT");
   }
   if (error instanceof Anthropic.BadRequestError) {
     return new KiAnalyseFehler(`Die KI-API hat die Anfrage abgelehnt: ${error.message}`);

@@ -11,7 +11,11 @@ export const ladeObjekt = cache(async (id: string) => {
 });
 
 export async function ladeObjekte() {
-  const userId = await getActiveUserId();
+  return ladeObjekteFuerUser(await getActiveUserId());
+}
+
+/** Variante mit expliziter userId — für Aufrufer ohne Cookie-Kontext (z. B. REST-API). */
+export async function ladeObjekteFuerUser(userId: string) {
   return prisma.property.findMany({ where: { asset: { userId } }, include: PROPERTY_INCLUDE, orderBy: { createdAt: "desc" } });
 }
 

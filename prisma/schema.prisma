@@ -89,6 +89,8 @@ model User {
   trainingEintraege   TrainingEintrag[]
   tagesAktivitaeten   TagesAktivitaet[]
   eigeneLebensmittel  EigenesLebensmittel[]
+
+  apiTokens ApiToken[]
 }
 
 // ---------------------------------------------------------------------------
@@ -840,4 +842,27 @@ model ReferenceLebensmittel {
   kohlenhydratePro100g Float
   fettPro100g          Float
   standardPortionG     Float  @default(100)
+}
+
+// ---------------------------------------------------------------------------
+// REST-API-Zugang (ADR-0011) — Tokens für Home Assistant, Kurzbefehle u. ä.
+// Gespeichert wird nur der SHA-256-Hash; der Klartext wird genau einmal bei
+// der Erstellung angezeigt. Ein Token handelt immer im Namen seines Users.
+// ---------------------------------------------------------------------------
+
+model ApiToken {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  /// SHA-256 (hex) des Klartext-Tokens.
+  tokenHash String  @unique
+  /// Anfang des Tokens zur Wiedererkennung in der Verwaltung ("tk_AbC12…").
+  praefix   String
+  /// false = nur lesende Endpunkte (GET), z. B. für reine Anzeige-Sensoren.
+  schreibzugriff   Boolean   @default(true)
+  zuletztGenutztAm DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
 }

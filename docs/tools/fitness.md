@@ -124,6 +124,10 @@ Die Startwerte der Lebensmittel-Datenbank liegen in `src/server/data/lebensmitte
 - **Restore** validiert den Abschnitt mit denselben Zod-Schemas wie die Formulare und ersetzt dann alle Fitness-Daten des aktiven Users. **Ältere Backups ohne `fitness`-Abschnitt lassen die vorhandenen Fitness-Daten unangetastet**; die Vorschau zeigt das explizit an.
 - **`npm run db:reset-user-data`** / `RESET_USER_DATA_ON_DEPLOY` löschen die Fitness-Daten aller User mit; die Lebensmittel-Datenbank ist Referenzdaten und bleibt.
 
+## REST-API & Home Assistant
+
+Alle Fitness-Werte sind auch über die REST-API lesbar und schreibbar (Tagesübersicht, Mahlzeiten, Foto-Analyse, Training, Gewicht, Tageswerte, Wasser) — gleiche Validierung, gleiche Berechnung, `quelle: API` an den Einträgen. Referenz: [`../api/README.md`](../api/README.md); Sensoren, Smart-Waage, Wasser-Knopf und Erinnerungen in Home Assistant: [`../integrations/home-assistant.md`](../integrations/home-assistant.md).
+
 ## Bekannte Vereinfachungen
 
 - Grundumsatz-Formeln haben eine individuelle Streuung von etwa ±10 %; das Kalorienziel ist ein Startwert, der nach 2–4 Wochen anhand des echten Gewichtstrends nachjustiert werden sollte (die Wochenbilanz vs. Trend auf `/fitness/gewicht` zeigt, ob es passt).
