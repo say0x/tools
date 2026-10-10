@@ -1,5 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Bundesland, Lagetyp, Gewerk, Objekttyp } from "../src/generated/prisma/client";
+import { LEBENSMITTEL_STARTWERTE } from "../src/server/data/lebensmittel-startwerte";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -166,6 +167,23 @@ async function main() {
       where: { bundesland_lagetyp: { bundesland: "SCHLESWIG_HOLSTEIN", lagetyp } },
       update: { bodenrichtwertProM2 },
       create: { bundesland: "SCHLESWIG_HOLSTEIN", lagetyp, bodenrichtwertProM2 },
+    });
+  }
+
+  for (const l of LEBENSMITTEL_STARTWERTE) {
+    const lebensmittel = {
+      bezeichnung: l.bezeichnung,
+      kategorie: l.kategorie,
+      kcalPro100g: l.kcalPro100g,
+      proteinPro100g: l.proteinPro100g,
+      kohlenhydratePro100g: l.kohlenhydratePro100g,
+      fettPro100g: l.fettPro100g,
+      standardPortionG: l.standardPortionG,
+    };
+    await prisma.referenceLebensmittel.upsert({
+      where: { bezeichnung: lebensmittel.bezeichnung },
+      update: lebensmittel,
+      create: lebensmittel,
     });
   }
 

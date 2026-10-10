@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: "tools — Dennis Kohnke",
     template: "%s · tools",
   },
-  description: "Interne Tool-Suite: Immobilien-Rechner, Finanzübersicht und Szenarien.",
+  description: "Interne Tool-Suite: Immobilien-Rechner, Finanzübersicht, Szenarien und Fitness & Ernährung.",
   // Internes Tool, nicht für die Öffentlichkeit gedacht (Zugriff ohnehin nur über
   // VPN-only Reverse-Proxy) — soll trotzdem nicht versehentlich indexiert werden.
   robots: {

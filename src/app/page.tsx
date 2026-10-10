@@ -19,6 +19,10 @@ import { ladeObjekte } from "@/server/data/property";
 import { ladeReferenceDataSnapshot } from "@/server/data/reference-data";
 import { toProfileInput, toPropertyInput } from "@/server/data/mappers";
 import { immobilienPositionAusErgebnis } from "@/server/data/vermoegen";
+import { ladeFitnessTag } from "@/server/data/fitness";
+import { getActiveUserId } from "@/server/session";
+import { heuteIso } from "@/server/calc/fitness/datum";
+import { formatKcal } from "@/lib/fitness-labels";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +71,11 @@ const tools = [
     description: "Ein Objekt aus deiner Bibliothek gegen die Alternative vergleichen, dasselbe Eigenkapital stattdessen anzulegen.",
   },
   {
+    href: "/fitness",
+    title: "Fitness & Ernährung",
+    description: "Kalorienbedarf, Ernährungstagebuch mit Lebensmittel-Datenbank, Training, Gewichtstrend und Sport-Rechner.",
+  },
+  {
     href: "/profil",
     title: "Profil",
     description: "Einkommen, Budget und Schwellen hinterlegen — steuert die Ampeln und Kennzahlen aller anderen Tools.",
@@ -80,12 +89,13 @@ const AMPEL_FARBEN: Record<"GRUEN" | "GELB" | "ROT", string> = {
 };
 
 export default async function Home() {
-  const [propertyRows, profilRow, referenceData, sparpositionenRows, szenarien] = await Promise.all([
+  const [propertyRows, profilRow, referenceData, sparpositionenRows, szenarien, fitnessHeute] = await Promise.all([
     ladeObjekte(),
     ladeProfil(),
     ladeReferenceDataSnapshot(),
     ladeSparpositionen(),
     ladeSzenarien(),
+    getActiveUserId().then((userId) => ladeFitnessTag(userId, heuteIso())),
   ]);
 
   const profile = toProfileInput(profilRow);
@@ -218,7 +228,7 @@ export default async function Home() {
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-semibold text-slate-100">Tool-Suite</h1>
-        <p className="mt-1 text-slate-400">Interne Finanz- und Investment-Werkzeuge.</p>
+        <p className="mt-1 text-slate-400">Interne Werkzeuge für Finanzen, Immobilien und Fitness.</p>
       </div>
 
       {nochKeineDaten && (
@@ -340,6 +350,45 @@ export default async function Home() {
           </Card>
         ))}
       </div>
+
+      {fitnessHeute.bilanz && (
+        <Link href="/fitness">
+          <Card className="transition-colors hover:border-slate-700">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <CardTitle className="mb-0">Fitness heute</CardTitle>
+              <span className={`text-sm ${fitnessHeute.bilanz.ueberBudget ? "text-amber-400" : "text-slate-400"}`}>
+                {fitnessHeute.bilanz.ueberBudget
+                  ? `${formatKcal(-fitnessHeute.bilanz.verbleibend)} über Budget`
+                  : `${formatKcal(fitnessHeute.bilanz.verbleibend)} übrig`}
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <div>
+                <div className="text-xs text-slate-400">Gegessen / Budget</div>
+                <div className="tabular-nums text-slate-100">
+                  {formatKcal(fitnessHeute.bilanz.zugefuehrt.kcal)} / {formatKcal(fitnessHeute.bilanz.budget)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400">Protein</div>
+                <div className="tabular-nums text-slate-100">
+                  {Math.round(fitnessHeute.bilanz.makros.protein.ist)} / {Math.round(fitnessHeute.bilanz.makros.protein.ziel)} g
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400">Training</div>
+                <div className="tabular-nums text-slate-100">
+                  {fitnessHeute.trainings.length > 0 ? `${fitnessHeute.trainings.reduce((s, t) => s + t.dauerMin, 0)} min` : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400">Gewicht</div>
+                <div className="tabular-nums text-slate-100">{fitnessHeute.gewichtKg != null ? `${formatNumber(fitnessHeute.gewichtKg, 1)} kg` : "—"}</div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      )}
 
       <div>
         <h2 className="mb-3 text-sm font-medium text-slate-400">Werkzeuge</h2>

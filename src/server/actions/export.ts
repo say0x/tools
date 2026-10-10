@@ -6,6 +6,8 @@ import { ladeSparpositionen } from "./finanzuebersicht";
 import { ladeSzenarien } from "./szenario";
 import { ladeReferenceDataSnapshot, ladeStandardwerte } from "@/server/data/reference-data";
 import { ausfuehren } from "./result";
+import { getActiveUserId } from "@/server/session";
+import { exportiereFitnessDaten } from "@/server/data/fitness-backup";
 
 /**
  * Vollständiger, lesbarer JSON-Export aller selbst eingegebenen Daten — reine
@@ -18,7 +20,7 @@ import { ausfuehren } from "./result";
  */
 export async function exportiereAlleDaten() {
   return ausfuehren(async () => {
-    const [objekte, profil, sparpositionen, szenarien, referenzdaten, standardwerte] = await Promise.all([
+    const [objekte, profil, sparpositionen, szenarien, referenzdaten, standardwerte, fitness] = await Promise.all([
       ladeObjekte(),
       ladeProfil(),
       ladeSparpositionen(),
@@ -29,6 +31,7 @@ export async function exportiereAlleDaten() {
       // /immobilien/referenzdaten editierbaren Standardwerte (Vorbelegung für neue
       // Objekte) — die fehlten hier bislang komplett im Backup.
       ladeStandardwerte(),
+      getActiveUserId().then(exportiereFitnessDaten),
     ]);
 
     return {
@@ -39,6 +42,7 @@ export async function exportiereAlleDaten() {
       szenarien,
       referenzdaten,
       standardwerte,
+      fitness,
     };
   });
 }

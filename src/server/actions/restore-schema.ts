@@ -15,6 +15,7 @@ import { BESCHAEFTIGUNGSSTATUS, profileSchema, type ProfileFormValues } from "./
 import { szenarioSchema, type SzenarioFormValues } from "./szenario-schema";
 import { sparpositionSchema, type SparpositionFormValues } from "./finanzuebersicht-schema";
 import { SZENARIO_AENDERUNG_TYPEN } from "./szenario-schema";
+import { fitnessBackupSchema, type FitnessBackup } from "@/server/data/fitness-backup";
 
 /**
  * Strukturelle Validierung des JSON-Uploads für den Backup-Restore (Rang 3
@@ -215,6 +216,9 @@ export const backupSchema = z
       tagesgeld: z.array(rawTagesgeldSchema),
     }),
     szenarien: z.array(rawSzenarioSchema),
+    // Optional: Backups vor Einführung des Fitness-Moduls haben keinen Abschnitt —
+    // dann bleiben die vorhandenen Fitness-Daten beim Restore unangetastet.
+    fitness: z.unknown().optional(),
   })
   .passthrough();
 export type Backup = z.infer<typeof backupSchema>;
@@ -432,6 +436,13 @@ export function validiereBackup(json: unknown):
     return { id: sz.id, createdAt: sz.createdAt, aenderungenIds: sz.aenderungen.map((a) => a.id), values };
   });
 
+  let fitness: FitnessBackup | null = null;
+  if (raw.fitness !== undefined && raw.fitness !== null) {
+    const fitnessResult = fitnessBackupSchema.safeParse(raw.fitness);
+    sammleFehler(fehler, "Fitness-Daten", fitnessResult);
+    if (fitnessResult.success) fitness = fitnessResult.data;
+  }
+
   if (fehler.length > 0) {
     return { success: false, error: fehler.join("\n") };
   }
@@ -444,6 +455,7 @@ export function validiereBackup(json: unknown):
       profil,
       sparpositionen,
       szenarien,
+      fitness,
     },
   };
 }
@@ -462,4 +474,6 @@ export interface ValidiertesBackup {
   profil: { id: string; liabilityIds: string[]; values: ProfileFormValues; gehaltInflation: { gehaltssteigerungProzentJaehrlich: number; inflationProzentJaehrlich: number } } | null;
   sparpositionen: { assetId: string; createdAt: Date; values: SparpositionFormValues }[];
   szenarien: { id: string; createdAt: Date; aenderungenIds: string[]; values: SzenarioFormValues }[];
+  /** null = Backup enthält keinen Fitness-Abschnitt (älteres Format) → Fitness-Daten bleiben unverändert. */
+  fitness: FitnessBackup | null;
 }
