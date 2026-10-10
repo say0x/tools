@@ -1,141 +1,154 @@
 "use client";
 
-// Referenz (Gruppen der Navigation, warum ein eigener Dropdown statt externer Bibliothek): docs/tools/weitere-rechner.md
-// Welche Links es gibt, steht ausschließlich in src/lib/tool-registry.ts.
+// Aufbau und Skalierungsregeln der Navigation: ADR-0012, docs/tools/weitere-rechner.md.
+// Welche Tools es gibt, steht ausschließlich in src/lib/tool-registry.ts.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/cn";
-import { HAUPT_TOOLS, TOOLS, WEITERE_TOOLS, istAktiv, type Tool } from "@/lib/tool-registry";
+import { KOPFZEILEN_TOOLS, STARTSEITE, istAktiv, toolFuerPfad } from "@/lib/tool-registry";
+import { ToolKategorien } from "./ToolKategorien";
+import { ToolSuche, merkeBesuch } from "./ToolSuche";
 
-/** Trennlinie vor dem ersten Eintrag einer neuen Gruppe. */
-const neueGruppe = (liste: readonly Tool[], i: number) => i > 0 && liste[i].gruppe !== liste[i - 1].gruppe;
+const PANEL_ID = "alle-tools";
+
+const istMacSnapshot = () => /Mac|iPhone|iPad/.test(navigator.platform);
+const keinAbo = () => () => {};
+
+/** Tastenkürzel „/“ nur, wenn gerade nicht in ein Feld getippt wird. */
+function tipptGerade(ziel: EventTarget | null): boolean {
+  return ziel instanceof HTMLElement && (ziel.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(ziel.tagName));
+}
 
 export function Nav({ userSwitcher }: { userSwitcher: React.ReactNode }) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
+  // Das Panel gilt nur für den Pfad, auf dem es geöffnet wurde — nach einer Navigation ist es zu, ohne Effekt.
+  const [panelPfad, setPanelPfad] = useState<string | null>(null);
+  const panelOffen = panelPfad === pathname;
+  const [sucheOffen, setSucheOffen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const panelKnopfRef = useRef<HTMLButtonElement>(null);
+  const istMac = useSyncExternalStore(keinAbo, istMacSnapshot, () => false);
 
   const isActive = (href: string) => istAktiv(href, pathname);
-  const moreIsActive = WEITERE_TOOLS.some((tool) => isActive(tool.href));
 
   useEffect(() => {
-    if (!moreOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    const tool = toolFuerPfad(pathname);
+    if (tool) merkeBesuch(tool.href);
+  }, [pathname]);
+
+  useEffect(() => {
+    const taste = (e: KeyboardEvent) => {
+      const kuerzel = (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !tipptGerade(e.target));
+      if (!kuerzel) return;
+      e.preventDefault();
+      setPanelPfad(null);
+      setSucheOffen(true);
     };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMoreOpen(false);
+    document.addEventListener("keydown", taste);
+    return () => document.removeEventListener("keydown", taste);
+  }, []);
+
+  useEffect(() => {
+    if (!panelOffen) return;
+    const klick = (e: MouseEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setPanelPfad(null);
     };
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
+    const taste = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setPanelPfad(null);
+      panelKnopfRef.current?.focus();
+    };
+    document.addEventListener("mousedown", klick);
+    document.addEventListener("keydown", taste);
     return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("mousedown", klick);
+      document.removeEventListener("keydown", taste);
     };
-  }, [moreOpen]);
+  }, [panelOffen]);
 
   const linkClass = (active: boolean) =>
     cn(
-      "rounded-md px-3 py-1.5 text-sm transition-colors",
+      "whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors",
       active ? "bg-slate-800 text-slate-100" : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
     );
+  const knopfClass = "flex items-center gap-2 whitespace-nowrap rounded-md border border-slate-800 px-2.5 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-800";
 
   return (
     // relative z-40: backdrop-blur erzeugt einen eigenen Stapelkontext — ohne z-index würden Seiteninhalte
-    // mit eigener Ebene (opacity, transform, position) über die Menüs dieser Kopfzeile gezeichnet.
-    <header className="relative z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-slate-100">
+    // mit eigener Ebene (opacity, transform, position) über Panel und Menüs dieser Kopfzeile gezeichnet.
+    <header ref={headerRef} className="relative z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-3">
+        <Link href={STARTSEITE.href} className="text-lg font-semibold tracking-tight text-slate-100">
           tools<span className="text-blue-500">.</span>
         </Link>
 
         <div className="hidden sm:block">{userSwitcher}</div>
 
-        <nav aria-label="Hauptnavigation" className="hidden gap-1 sm:flex sm:items-center">
-          {HAUPT_TOOLS.map((tool) => (
+        <nav aria-label="Hauptnavigation" className="ml-auto hidden items-center gap-1 lg:flex">
+          <Link href={STARTSEITE.href} aria-current={isActive(STARTSEITE.href) ? "page" : undefined} className={linkClass(isActive(STARTSEITE.href))}>
+            {STARTSEITE.label}
+          </Link>
+          {KOPFZEILEN_TOOLS.map((tool) => (
             <Link key={tool.href} href={tool.href} aria-current={isActive(tool.href) ? "page" : undefined} className={linkClass(isActive(tool.href))}>
               {tool.navLabel}
             </Link>
           ))}
-
-          <div className="relative" ref={moreRef}>
-            <button
-              type="button"
-              onClick={() => setMoreOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={moreOpen}
-              className={cn(linkClass(moreIsActive), "flex items-center gap-1")}
-            >
-              Weitere Tools
-              <svg viewBox="0 0 24 24" className={cn("h-3.5 w-3.5 transition-transform", moreOpen && "rotate-180")} fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-
-            {moreOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 z-40 mt-2 w-56 rounded-md border border-slate-800 bg-slate-900 p-1 shadow-lg shadow-black/30"
-              >
-                {WEITERE_TOOLS.map((tool, i) => (
-                  <Link
-                    key={tool.href}
-                    href={tool.href}
-                    role="menuitem"
-                    aria-current={isActive(tool.href) ? "page" : undefined}
-                    onClick={() => setMoreOpen(false)}
-                    className={cn(
-                      "block rounded-md px-3 py-2 text-sm transition-colors",
-                      neueGruppe(WEITERE_TOOLS, i) && "mt-1 border-t border-slate-800 pt-2",
-                      isActive(tool.href) ? "bg-slate-800 text-slate-100" : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-                    )}
-                  >
-                    {tool.navLabel}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
-          aria-expanded={mobileOpen}
-          className="flex h-9 w-9 items-center justify-center rounded-md text-slate-300 hover:bg-slate-800 sm:hidden"
-        >
-          {mobileOpen ? (
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <div className="ml-auto flex items-center gap-2 lg:ml-2">
+          <button
+            type="button"
+            onClick={() => {
+              setPanelPfad(null);
+              setSucheOffen(true);
+            }}
+            aria-keyshortcuts="Control+K Meta+K /"
+            className={knopfClass}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
             </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+            <span className="sr-only md:not-sr-only">Suchen</span>
+            <kbd className="hidden rounded border border-slate-700 px-1.5 font-sans text-xs text-slate-400 xl:inline">{istMac ? "⌘K" : "Strg K"}</kbd>
+          </button>
+
+          <button
+            ref={panelKnopfRef}
+            type="button"
+            onClick={() => setPanelPfad(panelOffen ? null : pathname)}
+            aria-expanded={panelOffen}
+            aria-controls={PANEL_ID}
+            className={cn(knopfClass, panelOffen && "bg-slate-800 text-slate-100")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="currentColor">
+              {[4, 10, 16].flatMap((y) => [4, 10, 16].map((x) => <rect key={`${x}-${y}`} x={x} y={y} width="4" height="4" rx="1" />))}
             </svg>
-          )}
-        </button>
+            <span className="sr-only sm:not-sr-only">Alle Tools</span>
+          </button>
+        </div>
       </div>
 
-      {mobileOpen && (
-        <nav aria-label="Hauptnavigation (mobil)" className="flex flex-col gap-3 border-t border-slate-800 px-6 py-3 sm:hidden">
-          <div>{userSwitcher}</div>
-          {TOOLS.map((tool, i) => (
-            <Link
-              key={tool.href}
-              href={tool.href}
-              aria-current={isActive(tool.href) ? "page" : undefined}
-              onClick={() => setMobileOpen(false)}
-              className={cn(linkClass(isActive(tool.href)), neueGruppe(TOOLS, i) && "mt-1 border-t border-slate-800 pt-3")}
-            >
-              {tool.navLabel}
-            </Link>
-          ))}
+      {panelOffen && (
+        <nav
+          id={PANEL_ID}
+          aria-label="Alle Tools"
+          // Klick auf einen Link schließt das Panel auch dann, wenn er zur aktuellen Seite führt.
+          onClick={(e) => {
+            if ((e.target as Element).closest("a")) setPanelPfad(null);
+          }}
+          className="absolute inset-x-0 top-full border-b border-slate-800 bg-slate-950 shadow-xl shadow-black/40"
+        >
+          <div className="mx-auto max-h-[calc(100dvh-4.5rem)] max-w-6xl overflow-y-auto px-6 py-5">
+            <div className="mb-4 sm:hidden">{userSwitcher}</div>
+            <ToolKategorien variante="panel" aktiverPfad={pathname} />
+          </div>
         </nav>
       )}
+
+      {sucheOffen && <ToolSuche onSchliessen={() => setSucheOffen(false)} />}
     </header>
   );
 }

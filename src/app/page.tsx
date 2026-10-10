@@ -3,6 +3,7 @@
 import Link from "next/link";
 import dynamicImport from "next/dynamic";
 import { Card, CardTitle } from "@/components/ui/Card";
+import { ToolKategorien } from "@/components/layout/ToolKategorien";
 import { AmpelBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -10,7 +11,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { formatEuro, formatNumber } from "@/lib/format";
 import { AMPEL_LABELS } from "@/lib/labels";
 import { FIELD_HILFE } from "@/lib/field-hilfe";
-import { STARTSEITEN_TOOLS } from "@/lib/tool-registry";
 import { ladeDashboardKennzahlen } from "@/server/data/dashboard-kennzahlen";
 import { ladeFitnessTag } from "@/server/data/fitness";
 import { getActiveUserId } from "@/server/session";
@@ -280,19 +280,12 @@ export default async function Home() {
         </Link>
       )}
 
-      <div>
-        <h2 className="mb-3 text-sm font-medium text-slate-400">Werkzeuge</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {STARTSEITEN_TOOLS.map((tool) => (
-            <Link key={tool.href} href={tool.href}>
-              <Card className="transition-colors hover:border-slate-700">
-                <CardTitle className="mb-1">{tool.titel}</CardTitle>
-                <p className="text-sm text-slate-400">{tool.beschreibung}</p>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <section aria-labelledby="werkzeuge">
+        <h2 id="werkzeuge" className="mb-3 text-sm font-medium text-slate-400">
+          Werkzeuge
+        </h2>
+        <ToolKategorien variante="startseite" />
+      </section>
     </div>
   );
 }
