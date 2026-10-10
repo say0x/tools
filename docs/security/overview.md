@@ -13,6 +13,10 @@ Einzelnutzer-Tool im eigenen Homelab, nur über VPN erreichbar (siehe [ADR-0006]
 - **Netzwerk**: `docker-compose.yml` mappt den Postgres-Port bewusst nicht auf den Host (behoben im Audit — vorher unnötig exponiert mit trivialen Zugangsdaten). Der App-Container erreicht Postgres ausschließlich über das Docker-Netz.
 - **Security-Header/CSP**: seit 2026-08-28 gesetzt (`next.config.ts`) — Content-Security-Policy, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, restriktives `Permissions-Policy`. Details und Begründung (statische statt Nonce-basierte CSP): [`docs/deployment/docker.md`](../deployment/docker.md#http-security-header).
 
+## Externe Datenflüsse
+
+- **KI-Fotoanalyse (opt-in, seit 2026-10)**: nur wenn `ANTHROPIC_API_KEY` gesetzt ist, sendet der Server verkleinerte Mahlzeitenfotos und einen optionalen Zusatztext an die Anthropic API ([ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md)). Der Aufruf passiert ausschließlich serverseitig — der Schlüssel erreicht nie den Browser, die CSP bleibt bei `connect-src 'self'`. Fotos werden von `tools` nicht gespeichert. Validierung vor dem Versand: Bildtyp (JPEG/PNG/WebP/GIF) und Größe (≤ 5 MB). Kostendeckel `KI_FOTO_LIMIT_PRO_TAG`. Der Schlüssel gehört in die lokale `.env` (gitignored), nie ins Repository oder in `docker-compose.yml`.
+
 ## Bekannte, beobachtete Dependency-Advisory
 
 `npm audit` meldet 3 High-Severity-Funde, alle aus derselben Kette: `deepmerge-ts < 8.0.0` (Stack-Exhaustion, [GHSA-ggr8-5vv4-36mx](https://github.com/advisories/GHSA-ggr8-5vv4-36mx)) über `@prisma/config`, eine Abhängigkeit der `prisma`-CLI. Nur zur Build-/Deploy-Zeit erreichbar (Prisma-CLI-Tooling), nicht über die laufende Web-App — reale Ausnutzbarkeit gering. `npm`s vorgeschlagener Fix ist ein Major-Downgrade der `prisma`-CLI — **nicht empfohlen** (schlechter Tausch). Auf ein Patch-Release von `@prisma/config` warten, bei jedem `npm audit`-Lauf neu prüfen statt fest verlinken.

@@ -9,7 +9,7 @@ Kalorienbedarf, Ernährungstagebuch, Training, Gewichtsverlauf und Sport-Rechner
 | Pfad | Inhalt |
 |---|---|
 | `/fitness` | Tagesübersicht (per `?datum=JJJJ-MM-TT` auch für vergangene Tage): Kalorienziel, Gegessen, Training, Verbleibend; Makro-Fortschritt; Wasser-Schnellbuttons (+250/+500/−250 ml), Schritte/Schlaf/Ruhepuls; Mahlzeiten nach Mahlzeit gruppiert; Trainings des Tages; 7-Tage-Diagramm Zufuhr vs. Budget mit Wochenstatistik |
-| `/fitness/ernaehrung` | Ernährungstagebuch: Lebensmittel-Datenbank (Suche + Menge → Nährwerte live), manuelle Eingabe, eigene Lebensmittel (je 100 g) anlegen/löschen; Einträge des Tages |
+| `/fitness/ernaehrung` | Ernährungstagebuch: **Foto (KI)** (siehe unten), Lebensmittel-Datenbank (Suche + Menge → Nährwerte live), manuelle Eingabe, eigene Lebensmittel (je 100 g) anlegen/löschen; Einträge des Tages |
 | `/fitness/training` | Training eintragen mit Live-Schätzung des Mehrverbrauchs, Override für Sportuhr-Werte; Kennzahlen 7/30 Tage; Liste der letzten 30 Tage |
 | `/fitness/gewicht` | Gewicht + optional Körperfett je Tag; 7-Tage-Durchschnitt, Veränderung 7/30 Tage, Trend kg/Woche, BMI, Ziel-Prognose; Diagramm mit echter Zeitachse |
 | `/fitness/rechner` | Freistehend, ohne Speichern: Lauf-Pace & Wettkampfprognose (Riegel), Herzfrequenzzonen (Tanaka/Karvonen), 1RM (Epley/Brzycki) |
@@ -33,6 +33,9 @@ Das Start-Dashboard (`/`) zeigt zusätzlich eine Karte „Fitness heute", sobald
 | `server/data/fitness-backup.ts` | Export/Restore-Format des Fitness-Teils | `exportiereFitnessDaten`, `fitnessBackupSchema`, `stelleFitnessDatenWieder` |
 | `server/data/lebensmittel-startwerte.ts` | 70 Startwerte der Lebensmittel-Datenbank | `LEBENSMITTEL_STARTWERTE` |
 | `server/actions/fitness-schema.ts` | Zod-Validierung aller Schreibwege | `fitnessProfilSchema`, `mahlzeitSchema`, `trainingSchema`, `tagesAktivitaetSchema`, … |
+| `calc/fitness/ki-plausibilitaet.ts` | Nachbearbeitung der KI-Schätzung: Runden, Summe, kcal-vs-Makro-Prüfung, Mengen-Skalierung | `pruefeKiAnalyse`, `skalierePosition` |
+| `server/ki/mahlzeit-analyse.ts` | Claude-API-Aufruf (Vision + Structured Outputs), Bildprüfung, Fehlerübersetzung, Tageslimit | `analysiereMahlzeitBild`, `kiAnalyseKonfiguriert`, `zerlegeBildDataUrl` |
+| `server/actions/fitness-ki.ts` | Server Action für die Foto-Analyse (speichert nichts) | `analysiereMahlzeitFoto` |
 | `server/actions/fitness.ts` | Server Actions (`ActionResult`, [ADR-0008](../architecture/decisions/0008-server-actions-geben-ergebnis-zurueck-statt-zu-werfen.md)) | `speichereFitnessProfil`, `erstelleMahlzeiten`, `erstelleTraining`, `addiereWasser`, … |
 
 Die Datenzugriffs-Funktionen nehmen die `userId` als Parameter, statt selbst `getActiveUserId()` aufzurufen — so nutzen Server Actions (Cookie-Nutzer) und künftige Schnittstellen (z. B. eine Token-API) exakt dieselben Lese-/Schreibwege und dieselbe Validierung. Gelöscht wird immer per `(id, userId)`; ein fremder oder erfundener Eintrag liefert „nicht gefunden" statt gelöscht zu werden.
@@ -79,6 +82,26 @@ Ohne Override wird der Verbrauch **bei jedem Lesen neu** mit dem Gewicht des jew
 - **Maximalpuls** nach Tanaka et al. (2001): `208 − 0,7 · Alter`; Zonen mit Ruhepuls nach Karvonen (`Ruhe + % · (Max − Ruhe)`), sonst Prozent von HFmax (50/60/70/80/90/100 %).
 - **1RM**: Epley `w · (1 + r/30)`, Brzycki `w · 36/(37 − r)` (nur bis 36 Wdh.), angezeigt wird der Mittelwert plus eine Gewichtstabelle für 1–15 Wiederholungen (Epley invertiert).
 
+## KI-Fotoanalyse
+
+Optional, aktiv nur mit `ANTHROPIC_API_KEY` in der Server-Umgebung — Entscheidung und Alternativen: [ADR-0010](../architecture/decisions/0010-ki-fotoanalyse-ueber-claude-api.md).
+
+**Ablauf**: Foto wählen bzw. auf dem Handy direkt aufnehmen (`<input type="file" accept="image/*" capture="environment">`) → der Browser verkleinert auf max. 1.568 px Kantenlänge als JPEG (Empfehlung für Claude Vision; größer bringt keine Genauigkeit, nur Upload-Zeit) → optionale Zusatzinfo („mit Sahnesoße", „halbe Portion") → Server Action → Claude liefert über **Structured Outputs** ein festes Schema (`erkannt`, `beschreibung`, `positionen[]` mit Menge/kcal/Protein/KH/Fett, `konfidenz`, `hinweise`) → Anzeige als editierbare Tabelle → „Alle übernehmen" legt je Position einen `MahlzeitEintrag` mit `quelle = FOTO_KI` und der Konfidenz an.
+
+**Kontrolle statt Automatik**: Mengen sind änderbar und skalieren die Nährwerte proportional mit (`skalierePosition`); Positionen lassen sich entfernen; `pruefeKiAnalyse` rundet, verwirft leere Positionen und markiert Positionen, deren kcal mehr als 25 % (mind. 30 kcal) von `4·P + 4·KH + 9·F` abweichen. Gespeichert wird erst nach Klick.
+
+**Konfiguration** (Server-Umgebung, z. B. `.env` neben `docker-compose.yml`):
+
+| Variable | Default | Bedeutung |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | — | Aktiviert die Funktion |
+| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Anderes Modell, z. B. `claude-sonnet-5-5` (günstiger) |
+| `KI_FOTO_LIMIT_PRO_TAG` | `100` | Max. Analysen je Server-Prozess und Kalendertag (Kostendeckel) |
+
+Anfrage-Details: `effort: "medium"`, `max_tokens` 16.000, serverseitiger Refusal-Fallback (`fallbacks: "default"`, Beta `server-side-fallback-2026-07-01`) nur für Modelle, die ihn unterstützen; Timeout 90 s, 2 Retries. Bilder: JPEG/PNG/WebP/GIF, max. 5 MB dekodiert (Server-Action-Body-Limit 8 MB als Sicherheitsnetz in `next.config.ts`). Ablehnung (`stop_reason: "refusal"`), abgeschnittene Antworten und API-Fehler (Schlüssel ungültig, Rate-Limit, nicht erreichbar) werden in verständliche Meldungen übersetzt.
+
+**Datenschutz**: Das Foto geht an die Anthropic API und wird von `tools` nicht gespeichert. Wer das nicht möchte, setzt keinen Schlüssel — die übrigen Erfassungswege bleiben vollständig.
+
 ## Datenmodell
 
 Alle Tabellen hängen per `userId` am `User` (`onDelete: Cascade`, [ADR-0009](../architecture/decisions/0009-lokales-mehrbenutzer-datenmodell.md)). Kalendertage sind `@db.Date`; „heute" bestimmt die App in **Europe/Berlin** (`heuteIso()`), nicht in der UTC-Zeit des Containers — sonst wäre zwischen 0 und 2 Uhr noch gestern.
@@ -108,4 +131,5 @@ Die Startwerte der Lebensmittel-Datenbank liegen in `src/server/data/lebensmitte
 - MET-Werte sind Durchschnittswerte; Sportuhren schätzen über die Herzfrequenz meist genauer (Override nutzen). Sportuhren zeigen fast immer den **Brutto**-Verbrauch — für das Budget etwas abziehen.
 - Die Lebensmittel-Datenbank ist eine gerundete Startauswahl (±10–20 % Sortenschwankung), keine vollständige Nährwerttabelle; exakte Produkte als eigenes Lebensmittel anlegen.
 - Keine Mikronährstoffe, Ballaststoffe oder Allergene.
+- KI-Fotoschätzungen haben realistisch ±20–30 % Fehler, vor allem bei verstecktem Fett (Öl, Butter, Soßen) und verdeckten Zutaten — die Zusatzinfo und die Mengenkorrektur sind dafür da.
 - Der 7-Tage-Durchschnitt füllt Lücken nicht auf; bei sehr unregelmäßigem Wiegen ist der Trend entsprechend unsicher (Mindestanforderung siehe oben).
