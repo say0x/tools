@@ -1,6 +1,6 @@
 # Architektur-Übersicht
 
-Große Linien der Systemarchitektur. Details zu einem einzelnen Tool stehen unter [`docs/tools/`](../tools/), Begründungen einzelner Entscheidungen unter [`docs/architecture/decisions/`](decisions/).
+Große Linien der Systemarchitektur. Details zu einem einzelnen Tool stehen unter [`docs/tools/`](../tools/), Begründungen einzelner Entscheidungen unter [`docs/architecture/decisions/`](decisions/), Bewertung und Roadmap unter [`plattform-status.md`](plattform-status.md).
 
 ## System auf einen Blick
 

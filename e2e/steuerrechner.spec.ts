@@ -27,7 +27,9 @@ test("Steuerrechner: manuelles zvE-Override macht das zvE-Feld editierbar", asyn
   // über das unmittelbar umschließende <label> (bedient den Klick per HTML-Label-Assoziation).
   // Nicht das äußere Field-<label> nehmen — das würde stattdessen das zvE-Textfeld aktivieren,
   // weil ein <label> mit mehreren Controls beim Klick das erste enthaltene Control anspricht.
-  await page.getByRole("checkbox").locator("xpath=ancestor::label[1]").click();
+  // Seit Soli/Kirchensteuer/Sozialabgaben (#84) gibt es mehrere Switches auf der Seite —
+  // gezielt das innere Label mit dem Text "manuell" neben dem zvE-Feld wählen.
+  await page.locator("label").filter({ hasText: /^\s*manuell\s*$/ }).click();
 
   await expect(zveInput).toBeEnabled();
 });

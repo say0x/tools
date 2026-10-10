@@ -52,7 +52,7 @@ export function UserSwitcherMenu({ users, activeUserId }: UserSwitcherMenuProps)
           role="menu"
           className="absolute right-0 z-40 mt-2 w-56 rounded-md border border-slate-800 bg-slate-900 p-1 shadow-lg shadow-black/30"
         >
-          <p className="px-3 py-1.5 text-xs text-slate-500">Test-User (kein echtes Login)</p>
+          <p className="px-3 py-1.5 text-xs text-slate-400">Test-User (kein echtes Login)</p>
           {users.map((u) => (
             <form key={u.id} action={wechsleNutzerFormAction.bind(null, u.id)} role="none">
               <button

@@ -45,5 +45,5 @@ Ein Fund aus der Ökosystem-Analyse (2026-08-22, behoben): Kaufen-oder-Anlegen? 
 
 `tools` ist ein Next.js-Monolith mit einem Build, einem Docker-Image, einem Deploy-Ziel ([ADR-0007](../architecture/decisions/0007-monolith-statt-microservices.md)) — es gibt keine unabhängig auslieferbaren Tool-Versionen. Statt erfundener Pro-Tool-Versionsnummern (die eine Unabhängigkeit vortäuschen würden, die technisch nicht existiert):
 
-- **Plattform-Version**: `package.json` (`0.2.0-20260823` — SemVer mit CalVer-Datumssuffix `YYYYMMDD`, siehe [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md)).
+- **Plattform-Version**: `package.json` (`0.3.0-20261010` — SemVer mit CalVer-Datumssuffix `YYYYMMDD`, siehe [`docs/releases/CHANGELOG.md`](../releases/CHANGELOG.md)).
 - **Pro Tool, ehrlich statt erfunden**: `git log -- src/app/<pfad>` zeigt den tatsächlichen Änderungsverlauf eines einzelnen Tools innerhalb der gemeinsamen Historie.

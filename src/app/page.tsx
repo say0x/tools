@@ -343,7 +343,7 @@ export default async function Home() {
             <div className={`mt-1 text-lg font-semibold ${fakt.warnung ? "text-amber-400" : "text-slate-100"}`}>{fakt.value}</div>
             <div className="mt-1 text-xs text-slate-400">{fakt.hint}</div>
             {fakt.netto !== null && (
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-slate-400">
                 Netto (abzgl. Restschulden): <span className="text-slate-300">{formatEuro(fakt.netto)}</span>
               </div>
             )}
